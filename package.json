@@ -1,0 +1,14 @@
+{
+  "name": "ordkort",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Flashcards, dictionary, grammar and translator for any language",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev --port 8787",
+    "deploy": "wrangler deploy"
+  },
+  "devDependencies": {
+    "wrangler": "^4.45.0"
+  }
+}

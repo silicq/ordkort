@@ -1,0 +1,32 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "ordkort",
+  "main": "src/worker.js",
+  "compatibility_date": "2026-09-01",
+
+  // Сайт из public/ раздаётся бесплатно и без лимитов; Worker запускается только для /api/*
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS",
+    "run_worker_first": ["/api/*"]
+  },
+
+  // База создаётся автоматически при первом деплое (wrangler ≥ 4.45), схема — при первом запросе
+  "d1_databases": [
+    { "binding": "DB", "database_name": "ordkort" }
+  ],
+
+  // Раз в сутки: удалить истёкшие счётчики лимитов, коды привязки и заброшенные копии
+  "triggers": { "crons": ["17 3 * * *"] },
+
+  // Логи запросов выключены: сайт не хранит ничего лишнего о посетителях
+  "observability": { "enabled": false },
+
+  // Лимиты ИИ (можно менять в панели Cloudflare без правки кода).
+  // Секрет GROQ_API_KEY задаётся отдельно: wrangler secret put GROQ_API_KEY
+  "vars": {
+    "AI_PER_HOUR": "40",
+    "AI_PER_DAY": "120",
+    "AI_DAILY_BUDGET": "2500"
+  }
+}

@@ -1,0 +1,396 @@
+/* Хранилище: всё лежит в localStorage этого браузера.
+   Интервальное повторение — система Лейтнера из 8 «коробок».
+   Для синхронизации у каждой колоды и карточки есть метка времени изменения (u),
+   а удалённое помнится «надгробием» (del) — так устройства сливают данные без сервера-арбитра. */
+(() => {
+  const A = window.App;
+  const MIN = 6e4, DAY = 864e5;
+  const INTERVALS = [0, 10 * MIN, DAY, 3 * DAY, 7 * DAY, 16 * DAY, 35 * DAY, 90 * DAY];
+  const MAX_BOX = INTERVALS.length - 1;
+  const KNOWN_BOX = 4;
+
+  const mem = {};
+  const read = (k) => { try { return localStorage.getItem(k); } catch { return mem[k] ?? null; } };
+  const write = (k, v) => { try { localStorage.setItem(k, v); return true; } catch { mem[k] = v; return false; } };
+  const remove = (k) => { try { localStorage.removeItem(k); } catch { delete mem[k]; } };
+
+  const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+  const dayKey = (d = new Date()) =>
+    `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+
+  const defaultSettings = () => ({
+    native: 'en', target: 'nb', ui: '', theme: 'auto', direction: 'forward',
+    newPerDay: 15, sessionSize: 20, batch: 20, level: 'A1',
+    autoSpeak: false,
+  });
+  const DEVICE_ONLY = ['theme']; // не синхронизируется: на телефоне может быть тёмная тема, на ноутбуке — светлая
+  const blank = () => ({ v: 1, settings: null, pairs: {}, days: {}, recent: [] });
+
+  let state = blank();
+  let warned = false;
+  let silent = 0;
+  const listeners = [];
+  const now = () => Date.now();
+
+  function load() {
+    let s = null;
+    try { s = JSON.parse(read(A.config.storageKey) || 'null'); } catch { s = null; }
+    state = s && typeof s === 'object' ? s : blank();
+    state.pairs ||= {};
+    state.days ||= {};
+    state.recent ||= [];
+    if (state.settings) {
+      state.settings = { ...defaultSettings(), ...state.settings };
+      delete state.settings.apiKey;
+      delete state.settings.model;
+    }
+  }
+
+  function save() {
+    if (!write(A.config.storageKey, JSON.stringify(state)) && !warned) {
+      warned = true;
+      A.toast?.(A.t('err.storage'), 'error');
+    }
+    if (!silent) listeners.forEach((fn) => fn());
+  }
+  const onChange = (fn) => listeners.push(fn);
+
+  /* ---------- настройки и языковые пары ---------- */
+  const pairKey = () => `${state.settings.target}:${state.settings.native}`;
+  function pair() {
+    const k = pairKey();
+    const p = (state.pairs[k] ||= { decks: {}, cards: {} });
+    p.del ||= {};
+    return p;
+  }
+
+  function init({ native, target, level }) {
+    state.settings = { ...defaultSettings(), native, target, level: level || 'A1', u: now() };
+    save();
+  }
+  function set(patch) {
+    Object.assign(state.settings, patch);
+    if (Object.keys(patch).some((k) => !DEVICE_ONLY.includes(k))) state.settings.u = now();
+    save();
+  }
+  function pairs() {
+    const native = state.settings.native;
+    return Object.entries(state.pairs)
+      .map(([k, p]) => { const [target, nat] = k.split(':'); return { target, native: nat, count: Object.keys(p.cards).length }; })
+      .filter((p) => p.native === native);
+  }
+
+  /* ---------- колоды ---------- */
+  const decks = () => Object.values(pair().decks).sort((a, b) => a.created - b.created);
+  const deck = (id) => pair().decks[id] || null;
+
+  function addDeck(d) {
+    const dk = { id: uid(), created: now(), u: now(), group: 'custom', emoji: '🗂️', ...d };
+    pair().decks[dk.id] = dk;
+    save();
+    return dk;
+  }
+  function updateDeck(id, patch) {
+    const d = deck(id);
+    if (d) { Object.assign(d, patch, { u: now() }); save(); }
+  }
+  function deleteDeck(id) {
+    const p = pair();
+    delete p.decks[id];
+    p.del[id] = now();
+    for (const c of Object.values(p.cards)) if (c.deck === id) { delete p.cards[c.id]; p.del[c.id] = now(); }
+    save();
+  }
+  function mineDeck() {
+    let d = decks().find((x) => x.kind === 'mine');
+    if (!d) d = addDeck({ kind: 'mine', emoji: '📌', group: 'custom' });
+    return d;
+  }
+
+  /* ---------- карточки ---------- */
+  const ART = /^(a|an|the|to|en|ei|et|å|der|die|das|ein|eine|le|la|les|un|une|el|los|las|il|lo|gli|uno|o|os|as|um|uma|het|ett|att|at)\s+/i;
+  const norm = (s) => (s || '').toLowerCase().normalize('NFC')
+    .replace(/[.,!?;:"«»“”„()[\]¿¡]/g, '').replace(/^l['’]/, '').trim().replace(ART, '').trim();
+
+  const cards = (deckId) => {
+    const all = Object.values(pair().cards);
+    return deckId ? all.filter((c) => c.deck === deckId) : all;
+  };
+  const card = (id) => pair().cards[id] || null;
+  const hasTerm = (term) => cards().some((c) => norm(c.term) === norm(term));
+
+  function addCards(deckId, words) {
+    const p = pair();
+    const seen = new Set(Object.values(p.cards).map((c) => norm(c.term)));
+    let added = 0;
+    const t = now();
+    for (const w of words || []) {
+      const term = String(w.term || '').trim();
+      const tr = String(w.tr || '').trim();
+      if (!term || !tr) continue;
+      const n = norm(term);
+      if (seen.has(n)) continue;
+      seen.add(n);
+      const c = {
+        id: uid(), deck: deckId, term, tr,
+        pos: w.pos || '', gram: w.gram || '', forms: w.forms || '', pron: w.pron || '',
+        ex: w.ex || '', exTr: w.ex_tr || w.exTr || '',
+        box: 0, due: 0, reps: 0, lapses: 0, last: 0, created: t + added, u: t,
+      };
+      p.cards[c.id] = c;
+      added++;
+    }
+    save();
+    return added;
+  }
+  function updateCard(id, patch) {
+    const c = card(id);
+    if (c) { Object.assign(c, patch, { u: now() }); save(); }
+  }
+  function deleteCard(id) {
+    const p = pair();
+    delete p.cards[id];
+    p.del[id] = now();
+    save();
+  }
+  function resetCard(id) {
+    updateCard(id, { box: 0, due: 0, reps: 0, lapses: 0 });
+  }
+
+  /* ---------- статистика ---------- */
+  const today = () => state.days[dayKey()] || { rev: 0, ok: 0, new: 0 };
+  function bump(ok, wasNew) {
+    const d = (state.days[dayKey()] ||= { rev: 0, ok: 0, new: 0 });
+    d.rev++;
+    if (ok) d.ok++;
+    if (wasNew) d.new++;
+  }
+  function streak() {
+    const d = new Date();
+    if (!state.days[dayKey(d)]?.rev) d.setDate(d.getDate() - 1);
+    let n = 0;
+    while (state.days[dayKey(d)]?.rev) { n++; d.setDate(d.getDate() - 1); }
+    return n;
+  }
+  function week() {
+    const out = [];
+    const d = new Date();
+    d.setDate(d.getDate() - 6);
+    for (let i = 0; i < 7; i++) {
+      out.push({ date: new Date(d), rev: state.days[dayKey(d)]?.rev || 0, today: i === 6 });
+      d.setDate(d.getDate() + 1);
+    }
+    return out;
+  }
+  function overview(deckId) {
+    const now = Date.now();
+    const o = { total: 0, due: 0, fresh: 0, learning: 0, known: 0 };
+    for (const c of cards(deckId)) {
+      o.total++;
+      if (c.box === 0) { o.fresh++; continue; }
+      if (c.due <= now) o.due++;
+      if (c.box >= KNOWN_BOX) o.known++; else o.learning++;
+    }
+    o.newLeft = Math.max(0, state.settings.newPerDay - today().new);
+    return o;
+  }
+
+  /* ---------- занятие ---------- */
+  function buildSession(deckId, extraNew = 0) {
+    const now = Date.now();
+    const s = state.settings;
+    const all = cards(deckId);
+    const due = all.filter((c) => c.box > 0 && c.due <= now).sort((a, b) => a.due - b.due);
+    const fresh = all.filter((c) => c.box === 0).sort((a, b) => a.created - b.created);
+    const size = Math.max(s.sessionSize, extraNew);
+    const dueTake = due.slice(0, size);
+    const newLimit = extraNew || Math.max(0, s.newPerDay - today().new);
+    const newTake = fresh.slice(0, Math.max(0, Math.min(newLimit, size - dueTake.length)));
+    const q = [];
+    let i = 0, j = 0;
+    while (i < dueTake.length || j < newTake.length) {
+      if (i < dueTake.length) q.push(dueTake[i++].id);
+      if (i < dueTake.length) q.push(dueTake[i++].id);
+      if (j < newTake.length) q.push(newTake[j++].id);
+    }
+    return q;
+  }
+  function cramQueue(deckId) {
+    const ids = cards(deckId).filter((c) => c.box > 0).map((c) => c.id);
+    for (let i = ids.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [ids[i], ids[j]] = [ids[j], ids[i]];
+    }
+    return ids.slice(0, state.settings.sessionSize);
+  }
+  function answer(id, ok, cram) {
+    const c = card(id);
+    if (!c) return;
+    const wasNew = c.box === 0;
+    if (!cram) {
+      if (ok) c.box = wasNew ? KNOWN_BOX : Math.min(c.box + 1, MAX_BOX);
+      else { if (!wasNew) c.lapses++; c.box = 1; }
+      c.due = Date.now() + INTERVALS[c.box];
+      c.reps++;
+      c.last = Date.now();
+      c.u = c.last;
+    }
+    bump(ok, wasNew && !cram);
+    save();
+  }
+  const stage = (box) => (box === 0 ? 'new' : box < KNOWN_BOX ? 'learning' : box < MAX_BOX ? 'known' : 'mastered');
+
+  /* ---------- история поиска в словаре ---------- */
+  function addRecent(q) {
+    const lang = state.settings.target;
+    state.recent = [{ q, lang }, ...state.recent.filter((r) => !(r.lang === lang && r.q.toLowerCase() === q.toLowerCase()))].slice(0, 40);
+    save();
+  }
+  const recent = () => state.recent.filter((r) => r.lang === state.settings.target).slice(0, 8).map((r) => r.q);
+
+  /* ---------- кэш ответов ИИ (LRU) ---------- */
+  let cache = null;
+  function cacheObj() {
+    if (!cache) { try { cache = JSON.parse(read(A.config.cacheKey) || '{}') || {}; } catch { cache = {}; } }
+    return cache;
+  }
+  function cacheWrite() {
+    for (let tries = 0; tries < 4; tries++) {
+      if (write(A.config.cacheKey, JSON.stringify(cache))) return;
+      const keys = Object.keys(cache).sort((a, b) => cache[a].t - cache[b].t);
+      if (!keys.length) return;
+      keys.slice(0, Math.ceil(keys.length / 3)).forEach((k) => delete cache[k]);
+    }
+  }
+  function cacheGet(k) {
+    const e = cacheObj()[k];
+    if (!e) return null;
+    e.t = Date.now();
+    return e.v;
+  }
+  function cacheHas(k) { return !!cacheObj()[k]; }
+  function cacheSet(k, v) {
+    const c = cacheObj();
+    c[k] = { v, t: Date.now() };
+    const keys = Object.keys(c);
+    if (keys.length > A.config.cacheLimit) {
+      keys.sort((a, b) => c[a].t - c[b].t).slice(0, keys.length - A.config.cacheLimit).forEach((x) => delete c[x]);
+    }
+    cacheWrite();
+  }
+  function cacheClear() { cache = {}; remove(A.config.cacheKey); }
+
+  /* ---------- синхронизация: снимок и слияние ---------- */
+  const DEL_TTL = 180 * 864e5;
+  const stamp = (e) => e?.u || e?.created || 0;
+
+  function snapshot() {
+    const cutoff = now() - DEL_TTL;
+    for (const p of Object.values(state.pairs)) {
+      for (const [id, t] of Object.entries(p.del || {})) if (t < cutoff) delete p.del[id];
+    }
+    const settings = state.settings ? { ...state.settings } : null;
+    if (settings) DEVICE_ONLY.forEach((k) => delete settings[k]);
+    return { v: 1, settings, pairs: state.pairs, days: state.days, recent: state.recent };
+  }
+
+  /* Слить чужой снимок с локальными данными: побеждает более новая версия каждой колоды/карточки.
+     changed — локальные данные изменились; ahead — у нас есть то, чего нет в чужом снимке. */
+  function merge(remote, { preferRemoteSettings = false } = {}) {
+    if (!remote || typeof remote !== 'object' || !remote.pairs) throw new Error('bad snapshot');
+    let changed = false, ahead = false;
+
+    const rs = remote.settings;
+    if (rs) {
+      if (!state.settings || preferRemoteSettings || (rs.u || 0) > (state.settings.u || 0)) {
+        const theme = state.settings?.theme || 'auto';
+        state.settings = { ...defaultSettings(), ...rs, theme };
+        changed = true;
+      } else if ((state.settings.u || 0) > (rs.u || 0)) ahead = true;
+    } else if (state.settings) ahead = true;
+
+    const keys = new Set([...Object.keys(state.pairs), ...Object.keys(remote.pairs || {})]);
+    for (const key of keys) {
+      const L = (state.pairs[key] ||= { decks: {}, cards: {} });
+      L.del ||= {};
+      const R = remote.pairs[key] || {};
+      const rdel = R.del || {};
+      for (const [id, t] of Object.entries(rdel)) if (!(L.del[id] >= t)) { L.del[id] = t; changed = true; }
+      for (const [id, t] of Object.entries(L.del)) if (!(rdel[id] >= t)) ahead = true;
+
+      for (const kind of ['decks', 'cards']) {
+        const lm = (L[kind] ||= {}), rm = R[kind] || {};
+        for (const [id, re] of Object.entries(rm)) {
+          const le = lm[id];
+          if (L.del[id] >= stamp(re)) continue; // удалено позже последней правки
+          if (!le || stamp(re) > stamp(le)) { lm[id] = re; changed = true; }
+          else if (stamp(le) > stamp(re)) ahead = true;
+        }
+        for (const [id, le] of Object.entries(lm)) {
+          if (L.del[id] >= stamp(le)) { delete lm[id]; changed = true; continue; }
+          if (!rm[id]) ahead = true;
+        }
+      }
+    }
+
+    // статистика по дням: берём максимум (не удваиваем при повторных слияниях)
+    for (const [d, rv] of Object.entries(remote.days || {})) {
+      const lv = (state.days[d] ||= { rev: 0, ok: 0, new: 0 });
+      for (const f of ['rev', 'ok', 'new']) {
+        if ((rv[f] || 0) > (lv[f] || 0)) { lv[f] = rv[f]; changed = true; } else if ((lv[f] || 0) > (rv[f] || 0)) ahead = true;
+      }
+    }
+    for (const d of Object.keys(state.days)) if (!remote.days?.[d]) ahead = true;
+
+    // история поиска: объединение
+    const seen = new Set(state.recent.map((r) => r.lang + '|' + r.q.toLowerCase()));
+    for (const r of remote.recent || []) {
+      if (!r?.q || seen.has(r.lang + '|' + r.q.toLowerCase())) continue;
+      state.recent.push(r);
+      seen.add(r.lang + '|' + r.q.toLowerCase());
+      changed = true;
+    }
+    state.recent = state.recent.slice(0, 40);
+    if ((remote.recent || []).length < state.recent.length) ahead = true;
+
+    silent++;
+    try { save(); } finally { silent--; }
+    return { changed, ahead };
+  }
+
+  /* ---------- импорт / экспорт ---------- */
+  function exportData() {
+    return JSON.stringify({ app: 'ordkort', exported: new Date().toISOString(), ...state }, null, 1);
+  }
+  function importData(obj) {
+    if (!obj || typeof obj !== 'object' || !obj.pairs || !obj.settings) throw new Error('bad file');
+    state = { v: 1, settings: { ...defaultSettings(), ...obj.settings, u: now() }, pairs: obj.pairs, days: obj.days || {}, recent: obj.recent || [] };
+    delete state.settings.apiKey;
+    delete state.settings.model;
+    save();
+  }
+  function resetAll() {
+    state = blank();
+    remove(A.config.storageKey);
+    cacheClear();
+  }
+  function usage() {
+    const a = (read(A.config.storageKey) || '').length;
+    const b = (read(A.config.cacheKey) || '').length;
+    return Math.round((a + b) * 2 / 1024);
+  }
+
+  A.store = {
+    load, save, init, set, pairs, onChange, snapshot, merge,
+    get settings() { return state.settings; },
+    get ready() { return !!state.settings; },
+    decks, deck, addDeck, updateDeck, deleteDeck, mineDeck,
+    cards, card, addCards, updateCard, deleteCard, resetCard, hasTerm, norm,
+    overview, streak, week, today,
+    buildSession, cramQueue, answer, stage, MAX_BOX,
+    addRecent, recent,
+    cacheGet, cacheSet, cacheHas, cacheClear,
+    kvGet: read, kvSet: write, kvDel: remove,
+    exportData, importData, resetAll, usage,
+  };
+})();
