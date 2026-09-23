@@ -1,6 +1,6 @@
-/* Проверенные факты грамматики букмола — «опора» для ИИ, чтобы главы учебника
-   и разборы перевода не содержали выдуманных форм. Для других языков ИИ опирается
-   на собственные знания. */
+/* Verified facts of Bokmål grammar — ground truth for the AI, so that textbook chapters
+   and translation breakdowns contain no invented forms. For other languages the AI relies
+   on its own knowledge. */
 export const FACTS = {
   nb: {
     sounds: `Alphabet: 29 letters, a–z plus æ, ø, å. Long vowel before a single consonant (tak), short before a double consonant (takk). Retroflexes in most dialects: rs, rt, rd, rn, rl (norsk, kort). "kj" /ç/ (kjøre), "skj"/"sj"/"sk"+i,y,ei,øy /ʃ/ (skje, sjø, ski). "hv", "hj" — h is silent (hva, hjem). "g" before i/y/ei is /j/ (gi, gyse). Two tonal accents (tonem 1 and 2) distinguish e.g. bønder/bønner.`,
@@ -72,7 +72,7 @@ Prefixes: u- (not: ulykkelig, umulig), mis- (misforstå), for- (forklare), be- (
   },
 };
 
-/* Короткая выжимка для переводчика и свободных вопросов */
+/* A short summary for the translator and free-form questions */
 export function coreFacts(lang) {
   const f = FACTS[lang];
   if (!f) return '';

@@ -1,9 +1,9 @@
-/* Генератор QR-кода (байтовый режим, уровень коррекции M) → SVG.
-   Компактный порт алгоритма Project Nayuki «QR Code generator» (MIT License). */
+/* QR code generator (byte mode, error correction level M) → SVG.
+   A compact port of Project Nayuki's "QR Code generator" (MIT License). */
 (() => {
   const A = window.App;
 
-  // [уровень L, M, Q, H][версия]
+  // [level L, M, Q, H][version]
   const ECC_PER_BLOCK = [
     [-1, 7, 10, 15, 20, 26, 18, 20, 24, 30, 18, 20, 24, 26, 30, 22, 24, 28, 30, 28, 28, 28, 28, 30, 30, 26, 28, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30],
     [-1, 10, 16, 26, 18, 24, 16, 18, 22, 22, 26, 30, 22, 22, 24, 24, 28, 28, 26, 26, 26, 26, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28],
@@ -73,7 +73,7 @@
     if (ver > 40) throw new Error('QR: text too long');
     const ccBits = ver <= 9 ? 8 : 16;
 
-    // поток битов
+    // bit stream
     const bits = [];
     const put = (val, len) => { for (let i = len - 1; i >= 0; i--) bits.push((val >>> i) & 1); };
     put(0x4, 4);
@@ -86,7 +86,7 @@
     const data = [];
     for (let i = 0; i < bits.length; i += 8) data.push(bits.slice(i, i + 8).reduce((a, b) => (a << 1) | b, 0));
 
-    // блоки коррекции и перемежение
+    // error correction blocks and interleaving
     const numBlocks = NUM_BLOCKS[ECL][ver];
     const eccLen = ECC_PER_BLOCK[ECL][ver];
     const raw = Math.floor(rawModules(ver) / 8);
@@ -106,7 +106,7 @@
       blocks.forEach((b, j) => { if (i !== shortLen - eccLen || j >= numShort) all.push(b[i]); });
     }
 
-    // матрица
+    // the matrix
     const size = ver * 4 + 17;
     const mod = Array.from({ length: size }, () => new Array(size).fill(false));
     const fn = Array.from({ length: size }, () => new Array(size).fill(false));
@@ -156,7 +156,7 @@
       }
     }
 
-    // данные змейкой
+    // data, in a zigzag
     let i = 0;
     for (let right = size - 1; right >= 1; right -= 2) {
       if (right === 6) right = 5;
@@ -178,7 +178,7 @@
     const applyMask = (m) => {
       for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) if (!fn[y][x] && maskFn[m](x, y)) mod[y][x] = !mod[y][x];
     };
-    // упрощённая оценка штрафа: длинные ряды, квадраты 2×2, баланс тёмных модулей
+    // simplified penalty score: long runs, 2×2 squares, balance of dark modules
     const penalty = () => {
       let p = 0, dark = 0;
       for (let y = 0; y < size; y++) {

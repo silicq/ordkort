@@ -1,11 +1,11 @@
-/* Обработчики ИИ-запросов. Порядок всегда один:
-   проверить ввод → поискать в общей базе → только если нет, списать лимит и спросить Groq →
-   проверить ответ → сохранить в общую базу для всех следующих. */
+/* AI request handlers. The order is always the same:
+   validate the input → look in the shared base → only if it is not there, take one from the limit and ask Groq →
+   check the answer → save it to the shared base for everyone who asks next. */
 import { App } from './shared.js';
 import { groq } from './groq.js';
-import { cacheGet, cacheSet } from './db.js';
-import { takeAI, aiLeft } from './limits.js';
-import { HttpError, json, readJSON, str, arr, int, sha256, norm } from './util.js';
+import { cacheGet, cacheSet, cacheForget } from './db.js';
+import { takeAI, aiLeft, takeSimple } from './limits.js';
+import { HttpError, json, readJSON, str, arr, int, sha256, norm, randomCode, isCode } from './util.js';
 import * as P from './prompts.js';
 
 const LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1'];
@@ -21,9 +21,24 @@ function pairOf(b) {
 }
 const h32 = async (s) => (await sha256(s)).slice(0, 32);
 
+/* Cache keys — one place, so that reports can find exactly the entry that was served */
+const KEYS = {
+  lookup: async (t, n, b) => `d1:${t}:${n}:${await h32(str(b.q, 60).toLowerCase())}`,
+  chapter: async (t, n, b) => `g1:${t}:${n}:${b.id}`,
+  ask: async (t, n, b) => `a1:${t}:${n}:${await h32(str(b.q, 300).toLowerCase())}`,
+  translate: async (t, n, b) => `t1:${t}:${n}:${b.from === 'auto' ? 'auto' : lang(b.from)}:${lang(b.to)}:${await h32(str(b.text, 600))}`,
+};
+async function groupOf(b, target, native) {
+  const level = LEVELS.includes(b.level) ? b.level : 'A1';
+  const tp = typeof b.topic === 'string' ? App.topics.get(b.topic) : null;
+  const custom = tp ? '' : str(b.custom, 80);
+  if (!tp && !custom) throw new HttpError(400, 'bad_topic');
+  return { tp, custom, level, grp: `${target}:${native}:${tp ? tp.id : 'c:' + (await h32(norm(custom)))}:${level}` };
+}
+
 const quotaHeaders = (q) => (q ? { 'X-AI-Left': String(q.left), 'X-AI-Limit': String(q.limit) } : { 'X-Cache': 'hit' });
 
-/* одинаковые запросы, пришедшие одновременно, делят одну генерацию */
+/* identical requests arriving at the same time share one generation */
 const inflight = new Map();
 function once(k, fn) {
   if (inflight.has(k)) return inflight.get(k);
@@ -52,17 +67,12 @@ async function generate(env, key, cacheKey, { fresh, prompt, clean, keep = () =>
   return json(data, 200, quotaHeaders(q));
 }
 
-/* ---------- слова для колоды: сначала банк, потом ИИ ---------- */
+/* ---------- words for a deck: the word bank first, then the AI ---------- */
 export async function words(request, env, key) {
   const b = await readJSON(request, 60000);
   const { target, native } = pairOf(b);
-  const level = LEVELS.includes(b.level) ? b.level : 'A1';
   const n = int(b.n, 5, 30, 20);
-  const tp = typeof b.topic === 'string' ? App.topics.get(b.topic) : null;
-  const custom = tp ? '' : str(b.custom, 80);
-  if (!tp && !custom) throw new HttpError(400, 'bad_topic');
-  const topicKey = tp ? tp.id : 'c:' + (await h32(norm(custom)));
-  const grp = `${target}:${native}:${topicKey}:${level}`;
+  const { tp, custom, level, grp } = await groupOf(b, target, native);
 
   const have = new Set(arr(b.have, 3000).map((x) => norm(str(x, 80))).filter(Boolean));
   const bank = (await env.DB.prepare('SELECT norm, data FROM words WHERE grp = ? ORDER BY id LIMIT 500').bind(grp).all()).results || [];
@@ -81,7 +91,7 @@ export async function words(request, env, key) {
       seen.add(k);
       fresh.push({ k, w });
     }
-    // в банк — одной командой (до 30 строк × 3 параметра ≤ 100 параметров D1)
+    // into the bank in one statement (up to 30 rows × 3 parameters ≤ 100 D1 parameters)
     for (let i = 0; i < fresh.length; i += 30) {
       const part = fresh.slice(i, i + 30);
       await env.DB.prepare(`INSERT OR IGNORE INTO words (grp, norm, data) VALUES ${part.map(() => '(?, ?, ?)').join(', ')}`)
@@ -94,7 +104,7 @@ export async function words(request, env, key) {
   }
 }
 
-/* ---------- автозаполнение карточки (личное, не кэшируется) ---------- */
+/* ---------- card autofill (personal, not cached) ---------- */
 export async function fill(request, env, key) {
   const b = await readJSON(request, 4000);
   const { target, native } = pairOf(b);
@@ -110,13 +120,13 @@ export async function fill(request, env, key) {
   }
 }
 
-/* ---------- словарная статья (для норвежского — с опорой на ordbokene.no) ---------- */
+/* ---------- dictionary entry (for Norwegian, grounded in ordbokene.no) ---------- */
 export async function lookup(request, env, key) {
   const b = await readJSON(request, 4000);
   const { target, native } = pairOf(b);
   const q = str(b.q, 60);
   if (!q) throw new HttpError(400, 'empty');
-  const cacheKey = `d1:${target}:${native}:${await h32(q.toLowerCase())}`;
+  const cacheKey = await KEYS.lookup(target, native, b);
   return generate(env, key, cacheKey, {
     fresh: !!b.fresh,
     prompt: async () => ({ ...P.lookupPrompt({ target, native, q, ground: await officialSummary(env, target, q) }) }),
@@ -140,32 +150,32 @@ async function officialSummary(env, target, q) {
   }
 }
 
-/* ---------- глава учебника ---------- */
+/* ---------- textbook chapter ---------- */
 export async function chapter(request, env, key) {
   const b = await readJSON(request, 2000);
   const { target, native } = pairOf(b);
   if (!App.topics.chapter(b.id)) throw new HttpError(400, 'bad_chapter');
-  return generate(env, key, `g1:${target}:${native}:${b.id}`, {
+  return generate(env, key, await KEYS.chapter(target, native, b), {
     fresh: !!b.fresh,
     prompt: () => P.chapterPrompt({ target, native, id: b.id }),
     clean: P.cleanChapter,
   });
 }
 
-/* ---------- вопрос по грамматике ---------- */
+/* ---------- grammar question ---------- */
 export async function ask(request, env, key) {
   const b = await readJSON(request, 4000);
   const { target, native } = pairOf(b);
   const q = str(b.q, 300);
   if (q.length < 3) throw new HttpError(400, 'empty');
-  return generate(env, key, `a1:${target}:${native}:${await h32(q.toLowerCase())}`, {
+  return generate(env, key, await KEYS.ask(target, native, b), {
     fresh: !!b.fresh,
     prompt: () => P.askPrompt({ target, native, q }),
     clean: P.cleanChapter,
   });
 }
 
-/* ---------- перевод с разбором ---------- */
+/* ---------- translation with explanations ---------- */
 export async function translate(request, env, key) {
   const b = await readJSON(request, 8000);
   const { target, native } = pairOf(b);
@@ -174,14 +184,14 @@ export async function translate(request, env, key) {
   const from = b.from === 'auto' ? 'auto' : lang(b.from);
   const to = lang(b.to);
   if (!from || !to) throw new HttpError(400, 'bad_lang');
-  return generate(env, key, `t1:${target}:${native}:${from}:${to}:${await h32(text)}`, {
+  return generate(env, key, await KEYS.translate(target, native, b), {
     fresh: false,
     prompt: () => P.translatePrompt({ target, native, from, to, text }),
     clean: P.cleanTranslation,
   });
 }
 
-/* ---------- перевод интерфейса на язык без ручного перевода ---------- */
+/* ---------- interface translation into a language without a hand-made one ---------- */
 export async function ui(request, env, key) {
   const b = await readJSON(request, 1000);
   const code = lang(b.lang);
@@ -206,6 +216,76 @@ export async function ui(request, env, key) {
   });
   res.headers.set('X-UI-Parts', String(parts));
   return res;
+}
+
+/* ---------- "report a mistake": after REPORTS_TO_DROP independent reports the entry is regenerated ---------- */
+export async function report(request, env, key) {
+  await takeSimple(env, 'report', key, 30, 36e5);
+  const b = await readJSON(request, 8000);
+  const { target, native } = pairOf(b);
+  let k, drop;
+  if (b.kind === 'word') {
+    const { grp } = await groupOf(b, target, native);
+    const w = norm(str(b.term, 80));
+    if (!w) throw new HttpError(400, 'empty');
+    k = `w:${grp}:${w}`;
+    drop = () => env.DB.prepare('DELETE FROM words WHERE grp = ? AND norm = ?').bind(grp, w).run();
+  } else if (KEYS[b.kind]) {
+    if (b.kind === 'chapter' && !App.topics.chapter(b.id)) throw new HttpError(400, 'bad_chapter');
+    k = await KEYS[b.kind](target, native, b);
+    drop = async () => { await env.DB.prepare('DELETE FROM cache WHERE k = ?').bind(k).run(); cacheForget(k); };
+  } else {
+    throw new HttpError(400, 'bad_kind');
+  }
+  await env.DB.prepare('INSERT OR IGNORE INTO reports (k, who, t) VALUES (?, ?, ?)').bind(k, key, Date.now()).run();
+  const row = await env.DB.prepare('SELECT count(*) AS n FROM reports WHERE k = ?').bind(k).first();
+  if ((row?.n || 0) >= (Number(env.REPORTS_TO_DROP) || 2)) {
+    await drop();
+    await env.DB.prepare('DELETE FROM reports WHERE k = ?').bind(k).run();
+    return json({ dropped: true });
+  }
+  return json({ dropped: false });
+}
+
+/* ---------- reading mode: gloss a piece of text (≤ 600 chars; longer texts come in parts) ---------- */
+export async function gloss(request, env, key) {
+  const b = await readJSON(request, 4000);
+  const { target, native } = pairOf(b);
+  const text = str(b.text, 600);
+  if (text.length < 2) throw new HttpError(400, 'empty');
+  return generate(env, key, `r1:${target}:${native}:${await h32(text)}`, {
+    fresh: false,
+    prompt: () => P.glossPrompt({ target, native, text }),
+    clean: P.cleanGloss,
+  });
+}
+
+/* ---------- decks shared by link ---------- */
+export async function shareCreate(request, env, key) {
+  await takeSimple(env, 'share', key, 20, 36e5);
+  const b = await readJSON(request, 400000);
+  const d = b.deck || {};
+  const { target, native } = pairOf(d);
+  const words = arr(d.words, 500).map(P.cleanWord).filter((w) => w.term && w.tr);
+  if (!words.length) throw new HttpError(400, 'empty');
+  const deck = {
+    title: str(d.title, 80), emoji: str(d.emoji, 8), level: LEVELS.includes(d.level) ? d.level : '',
+    topic: typeof d.topic === 'string' && App.topics.get(d.topic) ? d.topic : '',
+    group: str(d.group, 12), target, native, words,
+  };
+  for (let i = 0; i < 5; i++) {
+    const id = randomCode(8);
+    const r = await env.DB.prepare('INSERT OR IGNORE INTO shares (id, d, t) VALUES (?, ?, ?)').bind(id, JSON.stringify(deck), Date.now()).run();
+    if (r.meta.changes) return json({ id });
+  }
+  throw new HttpError(503, 'busy');
+}
+
+export async function shareGet(env, id) {
+  if (!isCode(id, 8)) throw new HttpError(404, 'gone');
+  const row = await env.DB.prepare('SELECT d FROM shares WHERE id = ?').bind(id).first();
+  if (!row) throw new HttpError(404, 'gone');
+  return json({ deck: JSON.parse(row.d) });
 }
 
 export async function limits(request, env, key) {

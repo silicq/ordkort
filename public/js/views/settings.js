@@ -1,9 +1,9 @@
-/* Настройки: языки, занятия, внешний вид, ИИ, данные. */
+/* Settings: languages, study, appearance, AI, data. */
 (() => {
   const A = window.App;
   const { h, icon, t } = A;
 
-  /* Защита данных: постоянное хранилище и установка как приложения (на iPhone это отключает 7-дневную очистку Safari) */
+  /* Data protection: persistent storage and installing as an app (on iPhone this switches off Safari's 7-day cleanup) */
   function protection() {
     const status = h('b', null, '…');
     const box = h('div', { class: 'protect' },
@@ -53,7 +53,7 @@
         return sel;
       };
 
-      // остаток дневного лимита ИИ (сервер считает по анонимному отпечатку)
+      // what is left of the daily AI limit (the server counts by an anonymous fingerprint)
       const quotaEl = h('b', { class: 'quota-n' }, A.ai.quota ? `${A.ai.quota.left} / ${A.ai.quota.limit}` : '…');
       A.ai.limits().then((q) => { quotaEl.textContent = `${q.left} / ${q.limit}`; }).catch(() => { quotaEl.textContent = '—'; });
 
@@ -101,6 +101,7 @@
             ], s.direction, (v) => set({ direction: v }))),
             row(t('set.new_per_day'), t('set.new_per_day_hint'), numSel([5, 10, 15, 20, 30, 50], s.newPerDay, (v) => set({ newPerDay: v }))),
             row(t('set.session'), null, numSel([10, 15, 20, 30, 50, 100], s.sessionSize, (v) => set({ sessionSize: v }))),
+            row(t('set.goal'), t('set.goal_hint'), numSel([10, 20, 30, 50, 100, 200], s.goal || 20, (v) => set({ goal: v }))),
             row(t('set.batch'), t('set.batch_hint'), numSel([10, 20, 30], s.batch, (v) => set({ batch: v }))),
             row(t('set.autospeak'), t('set.autospeak_hint'), toggle(s.autoSpeak, (v) => set({ autoSpeak: v })))),
           card(t('set.look'),

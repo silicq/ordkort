@@ -1,4 +1,4 @@
-/* Переводчик с разбором: каждое слово — форма, часть речи и правило, почему оно здесь. */
+/* Translator with explanations: every word gets its form, part of speech and the rule for why it is used here. */
 (() => {
   const A = window.App;
   const { h, icon, t } = A;
@@ -86,11 +86,11 @@
         const aLang = analyzedIsSource ? srcLang : dstLang;
         const oLang = analyzedIsSource ? dstLang : srcLang;
 
-        // перевод с подсветкой слов
+        // the translation, with words highlighted
         const outText = r.translation || '';
         out.replaceChildren(markup(outText, toks, analyzedIsSource ? 'other' : 't', !analyzedIsSource));
         out.lang = dstLang;
-        // исходный текст с подсветкой
+        // the source text, highlighted
         srcView.replaceChildren(markup(r._src, toks, analyzedIsSource ? 't' : 'other', analyzedIsSource), h('span', { class: 'src-edit' }, icon('edit', 14)));
         srcView.lang = srcLang;
         srcView.hidden = false;
@@ -106,7 +106,7 @@
             onclick: () => { navigator.clipboard?.writeText(outText).then(() => A.toast(t('tr.copied'))); },
           }, icon('copy', 18)));
 
-        // разбор
+        // the breakdown
         const used = [...new Set(toks.map((x) => posKey(x.pos)))];
         const tokCards = toks.map((x, i) => {
           const pk = posKey(x.pos);
@@ -150,7 +150,10 @@
             }))) : null,
           r.tips?.length ? h('section', { class: 'tr-sec' },
             h('h3', null, t('tr.tips')),
-            h('ul', { class: 'ticks' }, r.tips.map((x) => h('li', null, A.rich(x))))) : null);
+            h('ul', { class: 'ticks' }, r.tips.map((x) => h('li', null, A.rich(x))))) : null,
+          h('div', { class: 'tr-foot' },
+            h('span', { class: 'muted small' }, icon('sparkle', 14), t('dict.ai_note')),
+            A.reportBtn('translate', { text: r._src, from: st.from, to: st.to }, `tr:${s.target}:${s.native}:${st.from}:${st.to}:${r._src}`)));
       }
 
       function addWordBtn(x, pk) {
@@ -178,7 +181,7 @@
         if (st.active >= 0 && from === 'text') root.querySelector(`.tok[data-i="${i}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       }
 
-      /* Размечаем текст: оборачиваем найденные слова в <span class="tk"> */
+      /* Mark up the text: wrap the words found in <span class="tk"> */
       function markup(text, toks, field, sequential) {
         const frag = document.createDocumentFragment();
         const lower = text.toLowerCase();
@@ -246,7 +249,7 @@
       }
       i = hay.indexOf(needle, i + 1);
     }
-    // для языков без пробелов (китайский, японский, тайский) границ слов нет
+    // languages without spaces (Chinese, Japanese, Thai) have no word boundaries
     return /[぀-ヿ㐀-鿿฀-๿]/.test(needle) ? fallback : -1;
   }
 

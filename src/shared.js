@@ -1,5 +1,5 @@
-/* Общий код с сайтом: список языков, темы и главы, английские строки интерфейса, парсер ordbokene.
-   Эти файлы лежат в public/js и подключаются в браузер как обычные скрипты. */
+/* Code shared with the site: languages, topics and chapters, English interface strings, the ordbokene parser.
+   These files live in public/js and are loaded in the browser as plain scripts. */
 import '../public/js/langs.js';
 import '../public/js/topics.js';
 import '../public/js/i18n/en.js';

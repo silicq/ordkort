@@ -1,4 +1,4 @@
-/* Словарь: статья в духе ordbokene.no и Lexin + официальные данные ordbokene для норвежского. */
+/* Dictionary: an entry in the spirit of ordbokene.no and Lexin, plus official ordbokene data for Norwegian. */
 (() => {
   const A = window.App;
   const { h, icon, t } = A;
@@ -89,7 +89,7 @@
     const obSlot = A.ordbok.supports(T) ? h('div', { class: 'slot-ob' }, A.skeleton(5)) : null;
     out.replaceChildren(h('div', { class: 'dict-grid' + (obSlot ? ' two' : '') }, aiSlot, obSlot));
 
-    // Официальные данные (норвежский) показываем сразу; сервер сам передаёт их ИИ как опору
+    // official data (Norwegian) is shown right away; the server passes it to the AI as ground truth itself
     const obPromise = obSlot ? A.ordbok.lookup(q, T, signal).catch(() => null) : Promise.resolve(null);
     if (obSlot) {
       obPromise.then((r) => {
@@ -107,7 +107,7 @@
       const e = await A.ai.lookup(q, { force, signal });
       if (my !== seq) return;
       aiSlot.replaceChildren(e.found === false ? notFound(e, q) : entry(e, q));
-      // запрос был на родном языке — показываем официальную статью для найденного перевода
+      // the query was in the native language — show the official entry for the translation found
       const ob2 = await obPromise;
       if (obSlot && e.found !== false && e.lemma && !ob2?.articles?.length && e.lemma.toLowerCase() !== q.toLowerCase()) {
         const r = await A.ordbok.lookup(e.lemma, T, signal).catch(() => null);
@@ -185,6 +185,7 @@
           class: 'link-btn small', type: 'button',
           onclick: () => { forceNext = q; A.route(); },
         }, icon('refresh', 14), t('common.regenerate')),
+        A.reportBtn('lookup', { q }, `dict:${T}:${N}:${q.toLowerCase()}`),
         A.ordbok.supports(T) ? h('a', { class: 'link-btn small', href: A.ordbok.link(e.lemma || q), target: '_blank', rel: 'noopener' }, 'ordbokene.no', icon('external', 14)) : null,
         A.ordbok.supports(T) ? h('a', { class: 'link-btn small', href: A.ordbok.lexin, target: '_blank', rel: 'noopener' }, 'Lexin', icon('external', 14)) : null));
   }
@@ -213,7 +214,7 @@
       h('a', { class: 'link-btn small', href: A.ordbok.link(q), target: '_blank', rel: 'noopener' }, t('dict.ob_open'), icon('external', 14)));
   }
 
-  /* Выбор колоды для новой карточки */
+  /* Choosing a deck for a new card */
   function pickDeck() {
     return new Promise((resolve) => {
       let result = null;

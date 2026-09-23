@@ -1,12 +1,12 @@
-/* Клиент Groq. Ключ живёт только в секрете Worker'а (GROQ_API_KEY), браузер его не видит.
-   При лимите одной модели переключаемся на следующую; ответ всегда JSON. */
+/* Groq client. The key lives only in the Worker secret (GROQ_API_KEY); the browser never sees it.
+   When one model hits its limit we switch to the next one; the answer is always JSON. */
 import { HttpError } from './util.js';
 
 const URL = 'https://api.groq.com/openai/v1/chat/completions';
 const DEFAULT_MODELS = ['openai/gpt-oss-120b', 'qwen/qwen3.8-27b', 'openai/gpt-oss-20b'];
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-// модели, упёршиеся в лимит, пропускаем до указанного времени (в пределах изолята)
+// models that hit their limit are skipped until the given time (within this isolate)
 const blockedUntil = new Map();
 
 function parseJSON(text) {
@@ -70,7 +70,7 @@ export async function groq(env, { system, user, max = 2500, temperature = 0.35, 
     if (res.status === 413 || code === 'context_length_exceeded') throw new HttpError(413, 'too_long');
     if (res.status === 429) { blockedUntil.set(model, Date.now() + retryDelay(res, data)); continue; }
     if (code === 'json_validate_failed') {
-      try { return parseJSON(data?.error?.failed_generation); } catch { /* другая модель */ }
+      try { return parseJSON(data?.error?.failed_generation); } catch { /* try another model */ }
       blockedUntil.set(model, Date.now() + 5000);
       continue;
     }

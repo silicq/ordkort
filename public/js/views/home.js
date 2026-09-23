@@ -1,4 +1,4 @@
-/* Главная: сводка на сегодня, мои колоды и каталог тем. */
+/* Home: today's summary, my decks and the topic catalogue. */
 (() => {
   const A = window.App;
   const { h, icon, t, tn } = A;
@@ -61,7 +61,16 @@
       h('div', { class: 'mini-stats' },
         stat(o.due, t('stats.due'), 'due'),
         stat(o.known, t('stats.known')),
-        stat(o.total, t('stats.total'))));
+        stat(o.total, t('stats.total'))),
+      goalLine(),
+      h('a', { class: 'stats-link', href: '#/stats' }, icon('stats', 16), t('stats.open')));
+  }
+  function goalLine() {
+    const goal = A.store.settings.goal || 20, done = A.store.today().rev;
+    return h('div', { class: 'goal-line', title: t('goal.title') },
+      icon(done >= goal ? 'check' : 'target', 16),
+      h('span', null, t('goal.today', { done: Math.min(done, goal), goal })),
+      h('div', { class: 'meter' }, h('i', { style: `width:${Math.min(100, (done / goal) * 100)}%` })));
   }
   const stat = (n, label, cls = '') => h('div', { class: 'mini ' + cls }, h('b', null, n), h('span', null, label));
 

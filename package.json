@@ -3,12 +3,19 @@
   "private": true,
   "version": "1.0.0",
   "description": "Flashcards, dictionary, grammar and translator for any language",
+  "license": "AGPL-3.0-only",
+  "repository": "github:silicq/ordkort",
   "type": "module",
   "scripts": {
     "dev": "wrangler dev --port 8787",
+    "test": "node --test \"tests/*.test.mjs\"",
     "deploy": "wrangler deploy"
   },
   "devDependencies": {
+    "jsqr": "^1.4.0",
     "wrangler": "^4.45.0"
+  },
+  "engines": {
+    "node": ">=22"
   }
 }

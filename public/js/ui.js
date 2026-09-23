@@ -1,4 +1,4 @@
-/* Мелкие строительные блоки интерфейса: DOM, иконки, модалки, озвучка. */
+/* Small interface building blocks: DOM, icons, modals, speech. */
 (() => {
   const A = window.App;
 
@@ -24,7 +24,7 @@
     return el;
   }
 
-  /* Иконки — простые линии на сетке 24×24 */
+  /* Icons: plain strokes on a 24×24 grid */
   const P = {
     cards: '<rect x="3" y="7" width="13" height="14" rx="2.5"/><path d="M8 4h10.5A2.5 2.5 0 0 1 21 6.5V17"/>',
     book: '<path d="M5 4.5A1.5 1.5 0 0 1 6.5 3H20v15H6.5A1.5 1.5 0 0 0 5 19.5z"/><path d="M5 19.5A1.5 1.5 0 0 0 6.5 21H20v-3"/><path d="M9 7.5h7"/>',
@@ -57,6 +57,12 @@
     x: '<path d="M7 7l10 10M17 7 7 17"/>',
     info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/>',
     arrow: '<path d="M5 12h14M13 6l6 6-6 6"/>',
+    flag: '<path d="M5 21V4M5 4h11l-2 4 2 4H5"/>',
+    read: '<path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4M9 11h6M9 15h6M9 19h4"/>',
+    stats: '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
+    share: '<circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="m8.2 10.8 7.6-4.6M8.2 13.2l7.6 4.6"/>',
+    more: '<circle cx="5" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="19" cy="12" r="1.3"/>',
+    target: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5"/>',
   };
   function icon(name, size = 20) {
     const s = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
@@ -89,7 +95,7 @@
     return s;
   }
 
-  /* Текст с разметкой ИИ: **жирный**, *курсив*, переносы строк — без innerHTML */
+  /* AI text with markup: **bold**, *italic*, line breaks — without innerHTML */
   function rich(text, tag = 'span') {
     const root = document.createElement(tag);
     const paras = String(text ?? '').split(/\n{2,}/);
@@ -114,10 +120,10 @@
     return root;
   }
 
-  /* Текст на конкретном языке: правильный шрифт и направление */
+  /* Text in a specific language: the right font and direction */
   const lt = (text, lang, cls = '', tag = 'span') => h(tag, { lang, dir: 'auto', class: cls || null }, text);
 
-  /* ---------- тосты ---------- */
+  /* ---------- toasts ---------- */
   let toastBox;
   function toast(msg, kind = '') {
     if (!msg) return;
@@ -128,7 +134,7 @@
     setTimeout(() => el.remove(), kind === 'error' ? 5600 : 3200);
   }
 
-  /* ---------- модальные окна ---------- */
+  /* ---------- modal windows ---------- */
   function modal({ title, body, actions = [], wide = false, onClose }) {
     const dlg = h('dialog', { class: 'modal' + (wide ? ' wide' : '') });
     const close = () => { dlg.close(); };
@@ -178,7 +184,7 @@
     });
   }
 
-  /* ---------- озвучка (Web Speech API) ---------- */
+  /* ---------- speech (Web Speech API) ---------- */
   let voices = [];
   const synth = 'speechSynthesis' in window ? window.speechSynthesis : null;
   if (synth) {
@@ -215,7 +221,7 @@
     }, icon('speaker', cls.includes('lg') ? 22 : 18));
   }
 
-  /* ---------- прочее ---------- */
+  /* ---------- misc ---------- */
   function segmented(options, value, onChange, cls = '') {
     const wrap = h('div', { class: 'seg ' + cls, role: 'radiogroup' });
     for (const o of options) {
@@ -270,6 +276,24 @@
 
   const debounce = (fn, ms) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; };
 
+  /* "Report a mistake" link: tells the server, forgets the local copy */
+  function reportBtn(kind, params, localKey) {
+    const b = h('button', { class: 'link-btn small report', type: 'button' }, icon('flag', 14), A.t('report.btn'));
+    b.addEventListener('click', async () => {
+      b.disabled = true;
+      try {
+        await A.ai.report(kind, params);
+        if (localKey) A.store.cacheDel(localKey);
+        b.replaceChildren(icon('check', 14), A.t('report.sent'));
+        A.toast(A.t('report.thanks'));
+      } catch (e) {
+        b.disabled = false;
+        A.toast(A.ai.errorText(e), 'error');
+      }
+    });
+    return b;
+  }
+
   function deckTitle(d) {
     if (!d) return '';
     if (d.kind === 'mine') return A.t('deck.mine');
@@ -277,8 +301,8 @@
     return d.title || A.t('deck.untitled');
   }
 
-  function download(name, text) {
-    const url = URL.createObjectURL(new Blob([text], { type: 'application/json' }));
+  function download(name, text, type = 'application/json') {
+    const url = URL.createObjectURL(new Blob([text], { type }));
     const a = h('a', { href: url, download: name });
     document.body.append(a);
     a.click();
@@ -286,13 +310,13 @@
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
 
-  /* append/replaceChildren, которые пропускают null/false (иначе в DOM попадёт текст «null») */
+  /* append/replaceChildren that skip null/false (otherwise the text "null" ends up in the DOM) */
   const addTo = (el, ...kids) => { add(el, kids); return el; };
   const putTo = (el, ...kids) => { el.replaceChildren(); add(el, kids); return el; };
 
   Object.assign(A, {
     h, icon, logo, add: addTo, put: putTo, rich, lt, toast, modal, confirm: confirmBox, prompt: promptBox,
     speak, speakBtn, canSpeak: (l) => !!voiceFor(l),
-    segmented, langSelect, table, skeleton, loading, debounce, deckTitle, download,
+    segmented, langSelect, table, skeleton, loading, debounce, deckTitle, download, reportBtn,
   });
 })();

@@ -1,8 +1,8 @@
-/* Окна привязки устройств: показать QR/код (обновляется каждые 3 минуты) и ввести код вручную. */
+/* Device linking: show a QR code / code (renewed every 3 minutes) or type a code by hand. */
 (() => {
   const A = window.App;
   const { h, icon, t } = A;
-  const MAX_ROUNDS = 5; // после стольких обновлений кода — пауза до нажатия «Новый код»
+  const MAX_ROUNDS = 5; // after this many renewals, pause until "New code" is pressed
 
   function offer(mode) {
     let round = 0, timers = [], closed = false, current = null;
@@ -41,7 +41,7 @@
       };
       tick();
       timers.push(setInterval(tick, 1000));
-      // узнаём, что код забрали: ящик исчез раньше срока
+      // we find out the code was taken: the mailbox disappeared before it expired
       timers.push(setInterval(async () => {
         if (current.expires - Date.now() < 3000) return;
         const alive = await A.sync.codeAlive(current.slot).catch(() => true);
@@ -119,7 +119,7 @@
     return m;
   }
 
-  /* Ключ восстановления: единственный способ вернуть облачную копию, если данные стёрты на всех устройствах */
+  /* Recovery key: the only way to get the cloud copy back if the data is erased on every device */
   async function showKey() {
     const key = await A.sync.recoveryKey();
     if (!key) return;
@@ -149,7 +149,7 @@ ${location.origin}
     });
   }
 
-  /* карточка «Устройства» для страницы настроек */
+  /* the "Devices" card on the settings page */
   function card() {
     const el = h('section', { class: 'set-card devices' });
     const draw = () => {

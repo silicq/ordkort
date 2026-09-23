@@ -1,4 +1,4 @@
-/* Общие утилиты сервера: ответы, ошибки, чтение тела, хэши, нормализация. */
+/* Shared server utilities: responses, errors, reading bodies, hashes, normalisation. */
 
 export class HttpError extends Error {
   constructor(status, code, extra = {}) {
@@ -41,7 +41,7 @@ export async function readJSON(request, maxBytes) {
   }
 }
 
-/* Строка из недоверенного ввода: только string, обрезка по длине, без управляющих символов */
+/* A string from untrusted input: strings only, cut to length, without control characters */
 export function str(v, max = 200) {
   if (typeof v === 'number' && Number.isFinite(v)) v = String(v);
   if (typeof v !== 'string') return '';
@@ -63,7 +63,7 @@ export async function hmac(secret, text) {
   const key = await crypto.subtle.importKey('raw', enc.encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
   return hex(await crypto.subtle.sign('HMAC', key, enc.encode(text)));
 }
-/* Сравнение без утечки по времени */
+/* Constant-time comparison */
 export function safeEqual(a, b) {
   if (typeof a !== 'string' || typeof b !== 'string' || a.length !== b.length) return false;
   let r = 0;
@@ -71,7 +71,7 @@ export function safeEqual(a, b) {
   return r === 0;
 }
 
-/* Та же нормализация, что и в браузере (store.js): для поиска повторов слов */
+/* The same normalisation as in the browser (store.js): for finding duplicate words */
 const ART = /^(a|an|the|to|en|ei|et|ein|eit|å|der|die|das|ein|eine|le|la|les|un|une|el|los|las|il|lo|gli|uno|o|os|as|um|uma|het|ett|att|at)\s+/i;
 export const norm = (s) => String(s || '').toLowerCase().normalize('NFC')
   .replace(/[.,!?;:"«»“”„()[\]¿¡]/g, '').replace(/^l['’]/, '').trim().replace(ART, '').trim();

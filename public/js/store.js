@@ -1,7 +1,7 @@
-/* Хранилище: всё лежит в localStorage этого браузера.
-   Интервальное повторение — система Лейтнера из 8 «коробок».
-   Для синхронизации у каждой колоды и карточки есть метка времени изменения (u),
-   а удалённое помнится «надгробием» (del) — так устройства сливают данные без сервера-арбитра. */
+/* Storage: everything lives in this browser's localStorage.
+   Spaced repetition uses FSRS-4.5 (stability and difficulty per card); `box` 0..7 is derived from stability for display.
+   For sync every deck and card has a modification time (u), and deletions are remembered
+   as tombstones (del) — so devices merge their data without a server acting as referee. */
 (() => {
   const A = window.App;
   const MIN = 6e4, DAY = 864e5;
@@ -21,9 +21,9 @@
   const defaultSettings = () => ({
     native: 'en', target: 'nb', ui: '', theme: 'auto', direction: 'forward',
     newPerDay: 15, sessionSize: 20, batch: 20, level: 'A1',
-    autoSpeak: false,
+    autoSpeak: false, studyMode: 'flip', goal: 20,
   });
-  const DEVICE_ONLY = ['theme']; // не синхронизируется: на телефоне может быть тёмная тема, на ноутбуке — светлая
+  const DEVICE_ONLY = ['theme']; // not synced: a phone may use the dark theme while a laptop uses the light one
   const blank = () => ({ v: 1, settings: null, pairs: {}, days: {}, recent: [] });
 
   let state = blank();
@@ -55,7 +55,7 @@
   }
   const onChange = (fn) => listeners.push(fn);
 
-  /* ---------- настройки и языковые пары ---------- */
+  /* ---------- settings and language pairs ---------- */
   const pairKey = () => `${state.settings.target}:${state.settings.native}`;
   function pair() {
     const k = pairKey();
@@ -80,7 +80,7 @@
       .filter((p) => p.native === native);
   }
 
-  /* ---------- колоды ---------- */
+  /* ---------- decks ---------- */
   const decks = () => Object.values(pair().decks).sort((a, b) => a.created - b.created);
   const deck = (id) => pair().decks[id] || null;
 
@@ -107,7 +107,7 @@
     return d;
   }
 
-  /* ---------- карточки ---------- */
+  /* ---------- cards ---------- */
   const ART = /^(a|an|the|to|en|ei|et|å|der|die|das|ein|eine|le|la|les|un|une|el|los|las|il|lo|gli|uno|o|os|as|um|uma|het|ett|att|at)\s+/i;
   const norm = (s) => (s || '').toLowerCase().normalize('NFC')
     .replace(/[.,!?;:"«»“”„()[\]¿¡]/g, '').replace(/^l['’]/, '').trim().replace(ART, '').trim();
@@ -154,10 +154,10 @@
     save();
   }
   function resetCard(id) {
-    updateCard(id, { box: 0, due: 0, reps: 0, lapses: 0 });
+    updateCard(id, { box: 0, due: 0, reps: 0, lapses: 0, s: 0, d: 0 });
   }
 
-  /* ---------- статистика ---------- */
+  /* ---------- statistics ---------- */
   const today = () => state.days[dayKey()] || { rev: 0, ok: 0, new: 0 };
   function bump(ok, wasNew) {
     const d = (state.days[dayKey()] ||= { rev: 0, ok: 0, new: 0 });
@@ -195,7 +195,7 @@
     return o;
   }
 
-  /* ---------- занятие ---------- */
+  /* ---------- study session ---------- */
   function buildSession(deckId, extraNew = 0) {
     const now = Date.now();
     const s = state.settings;
@@ -223,24 +223,65 @@
     }
     return ids.slice(0, state.settings.sessionSize);
   }
+  /* FSRS-4.5 (Free Spaced Repetition Scheduler, the algorithm used by Anki) with default weights.
+     Each card keeps stability s (days until recall drops to 90%) and difficulty d (1–10).
+     `box` is still derived from s so that stages and progress bars keep working. */
+  const FW = [0.4872, 1.4003, 3.7145, 13.8206, 5.1618, 1.2298, 0.8975, 0.031, 1.6474, 0.1367, 1.0461, 2.1072, 0.0793, 0.3246, 1.587, 0.2272, 2.8755];
+  const DECAY = -0.5, FACTOR = 19 / 81, RETENTION = 0.9;
+  const clampD = (d) => Math.min(10, Math.max(1, d));
+  const initD = (g) => clampD(FW[4] - (g - 3) * FW[5]);
+  const initS = (g) => Math.max(0.1, FW[g - 1]);
+  const recall = (days, s) => Math.pow(1 + (FACTOR * days) / s, DECAY);
+  const intervalDays = (s) => (s / FACTOR) * (Math.pow(RETENTION, 1 / DECAY) - 1);
+  const nextD = (d, g) => clampD(FW[7] * initD(4) + (1 - FW[7]) * (d - FW[6] * (g - 3)));
+  const sAfterRecall = (d, s, r, g) =>
+    s * (Math.exp(FW[8]) * (11 - d) * Math.pow(s, -FW[9]) * (Math.exp(FW[10] * (1 - r)) - 1) * (g === 2 ? FW[15] : 1) * (g === 4 ? FW[16] : 1) + 1);
+  const sAfterLapse = (d, s, r) => FW[11] * Math.pow(d, -FW[12]) * (Math.pow(s + 1, FW[13]) - 1) * Math.exp(FW[14] * (1 - r));
+  const LEGACY_S = [0, 0.5, 1, 3, 7, 16, 35, 90];
+  const boxFromS = (s) => (s < 1 ? 1 : s < 3 ? 2 : s < 7 ? 3 : s < 16 ? 4 : s < 35 ? 5 : s < 90 ? 6 : 7);
+
+  function schedule(c, ok, now) {
+    const wasNew = c.box === 0 && !c.s;
+    if (!c.s && c.box > 0) { c.s = LEGACY_S[c.box]; c.d = 5; } // cards from the old Leitner scheduler
+    // grades: 1 = again, 3 = good, 4 = easy ("I already know this" on a brand-new card)
+    const g = ok ? (wasNew ? 4 : 3) : 1;
+    if (wasNew) {
+      c.d = initD(g);
+      c.s = initS(g);
+    } else {
+      const r = recall(Math.max(0, (now - (c.last || now)) / DAY), c.s);
+      c.s = ok ? sAfterRecall(c.d, c.s, r, g) : Math.min(c.s, sAfterLapse(c.d, c.s, r));
+      c.d = nextD(c.d, g);
+    }
+    c.s = Math.round(c.s * 1000) / 1000;
+    c.d = Math.round(c.d * 1000) / 1000;
+    if (ok) {
+      c.due = now + Math.min(365, Math.max(1, Math.round(intervalDays(c.s)))) * DAY;
+      c.box = boxFromS(c.s);
+    } else {
+      if (!wasNew) c.lapses++;
+      c.due = now + 10 * MIN; // relearn: comes back in the session and again soon
+      c.box = 1;
+    }
+  }
+
   function answer(id, ok, cram) {
     const c = card(id);
     if (!c) return;
     const wasNew = c.box === 0;
     if (!cram) {
-      if (ok) c.box = wasNew ? KNOWN_BOX : Math.min(c.box + 1, MAX_BOX);
-      else { if (!wasNew) c.lapses++; c.box = 1; }
-      c.due = Date.now() + INTERVALS[c.box];
+      const now = Date.now();
+      schedule(c, ok, now);
       c.reps++;
-      c.last = Date.now();
-      c.u = c.last;
+      c.last = now;
+      c.u = now;
     }
     bump(ok, wasNew && !cram);
     save();
   }
   const stage = (box) => (box === 0 ? 'new' : box < KNOWN_BOX ? 'learning' : box < MAX_BOX ? 'known' : 'mastered');
 
-  /* ---------- история поиска в словаре ---------- */
+  /* ---------- dictionary search history ---------- */
   function addRecent(q) {
     const lang = state.settings.target;
     state.recent = [{ q, lang }, ...state.recent.filter((r) => !(r.lang === lang && r.q.toLowerCase() === q.toLowerCase()))].slice(0, 40);
@@ -248,7 +289,7 @@
   }
   const recent = () => state.recent.filter((r) => r.lang === state.settings.target).slice(0, 8).map((r) => r.q);
 
-  /* ---------- кэш ответов ИИ (LRU) ---------- */
+  /* ---------- cache of AI answers (LRU) ---------- */
   let cache = null;
   function cacheObj() {
     if (!cache) { try { cache = JSON.parse(read(A.config.cacheKey) || '{}') || {}; } catch { cache = {}; } }
@@ -279,8 +320,9 @@
     cacheWrite();
   }
   function cacheClear() { cache = {}; remove(A.config.cacheKey); }
+  function cacheDel(k) { const c = cacheObj(); if (c[k]) { delete c[k]; cacheWrite(); } }
 
-  /* ---------- синхронизация: снимок и слияние ---------- */
+  /* ---------- sync: snapshot and merge ---------- */
   const DEL_TTL = 180 * 864e5;
   const stamp = (e) => e?.u || e?.created || 0;
 
@@ -294,8 +336,8 @@
     return { v: 1, settings, pairs: state.pairs, days: state.days, recent: state.recent };
   }
 
-  /* Слить чужой снимок с локальными данными: побеждает более новая версия каждой колоды/карточки.
-     changed — локальные данные изменились; ahead — у нас есть то, чего нет в чужом снимке. */
+  /* Merge another device's snapshot into local data: the newer version of each deck/card wins.
+     changed — local data changed; ahead — we have something the other snapshot lacks. */
   function merge(remote, { preferRemoteSettings = false } = {}) {
     if (!remote || typeof remote !== 'object' || !remote.pairs) throw new Error('bad snapshot');
     let changed = false, ahead = false;
@@ -322,7 +364,7 @@
         const lm = (L[kind] ||= {}), rm = R[kind] || {};
         for (const [id, re] of Object.entries(rm)) {
           const le = lm[id];
-          if (L.del[id] >= stamp(re)) continue; // удалено позже последней правки
+          if (L.del[id] >= stamp(re)) continue; // deleted after its last edit
           if (!le || stamp(re) > stamp(le)) { lm[id] = re; changed = true; }
           else if (stamp(le) > stamp(re)) ahead = true;
         }
@@ -333,7 +375,7 @@
       }
     }
 
-    // статистика по дням: берём максимум (не удваиваем при повторных слияниях)
+    // daily stats: take the maximum (so repeated merges never double them)
     for (const [d, rv] of Object.entries(remote.days || {})) {
       const lv = (state.days[d] ||= { rev: 0, ok: 0, new: 0 });
       for (const f of ['rev', 'ok', 'new']) {
@@ -342,7 +384,7 @@
     }
     for (const d of Object.keys(state.days)) if (!remote.days?.[d]) ahead = true;
 
-    // история поиска: объединение
+    // search history: union
     const seen = new Set(state.recent.map((r) => r.lang + '|' + r.q.toLowerCase()));
     for (const r of remote.recent || []) {
       if (!r?.q || seen.has(r.lang + '|' + r.q.toLowerCase())) continue;
@@ -358,7 +400,7 @@
     return { changed, ahead };
   }
 
-  /* ---------- импорт / экспорт ---------- */
+  /* ---------- import / export ---------- */
   function exportData() {
     return JSON.stringify({ app: 'ordkort', exported: new Date().toISOString(), ...state }, null, 1);
   }
@@ -387,9 +429,10 @@
     decks, deck, addDeck, updateDeck, deleteDeck, mineDeck,
     cards, card, addCards, updateCard, deleteCard, resetCard, hasTerm, norm,
     overview, streak, week, today,
-    buildSession, cramQueue, answer, stage, MAX_BOX,
+    buildSession, cramQueue, answer, stage, MAX_BOX, schedule, dayKey,
+    get days() { return state.days; },
     addRecent, recent,
-    cacheGet, cacheSet, cacheHas, cacheClear,
+    cacheGet, cacheSet, cacheHas, cacheClear, cacheDel,
     kvGet: read, kvSet: write, kvDel: remove,
     exportData, importData, resetAll, usage,
   };

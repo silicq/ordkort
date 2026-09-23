@@ -1,6 +1,6 @@
-/* Каталог тем для колод и главы учебника грамматики.
-   Названия для интерфейса берутся из i18n (topic.<id>, ch.<id>),
-   английские описания — подсказки для ИИ. */
+/* Catalogue of deck topics and grammar textbook chapters.
+   Interface names come from i18n (topic.<id>, ch.<id>),
+   English descriptions are hints for the AI. */
 (globalThis.App ||= {}).topics = (() => {
   const groups = [
     { id: 'start', items: [

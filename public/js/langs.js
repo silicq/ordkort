@@ -1,4 +1,4 @@
-/* Языки: код, самоназвание, английское имя (для ИИ), голос TTS, «привет», RTL */
+/* Languages: code, own name, English name (for the AI), TTS voice, "hello", RTL */
 (globalThis.App ||= {}).langs = (() => {
   const RTL = 1;
   const rows = [

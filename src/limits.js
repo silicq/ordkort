@@ -1,8 +1,8 @@
-/* Лимиты. Один общий ключ Groq на всех, поэтому:
-   1) всплески запросов режутся в памяти изолята (без записи в базу);
-   2) генерации ИИ считаются по «отпечатку» IP (хэш с солью, меняющейся каждый день) — в час и в сутки;
-   3) общий суточный бюджет ИИ на весь сайт, чтобы не упереться в лимит Groq.
-   Всё, что уже есть в общей базе, отдаётся без траты лимита. */
+/* Limits. There is one shared Groq key for everybody, so:
+   1) request bursts are cut in the isolate's memory (no database writes);
+   2) AI generations are counted per IP "fingerprint" (a hash with a salt that changes daily) — per hour and per day;
+   3) there is a daily AI budget for the whole site, so that we never hit Groq's own limit.
+   Anything already in the shared base is served without touching the limit. */
 import { HttpError, hmac, today, hourStamp } from './util.js';
 import { bump, peek } from './db.js';
 
@@ -16,7 +16,7 @@ export function limitsOf(env) {
   };
 }
 
-/* Отпечаток клиента: IPv4 целиком, у IPv6 — сеть /64. Сам IP нигде не сохраняется. */
+/* Client fingerprint: the full IPv4 address, or the /64 network for IPv6. The IP itself is never stored. */
 export async function clientKey(request, env) {
   const ip = request.headers.get('CF-Connecting-IP') || 'local';
   const net = ip.includes(':') ? ip.split(':').slice(0, 4).join(':') : ip;
@@ -24,7 +24,7 @@ export async function clientKey(request, env) {
   return (await hmac(salt, `${today()}|${net}`)).slice(0, 24);
 }
 
-/* Всплески: не больше `limit` запросов за `windowMs` с одного отпечатка в пределах изолята */
+/* Bursts: at most `limit` requests per `windowMs` from one fingerprint, within this isolate */
 const buckets = new Map();
 export function burst(key, limit = 45, windowMs = 10000) {
   const now = Date.now();
@@ -35,7 +35,7 @@ export function burst(key, limit = 45, windowMs = 10000) {
   if (b.n > limit) throw new HttpError(429, 'slow_down');
 }
 
-/* Списать одну генерацию ИИ. Возвращает остаток и функцию возврата (если генерация не удалась). */
+/* Take one AI generation. Returns what is left and a function that gives it back (if the generation failed). */
 export async function takeAI(env, key) {
   const { perHour, perDay, budget } = limitsOf(env);
   const db = env.DB;
@@ -53,7 +53,7 @@ export async function aiLeft(env, key) {
   return { left: Math.max(0, perDay - used), limit: perDay };
 }
 
-/* Простой счётчик для синхронизации и кодов привязки (защита от перебора) */
+/* A simple counter for sync and link codes (protection against guessing) */
 export async function takeSimple(env, name, key, limit, ttlMs) {
   const n = await bump(env.DB, `${name}:${key}:${Math.floor(Date.now() / ttlMs)}`, ttlMs * 2);
   if (n > limit) throw new HttpError(429, 'slow_down');

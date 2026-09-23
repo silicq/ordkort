@@ -1,7 +1,7 @@
-/* Официальные данные для норвежского: API ordbokene.no (Språkrådet и Universitetet i Bergen).
-   Даёт точные таблицы склонения, значения, примеры и устойчивые выражения. */
+/* Official data for Norwegian: the ordbokene.no API (Språkrådet and the University of Bergen).
+   Gives exact inflection tables, senses, examples and fixed expressions. */
 (() => {
-  const A = (globalThis.App ||= {}); // файл общий: работает и в браузере, и на сервере
+  const A = (globalThis.App ||= {}); // a shared file: works both in the browser and on the server
   const API = 'https://ord.uib.no';
   const dictFor = (lang) => (lang === 'nb' ? 'bm' : lang === 'nn' ? 'nn' : null);
 
@@ -169,7 +169,7 @@
 
   const link = (word) => `https://ordbokene.no/nob/bm,nn/${encodeURIComponent(word)}`;
 
-  /* Короткая выжимка официальной статьи — «опора» для ИИ, чтобы он переводил, а не выдумывал */
+  /* A short summary of the official entry — ground truth for the AI, so that it translates rather than invents */
   function summary(r) {
     if (!r?.articles?.length) return '';
     const out = [];

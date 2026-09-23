@@ -1,13 +1,13 @@
-/* Синхронизация без аккаунтов и паролей.
+/* Sync without accounts or passwords.
 
-   Постоянная связка: случайный секрет S (32 байта) хранится только на ваших устройствах.
-   Из него выводятся (HKDF): id копии на сервере, токен записи и ключ AES-256-GCM.
-   На сервер уходит только зашифрованный и сжатый снимок данных — прочитать его без S нельзя.
+   Permanent link: a random secret S (32 bytes) is kept only on your devices.
+   From it (HKDF) we derive: the id of the copy on the server, the write token and an AES-256-GCM key.
+   The server receives only an encrypted, compressed snapshot of the data — it cannot be read without S.
 
-   Привязка устройства: одноразовый код из 16 символов = 6 символов «ящика» на сервере + 10 символов ключа.
-   Ключевая часть никогда не покидает устройства (в QR-ссылке она после #, а это браузер серверу не отправляет).
-   В ящик кладётся S (или весь снимок при разовом переносе), зашифрованный ключом из кода; ящик живёт 3 минуты
-   и удаляется при первом же чтении. */
+   Linking a device: a one-time 16-character code = 6 characters of a server "mailbox" + 10 characters of key.
+   The key part never leaves the devices (in the QR link it comes after #, which browsers never send to the server).
+   The mailbox holds S (or the whole snapshot for a one-off transfer) encrypted with the key from the code; it lives 3 minutes
+   and is deleted on the first read. */
 (() => {
   const A = window.App;
   const enc = new TextEncoder();
@@ -17,7 +17,7 @@
     constructor(kind) { super(kind); this.kind = kind; }
   }
 
-  /* ---------- байты и шифрование ---------- */
+  /* ---------- bytes and encryption ---------- */
   function toB64(bytes) {
     let s = '';
     for (let i = 0; i < bytes.length; i += 0x8000) s += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
@@ -72,7 +72,7 @@
       base, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
   }
 
-  /* ---------- состояние (отдельный ключ localStorage: в резервные копии не попадает) ---------- */
+  /* ---------- state (a separate localStorage key: never goes into backups) ---------- */
   let cfg = null; // { s, v, at, dirty, first }
   let keys = null;
   const status = { state: 'off', at: 0 };
@@ -107,7 +107,7 @@
     }
   }
 
-  /* ---------- цикл синхронизации ---------- */
+  /* ---------- sync loop ---------- */
   let running = null;
   function syncNow() {
     if (!enabled()) return Promise.resolve();
@@ -120,7 +120,7 @@
         for (let attempt = 0; attempt < 4; attempt++) {
           const r = await request(`sync/${k.id}?since=${cfg.v}`, { headers });
           if (r.status === 404 && cfg.v > 0) {
-            // копию удалили с другого устройства
+            // the copy was deleted from another device
             cfg = null; keys = null; saveCfg();
             setStatus('off');
             A.toast(A.t('sync.removed'));
@@ -141,7 +141,7 @@
           if (!ahead) break;
           const body = JSON.stringify({ v: cfg.v, d: await seal(k.key, A.store.snapshot()) });
           const p = await request(`sync/${k.id}`, { method: 'PUT', headers: { ...headers, 'Content-Type': 'application/json' }, body });
-          if (p.status === 409) continue; // кто-то успел раньше — заберём его версию и сольём
+          if (p.status === 409) continue; // someone was first — fetch their version and merge
           if (p.status === 413) throw new SyncError('too_large');
           if (!p.ok) throw new SyncError(p.status === 429 ? 'slow' : 'server');
           cfg.v = (await p.json()).v;
@@ -185,7 +185,7 @@
     setStatus('off');
   }
 
-  /* ---------- коды привязки ---------- */
+  /* ---------- link codes ---------- */
   async function createCode(mode) {
     if (mode === 'link' && !enabled()) await enable();
     const keyPart = randomB32(10);
@@ -209,7 +209,7 @@
     .replace(/[^0-9A-Z]/g, '');
   const formatCode = (c) => c.match(c.length > 16 ? /.{1,6}/g : /.{1,4}/g).join('-');
 
-  /* ---------- ключ восстановления: секрет S в виде 54 символов (52 + 2 контрольных) ---------- */
+  /* ---------- recovery key: the secret S as 54 characters (52 + 2 check characters) ---------- */
   const KEY_LEN = 54;
   function b32encode(bytes) {
     let bits = 0, val = 0, out = '';
@@ -284,7 +284,7 @@
     throw new SyncError('bad_code');
   }
 
-  /* ---------- запуск ---------- */
+  /* ---------- start ---------- */
   function start() {
     loadCfg();
     A.store.onChange(() => {
@@ -310,5 +310,6 @@
     get status() { return status; },
     onStatus: (fn) => { listeners.add(fn); return () => listeners.delete(fn); },
     SyncError,
+    _test: { seal, unseal, derive, pairKey, b32encode, b32decode, checksum, toB64, fromB64 }, // for tests/sync.test.mjs
   };
 })();

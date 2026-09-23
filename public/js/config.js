@@ -1,13 +1,13 @@
-/* Ordkort — базовая конфигурация браузерной части.
-   Ключа ИИ здесь нет: запросы идут на /api этого же сайта, ключ хранится только на сервере. */
+/* Ordkort — browser-side configuration.
+   There is no AI key here: requests go to /api on this same site, and the key lives only on the server. */
 window.App = window.App || {};
 App.views = App.views || {};
 
 App.config = {
-  storageKey: 'ordkort.v1',      // карточки, прогресс, настройки
-  cacheKey: 'ordkort.cache.v1',  // сохранённые ответы ИИ (можно очистить)
-  syncKey: 'ordkort.sync.v1',    // ключ синхронизации — только на этом устройстве, в резервные копии не попадает
+  storageKey: 'ordkort.v1',      // cards, progress, settings
+  cacheKey: 'ordkort.cache.v1',  // saved AI answers (safe to clear)
+  syncKey: 'ordkort.sync.v1',    // sync secret — stays on this device, never goes into backups
   cacheLimit: 300,
-  uiVersion: 3,
-  repoUrl: 'https://github.com/silicq/ordkort', // исходный код — ссылка на странице «Как это работает»
+  uiVersion: 4,                  // bump when UI strings change, so machine-translated UIs are rebuilt
+  repoUrl: 'https://github.com/silicq/ordkort', // source code, linked from the About page
 };

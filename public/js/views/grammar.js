@@ -1,4 +1,4 @@
-/* Учебник грамматики: главы по частям речи + свободные вопросы. Главы кэшируются. */
+/* Grammar textbook: chapters by part of speech plus free-form questions. Chapters are cached. */
 (() => {
   const A = window.App;
   const { h, icon, t } = A;
@@ -126,7 +126,10 @@
           h('details', null, h('summary', null, t('gram.show_answer')), h('p', { class: 'serif', lang: T }, A.rich(p.a))))))) : null,
       h('div', { class: 'chapter-foot' },
         h('span', { class: 'muted small' }, icon('sparkle', 14), t('gram.ai_note')),
-        h('button', { class: 'link-btn small', type: 'button', onclick: reload }, icon('refresh', 14), t('common.regenerate'))),
+        h('span', { class: 'row gap wrap' },
+          h('button', { class: 'link-btn small', type: 'button', onclick: reload }, icon('refresh', 14), t('common.regenerate')),
+          ask ? A.reportBtn('ask', { q: ask }, `ask:${T}:${N}:${ask.toLowerCase()}`)
+            : A.reportBtn('chapter', { id }, `gram:${T}:${N}:${id}`))),
       ch ? h('div', { class: 'pager' },
         prev ? h('a', { class: 'pager-link', href: '#/grammar/' + prev.id }, h('small', null, '←'), t('ch.' + prev.id)) : h('span'),
         nextCh ? h('a', { class: 'pager-link next', href: '#/grammar/' + nextCh.id }, t('ch.' + nextCh.id), h('small', null, '→')) : h('span')) : null);

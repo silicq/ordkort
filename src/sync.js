@@ -1,20 +1,20 @@
-/* Синхронизация без аккаунтов.
-   Всё шифруется в браузере (AES-256-GCM). Сервер хранит только непрозрачные байты и хэш
-   токена записи: прочитать данные он не может, потому что ключ есть только на устройствах.
+/* Sync without accounts.
+   Everything is encrypted in the browser (AES-256-GCM). The server stores only opaque bytes and a hash
+   of the write token: it cannot read the data, because the key exists only on the devices.
 
-   /api/pair  — одноразовый «почтовый ящик» на 3 минуты для кода привязки или разового переноса;
-                забрать содержимое можно ровно один раз.
-   /api/sync  — зашифрованная копия для постоянной синхронизации между связанными устройствами. */
+   /api/pair  — a one-time "mailbox" for 3 minutes, for a link code or a one-off transfer;
+                its content can be taken exactly once.
+   /api/sync  — the encrypted copy for continuous sync between linked devices. */
 import { HttpError, json, readJSON, sha256, safeEqual, randomCode, isCode } from './util.js';
 import { takeSimple } from './limits.js';
 
 const PAIR_TTL = 180 * 1000;
-const MAX_BLOB = 1_900_000; // D1 хранит строку до 2 МБ
+const MAX_BLOB = 1_900_000; // D1 stores strings of up to 2 MB
 const HOUR = 36e5;
 
 const b64ok = (s) => typeof s === 'string' && s.length > 16 && s.length <= MAX_BLOB && /^[A-Za-z0-9+/=]+$/.test(s);
 
-/* ---------- одноразовые коды ---------- */
+/* ---------- one-time codes ---------- */
 
 export async function pairCreate(request, env, key) {
   await takeSimple(env, 'pair-new', key, 20, HOUR);
@@ -35,14 +35,14 @@ export async function pairTake(env, key, id, peekOnly) {
     const row = await env.DB.prepare('SELECT exp FROM pair WHERE id = ? AND exp > ?').bind(id, Date.now()).first();
     return json({ alive: !!row });
   }
-  // защита от перебора кодов: не больше 30 попыток в час с одного отпечатка
+  // protection against guessing codes: at most 30 attempts per hour from one fingerprint
   await takeSimple(env, 'pair-get', key, 30, HOUR);
   const row = await env.DB.prepare('DELETE FROM pair WHERE id = ? RETURNING d, exp').bind(id).first();
   if (!row || row.exp < Date.now()) throw new HttpError(404, 'gone');
   return json({ d: row.d });
 }
 
-/* ---------- постоянная синхронизация ---------- */
+/* ---------- continuous sync ---------- */
 
 async function authOf(request) {
   const token = request.headers.get('X-Sync-Token') || '';
@@ -76,7 +76,7 @@ export async function syncPut(request, env, key, id) {
       .bind(body.d, now, id, auth, expected).run();
     if (r.meta.changes) return json({ v: expected + 1 });
   }
-  // не записали: либо чужой токен, либо кто-то успел записать раньше (конфликт версий)
+  // nothing written: either a wrong token, or someone else wrote first (version conflict)
   const row = await env.DB.prepare('SELECT auth, v FROM sync WHERE id = ?').bind(id).first();
   if (!row) throw new HttpError(404, 'none');
   if (!safeEqual(row.auth, auth)) throw new HttpError(403, 'forbidden');

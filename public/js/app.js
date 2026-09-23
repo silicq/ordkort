@@ -1,4 +1,4 @@
-/* Каркас приложения: шапка, маршруты, фоновая генерация колод. */
+/* The app shell: header, routes, background deck generation. */
 (() => {
   const A = window.App;
   const { h, icon, t } = A;
@@ -7,16 +7,17 @@
   const NAV = [
     { id: 'home', href: '#/', icon: 'cards', label: 'nav.cards' },
     { id: 'dict', href: '#/dict', icon: 'book', label: 'nav.dict' },
+    { id: 'read', href: '#/read', icon: 'read', label: 'nav.read' },
     { id: 'grammar', href: '#/grammar', icon: 'grammar', label: 'nav.grammar' },
     { id: 'translate', href: '#/translate', icon: 'translate', label: 'nav.translate' },
   ];
-  const SECTION = { home: 'home', deck: 'home', study: 'home', dict: 'dict', grammar: 'grammar', translate: 'translate', settings: 'settings', about: 'settings' };
-  const OPEN_BEFORE_SETUP = ['link', 'about']; // доступны и до первого запуска
+  const SECTION = { home: 'home', deck: 'home', study: 'home', dict: 'dict', grammar: 'grammar', translate: 'translate', settings: 'settings', about: 'settings', read: 'read', stats: 'home', s: 'home' };
+  const OPEN_BEFORE_SETUP = ['link', 'about', 's']; // available before the first-run setup
 
   let current = null;
   let pendingRefresh = false;
 
-  /* ---------- тема и язык интерфейса ---------- */
+  /* ---------- theme and interface language ---------- */
   const prefersDark = matchMedia('(prefers-color-scheme: dark)');
   const isDark = () => {
     const th = A.store.settings?.theme || 'auto';
@@ -37,7 +38,7 @@
   A.applyTheme = applyTheme;
   A.applyLang = applyLang;
 
-  /* ---------- шапка ---------- */
+  /* ---------- header ---------- */
   function header(active) {
     const s = A.store.settings;
     return h('header', { class: 'top' },
@@ -69,7 +70,7 @@
         h('a', { href: '#/settings' }, t('nav.settings'))));
   }
 
-  /* ---------- выбор изучаемого языка ---------- */
+  /* ---------- choosing the language you learn ---------- */
   function pairDialog() {
     const s = A.store.settings;
     const pairs = A.store.pairs();
@@ -103,7 +104,7 @@
     route();
   }
 
-  /* ---------- маршрутизация ---------- */
+  /* ---------- routing ---------- */
   function parse() {
     const raw = location.hash.replace(/^#\/?/, '');
     const [path, qs] = raw.split('?');
@@ -151,7 +152,7 @@
     if (!current.keepScroll) window.scrollTo(0, 0);
   }
 
-  /* Перерисовать текущий экран, если он «живой» (например, закончилась генерация слов) */
+  /* Redraw the current screen if it is "live" (for example, word generation has finished) */
   function refresh() {
     if (!current?.view?.live) return;
     const ae = document.activeElement;
@@ -169,7 +170,7 @@
     window.scrollTo(0, y);
   }
 
-  /* ---------- фоновая генерация слов (по одной задаче, чтобы не упираться в лимиты) ---------- */
+  /* ---------- background word generation (one job at a time, to stay within the limits) ---------- */
   const jobs = new Map();
   const queue = [];
   let busy = false;
@@ -209,7 +210,7 @@
   }
   A.jobs = { generate, state: (id) => jobs.get(id) || null };
 
-  /* Попросить браузер не вытеснять данные сайта при нехватке места (вызывается после действий пользователя) */
+  /* Ask the browser not to evict the site's data when space runs low (called after a user action) */
   A.persist = async () => {
     try {
       if (!navigator.storage?.persist) return false;
@@ -218,7 +219,7 @@
     } catch { return false; }
   };
 
-  /* Установка как приложения: Chrome/Edge присылают событие, на iPhone — через «Поделиться → На экран Домой» */
+  /* Installing as an app: Chrome/Edge fire an event; on iPhone it is Share → Add to Home Screen */
   let installPrompt = null;
   window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); installPrompt = e; });
   A.install = {
@@ -241,6 +242,12 @@
     A.sync.start();
     route();
     A.i18n.ensure();
+    // offline mode: the site itself is cached by a service worker; AI features need the network
+    if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+      navigator.serviceWorker.register('/sw.js').catch(() => {});
+    }
+    window.addEventListener('offline', () => A.toast(t('net.offline')));
+    window.addEventListener('online', () => A.toast(t('net.online'), 'ok'));
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
   else start();

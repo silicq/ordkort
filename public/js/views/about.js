@@ -1,4 +1,4 @@
-/* «Как это работает»: что где хранится, что куда отправляется, почему есть лимиты. */
+/* "How it works": what is stored where, what is sent where, why there are limits. */
 (() => {
   const A = window.App;
   const { h, icon, t } = A;
@@ -6,11 +6,13 @@
   const SECTIONS = [
     ['local', 'cards'],
     ['ai', 'sparkle'],
+    ['shared', 'share'],
     ['limits', 'flame'],
     ['ip', 'info'],
     ['sync', 'refresh'],
     ['transfer', 'upload'],
     ['wipe', 'trash'],
+    ['offline', 'download'],
     ['codes', 'check'],
     ['third', 'globe'],
     ['free', 'grammar'],
@@ -39,11 +41,11 @@
     },
   };
 
-  /* Подключение по ссылке из QR-кода: #/link/КОД. Всегда с подтверждением. */
+  /* Linking by the URL from a QR code: #/link/CODE. Always asks for confirmation. */
   A.views.link = {
     render(root, [raw]) {
       const code = A.sync.normCode(raw);
-      history.replaceState(null, '', location.pathname + '#/link'); // код не остаётся в истории
+      history.replaceState(null, '', location.pathname + '#/link'); // the code does not stay in the history
       const card = h('div', { class: 'link-card' });
       root.append(h('section', { class: 'link-page' }, card));
 

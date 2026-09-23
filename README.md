@@ -4,8 +4,10 @@
 
 Ordkort is a lightweight site for learning almost any language from almost any other one:
 
-- **Flashcards** by topic with spaced repetition — “I know / I don’t know” for new words,
+- **Flashcards** by topic with spaced repetition (FSRS-4.5) — “I know / I don’t know” for new words,
   “I remember / I forgot” for reviews. Tap to flip, swipe, keyboard shortcuts, text-to-speech.
+  Five more study modes: multiple choice, typing (with an on-screen row of special letters),
+  listening, fill-the-gap in the example sentence, or a mix.
 - **Topics**: 29 built-in topics in 6 groups (first steps, people, everyday life, the world around,
   work & society, grammar sets), any custom topic, or an empty deck for your own words.
   AI picks real, frequent words for levels A1–C1; “+20 words” keeps extending a deck without repeats.
@@ -17,6 +19,14 @@ Ordkort is a lightweight site for learning almost any language from almost any o
   examples, typical mistakes and exercises, plus free-form grammar questions.
 - **Translator with explanations**: every word colour-coded by part of speech, with its form and the rule
   that explains why it is used exactly there.
+- **Reading**: paste any text; words are coloured as new / learning / known, tap one to see its
+  meaning in that context and add it to your cards.
+- **Statistics and a daily goal**: streak, reviews over 30 days, a 14-day forecast, words by stage,
+  the words you forget most.
+- **Your own words in and out**: CSV export and import (including Anki “Notes in plain text”),
+  and sharing a deck by link or QR code — only the words, never your progress.
+- **Works offline**: a service worker keeps the site, so cards open without a connection.
+- **Report a mistake** on any AI entry; after independent reports it is regenerated for everyone.
 - **60 languages** to learn and explain in. The interface is hand-translated into English, Russian,
   Ukrainian, Norwegian, Arabic (RTL) and Chinese; other interface languages are translated once by AI
   and shared.
@@ -26,6 +36,7 @@ Ordkort is a lightweight site for learning almost any language from almost any o
 ```
 public/            the site: HTML, CSS, JS, fonts — served by Cloudflare as static assets
   _headers         security headers (CSP etc.)
+  sw.js            service worker for offline use
 src/               Cloudflare Worker — runs only for /api/*
   worker.js        routing and same-origin check
   api.js           AI requests: shared cache → word bank → limits → Groq
@@ -35,11 +46,13 @@ src/               Cloudflare Worker — runs only for /api/*
   limits.js        burst, hourly, daily and site-wide limits
   sync.js          device sync and one-time codes (the server only ever sees ciphertext)
   db.js            D1: the schema is created automatically on the first request
+tests/             node:test suites (see below)
 wrangler.jsonc     Cloudflare configuration
 ```
 
 **User data** — cards, progress, settings — lives in the browser’s localStorage. Only AI requests
-(a word, a topic or a text plus the language pair) reach the server. Answers are stored in a shared
+(a word, a topic or a text plus the language pair) reach the server, plus decks you choose to share
+by link (kept for a year) and anonymous mistake reports (kept for 30 days). Answers are stored in a shared
 base, so the next person gets them instantly and without using their limit.
 
 **The Groq key** lives only in the Worker secret. The browser sends parameters, not prompts,
@@ -81,6 +94,18 @@ npm run dev
 
 The site runs at http://localhost:8787 together with a local D1 database.
 
+## Tests
+
+```bash
+npm test
+```
+
+The suites cover FSRS scheduling, merging data between devices (edits, deletions, daily stats),
+sync encryption and recovery keys, QR codes (decoded by an independent reader), CSV import/export,
+completeness of the interface translations, the offline file list, and the Worker API end to end
+(shared decks, one-time link codes, versioned sync) in Wrangler’s local runtime. No AI calls are made.
+GitHub Actions runs them on every push and pull request.
+
 ## Deploy to Cloudflare with automatic updates from GitHub
 
 1. Cloudflare dashboard → **Workers & Pages** → **Create** → **Import a repository** → pick this
@@ -118,8 +143,14 @@ npm run deploy
 - Cloudflare’s network absorbs volumetric attacks. On a custom domain you can additionally enable
   a WAF rate-limiting rule for `/api/*` and Bot Fight Mode.
 
+## License
+
+[GNU AGPL-3.0](LICENSE). You may use, study, change and share the code; if you run a modified
+version as a public service, you must publish your changes under the same license.
+
 ## Credits
 
 Official Norwegian dictionary data: [ordbokene.no](https://ordbokene.no) (Språkrådet and the
 University of Bergen). AI: [Groq](https://groq.com). Fonts: Geologica, Literata, Readex Pro,
-Noto Naskh Arabic — SIL Open Font License 1.1.
+Noto Naskh Arabic — SIL Open Font License 1.1. QR codes: a port of Project Nayuki’s QR Code generator
+(MIT License).

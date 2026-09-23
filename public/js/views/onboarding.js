@@ -1,4 +1,4 @@
-/* Первый запуск: какой язык знаю → какой учу → уровень → первые темы. */
+/* First run: the language I know → the one I learn → level → first topics. */
 (() => {
   const A = window.App;
   const { h, icon, t } = A;

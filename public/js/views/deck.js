@@ -1,4 +1,4 @@
-/* Колода: список слов, добавление, генерация новых слов, редактирование. */
+/* A deck: the word list, adding words, generating new ones, editing. */
 (() => {
   const A = window.App;
   const { h, icon, t, tn } = A;
@@ -34,6 +34,7 @@
             icon('sparkle', 18), t('deck.more', { n: s.batch })),
           h('button', { class: 'btn btn-ghost', type: 'button', onclick: () => editCard(null, id) }, icon('plus', 18), t('deck.add_word')),
           h('span', { class: 'grow' }),
+          h('button', { class: 'icon-btn', type: 'button', title: t('deck.tools'), 'aria-label': t('deck.tools'), onclick: () => A.deckTools.menu(d) }, icon('more')),
           d.topic ? null : h('button', {
             class: 'icon-btn', type: 'button', title: t('deck.rename'), 'aria-label': t('deck.rename'),
             onclick: async () => {
@@ -91,6 +92,13 @@
     },
   };
 
+  // words that came from the shared bank can be reported, so they get replaced for everyone
+  function wordReport(c) {
+    const d = A.store.deck(c.deck);
+    if (!d || d.manual || d.kind === 'mine' || !(d.topic || d.title)) return null;
+    return A.reportBtn('word', { topic: d.topic || undefined, custom: d.topic ? undefined : d.title, level: d.level || 'A1', term: c.term });
+  }
+
   function pips(box) {
     const max = A.store.MAX_BOX;
     return h('span', { class: 'pips st-' + A.store.stage(box), title: t('stage.' + A.store.stage(box)) },
@@ -102,10 +110,11 @@
       c.gram || c.pos ? h('p', null, h('span', { class: 'k' }, t('card.gram')), [c.pos ? t('pos.' + c.pos) : '', c.gram].filter(Boolean).join(' · ')) : null,
       c.forms ? h('p', null, h('span', { class: 'k' }, t('card.forms')), A.lt(c.forms, s.target, 'serif')) : null,
       c.ex ? h('p', null, h('span', { class: 'k' }, t('card.example')), A.lt(c.ex, s.target, 'serif'), A.speakBtn(c.ex, s.target, 'sm'), c.exTr ? h('span', { class: 'muted d-block' }, c.exTr) : null) : null,
-      h('div', { class: 'row gap' },
+      h('div', { class: 'row gap wrap' },
         h('button', { class: 'btn btn-ghost btn-sm', type: 'button', onclick: () => editCard(c, c.deck) }, icon('edit', 16), t('common.edit')),
         h('a', { class: 'btn btn-ghost btn-sm', href: '#/dict/' + encodeURIComponent(c.term.replace(/^(en|ei|et|å|der|die|das|la|le|el|the|to)\s+/i, '')) }, icon('book', 16), t('card.in_dict')),
         c.box ? h('button', { class: 'btn btn-ghost btn-sm', type: 'button', onclick: () => { A.store.resetCard(c.id); A.refresh(); } }, icon('refresh', 16), t('card.reset')) : null,
+        wordReport(c),
         h('span', { class: 'grow' }),
         h('button', {
           class: 'btn btn-ghost btn-sm danger', type: 'button',
@@ -122,7 +131,7 @@
     return el;
   }
 
-  /* Модалка добавления/редактирования карточки с автозаполнением через ИИ */
+  /* The add/edit card modal, with AI autofill */
   function editCard(card, deckId) {
     const s = A.store.settings;
     const f = {};

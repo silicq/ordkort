@@ -1,5 +1,5 @@
-/* Локализация интерфейса. Вручную переведены: en, ru, uk, nb, ar, zh (файлы в js/i18n/).
-   Для остальных языков интерфейс один раз переводится через ИИ и сохраняется в браузере. */
+/* Interface localisation. Translated by hand: en, ru, uk, nb, ar, zh (files in js/i18n/).
+   For other languages the interface is translated once by the AI and kept in the browser. */
 (() => {
   const A = window.App;
   const D = (A.i18nData ||= {});
@@ -31,7 +31,7 @@
     return fmt(s, { ...vars, n });
   }
 
-  /* Перевод интерфейса через ИИ для языков без ручного перевода */
+  /* AI translation of the interface for languages without a hand-made one */
   async function ensure() {
     const l = lang();
     if (table(l) || !A.store?.ready) return;
@@ -40,13 +40,13 @@
     try {
       const saved = JSON.parse(A.store.kvGet(key) || 'null');
       if (saved) { extra[l] = saved; A.route(); return; }
-    } catch { /* нет сохранённого перевода */ }
+    } catch { /* no saved translation */ }
 
     pending = l;
     A.toast(D.en['ui.translating']);
     const total = Object.keys(D.en).length;
     const out = {};
-    // сервер знает английские строки и переводит их частями; переводы общие для всех
+    // the server knows the English strings and translates them in parts; translations are shared by everyone
     for (let part = 0, parts = 1; part < parts; part++) {
       try {
         const r = await A.ai.uiPart(l, part);
