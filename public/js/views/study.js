@@ -22,6 +22,7 @@
 
       const wrap = h('div', { class: 'study' });
       root.append(wrap);
+      A.persist();
       S.wrap = wrap;
 
       if (!ids.length) { empty(); return; }

@@ -209,6 +209,25 @@
   }
   A.jobs = { generate, state: (id) => jobs.get(id) || null };
 
+  /* Попросить браузер не вытеснять данные сайта при нехватке места (вызывается после действий пользователя) */
+  A.persist = async () => {
+    try {
+      if (!navigator.storage?.persist) return false;
+      if (await navigator.storage.persisted()) return true;
+      return await navigator.storage.persist();
+    } catch { return false; }
+  };
+
+  /* Установка как приложения: Chrome/Edge присылают событие, на iPhone — через «Поделиться → На экран Домой» */
+  let installPrompt = null;
+  window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); installPrompt = e; });
+  A.install = {
+    available: () => !!installPrompt,
+    run: async () => { if (!installPrompt) return; installPrompt.prompt(); await installPrompt.userChoice.catch(() => {}); installPrompt = null; },
+    standalone: () => matchMedia('(display-mode: standalone)').matches || navigator.standalone === true,
+    ios: () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1),
+  };
+
   A.route = route;
   A.refresh = refresh;
   A.isDark = isDark;

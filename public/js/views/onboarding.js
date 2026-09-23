@@ -118,6 +118,7 @@
       function finish() {
         A.i18n.setRuntime(null);
         A.store.init({ native: st.native, target: st.target, level: st.level });
+        A.persist();
         const ids = [];
         for (const id of st.topics) {
           const tp = A.topics.get(id);

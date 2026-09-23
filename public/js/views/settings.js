@@ -3,6 +3,27 @@
   const A = window.App;
   const { h, icon, t } = A;
 
+  /* Защита данных: постоянное хранилище и установка как приложения (на iPhone это отключает 7-дневную очистку Safari) */
+  function protection() {
+    const status = h('b', null, '…');
+    const box = h('div', { class: 'protect' },
+      h('div', { class: 'set-row' },
+        h('div', { class: 'set-label' }, h('b', null, t('set.storage')), h('small', null, t('set.storage_hint'))),
+        h('div', { class: 'set-ctl' }, status)));
+    const paint = (ok) => {
+      status.textContent = t(ok ? 'set.storage_persist' : 'set.storage_best');
+      status.className = ok ? 'ok-text' : 'muted';
+    };
+    (navigator.storage?.persisted?.() || Promise.resolve(false)).then(paint).catch(() => paint(false));
+    if (A.install.standalone()) return box;
+    if (A.install.available()) {
+      box.append(h('button', { class: 'btn btn-soft btn-sm', type: 'button', onclick: async () => { await A.install.run(); A.route(); } }, icon('download', 16), t('set.install')));
+    } else if (A.install.ios()) {
+      box.append(h('p', { class: 'callout ios-hint' }, icon('info', 18), h('span', null, t('set.install_ios'))));
+    }
+    return box;
+  }
+
   A.views.settings = {
     render(root) {
       const s = A.store.settings;
@@ -95,6 +116,7 @@
             h('a', { class: 'link-btn small', href: '#/about' }, icon('info', 14), t('sync.how'))),
           card(t('set.data'),
             h('p', { class: 'muted small' }, t('set.data_hint', { kb: A.store.usage(), n: counts })),
+            protection(),
             h('div', { class: 'row gap wrap' },
               h('button', { class: 'btn btn-ghost btn-sm', type: 'button', onclick: () => A.download(`ordkort-${new Date().toISOString().slice(0, 10)}.json`, A.store.exportData()) }, icon('download', 16), t('set.export')),
               h('button', { class: 'btn btn-ghost btn-sm', type: 'button', onclick: () => file.click() }, icon('upload', 16), t('set.import')),

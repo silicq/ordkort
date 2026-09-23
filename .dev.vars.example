@@ -1,4 +1,4 @@
-# Скопируйте в .dev.vars (он не попадает в git) и вставьте свой ключ Groq.
+# Copy to .dev.vars (it is not committed to git) and paste your Groq key.
 GROQ_API_KEY=gsk_...
-# Необязательно: отдельная соль для хэширования IP в счётчиках лимитов
-# IP_SALT=любая-длинная-случайная-строка
+# Optional: a separate salt for hashing IP addresses in the limit counters
+# IP_SALT=any-long-random-string

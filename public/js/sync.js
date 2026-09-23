@@ -207,11 +207,60 @@
 
   const normCode = (raw) => String(raw || '').toUpperCase().replace(/O/g, '0').replace(/[IL]/g, '1').replace(/U/g, 'V')
     .replace(/[^0-9A-Z]/g, '');
-  const formatCode = (c) => c.match(/.{1,4}/g).join('-');
+  const formatCode = (c) => c.match(c.length > 16 ? /.{1,6}/g : /.{1,4}/g).join('-');
+
+  /* ---------- ключ восстановления: секрет S в виде 54 символов (52 + 2 контрольных) ---------- */
+  const KEY_LEN = 54;
+  function b32encode(bytes) {
+    let bits = 0, val = 0, out = '';
+    for (const b of bytes) {
+      val = (val << 8) | b; bits += 8;
+      while (bits >= 5) { out += B32[(val >>> (bits - 5)) & 31]; bits -= 5; }
+    }
+    if (bits) out += B32[(val << (5 - bits)) & 31];
+    return out;
+  }
+  function b32decode(str) {
+    let bits = 0, val = 0;
+    const out = [];
+    for (const ch of str) {
+      val = (val << 5) | B32.indexOf(ch); bits += 5;
+      if (bits >= 8) { out.push((val >>> (bits - 8)) & 255); bits -= 8; }
+    }
+    return new Uint8Array(out);
+  }
+  async function checksum(bytes) {
+    const h = new Uint8Array(await crypto.subtle.digest('SHA-256', bytes));
+    return B32[h[0] & 31] + B32[h[1] & 31];
+  }
+  async function recoveryKey() {
+    if (!enabled()) return '';
+    const s = fromB64(cfg.s);
+    return formatCode(b32encode(s) + (await checksum(s)));
+  }
+  async function restore(code) {
+    const s = b32decode(code.slice(0, 52)).subarray(0, 32);
+    if (s.length !== 32 || (await checksum(s)) !== code.slice(52)) throw new SyncError('bad_code');
+    const prev = cfg;
+    cfg = { s: toB64(s), v: 0, at: 0, dirty: false, first: true, restore: true };
+    keys = null;
+    const k = await ready();
+    const r = await request(`sync/${k.id}`, { headers: { 'X-Sync-Token': k.token } });
+    if (r.status === 404) { cfg = prev; keys = null; throw new SyncError('no_copy'); }
+    if (!r.ok) { cfg = prev; keys = null; throw new SyncError(r.status === 429 ? 'slow' : 'server'); }
+    cfg.dirty = A.store.ready;
+    delete cfg.restore;
+    saveCfg();
+    await syncNow();
+    if (status.state === 'error') throw new SyncError(status.error);
+    return 'link';
+  }
 
   async function join(raw) {
     const code = normCode(raw);
-    if (code.length !== 16 || [...code].some((c) => !B32.includes(c))) throw new SyncError('bad_code');
+    if ([...code].some((c) => !B32.includes(c))) throw new SyncError('bad_code');
+    if (code.length === KEY_LEN) return restore(code);
+    if (code.length !== 16) throw new SyncError('bad_code');
     const r = await request(`pair/${code.slice(0, 6)}`);
     if (r.status === 404) throw new SyncError('gone');
     if (r.status === 429) throw new SyncError('slow');
@@ -253,10 +302,10 @@
     if (enabled()) schedule(1200);
   }
 
-  const errorText = (e) => A.t('sync.err_' + ({ gone: 'gone', bad_code: 'code', slow: 'slow', network: 'net', offline: 'net', too_large: 'large' }[e?.kind] || 'server'));
+  const errorText = (e) => A.t('sync.err_' + ({ gone: 'gone', bad_code: 'code', slow: 'slow', network: 'net', offline: 'net', too_large: 'large', no_copy: 'nocopy' }[e?.kind] || 'server'));
 
   A.sync = {
-    start, syncNow, enable, disable, createCode, codeAlive, join, normCode, formatCode, errorText,
+    start, syncNow, enable, disable, createCode, codeAlive, join, normCode, formatCode, errorText, recoveryKey, KEY_LEN,
     get enabled() { return enabled(); },
     get status() { return status; },
     onStatus: (fn) => { listeners.add(fn); return () => listeners.delete(fn); },

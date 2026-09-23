@@ -8,6 +8,6 @@ App.config = {
   cacheKey: 'ordkort.cache.v1',  // сохранённые ответы ИИ (можно очистить)
   syncKey: 'ordkort.sync.v1',    // ключ синхронизации — только на этом устройстве, в резервные копии не попадает
   cacheLimit: 300,
-  uiVersion: 2,
-  repoUrl: '',                   // ссылка на исходный код (GitHub) для страницы «Как это работает»
+  uiVersion: 3,
+  repoUrl: 'https://github.com/silicq/ordkort', // исходный код — ссылка на странице «Как это работает»
 };

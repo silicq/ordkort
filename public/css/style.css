@@ -1539,3 +1539,13 @@ dialog.modal::backdrop { background: rgba(20, 16, 10, 0.45); backdrop-filter: bl
   .about-item { grid-template-columns: 1fr; gap: 10px; padding: 18px; }
   .link-card { padding: 26px 18px; }
 }
+
+/* ---------- ключ восстановления и защита данных ---------- */
+.key-show { margin: 14px 0; padding: 14px 16px; border-radius: 14px; background: var(--paper-2); font-size: 17px; line-height: 1.6; text-align: center; user-select: all; word-break: normal; overflow-wrap: anywhere; }
+.enter-code .row { margin-top: 4px; }
+.protect { margin: 6px 0 12px; }
+.protect .set-row { border-top: 1px dashed var(--line); }
+.protect .btn { margin-top: 4px; }
+.ok-text { color: var(--green); }
+.ios-hint { margin-top: 8px; font-size: 14px; }
+.ios-hint > .ico { color: var(--blue-ink); }

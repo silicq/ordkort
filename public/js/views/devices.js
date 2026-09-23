@@ -76,16 +76,17 @@
   }
 
   function enterCode() {
-    const input = h('input', { class: 'input code-input', placeholder: t('sync.code_ph'), autocomplete: 'off', autocapitalize: 'characters', spellcheck: 'false', maxlength: 24 });
+    const input = h('input', { class: 'input code-input', placeholder: t('sync.code_ph'), autocomplete: 'off', autocapitalize: 'characters', spellcheck: 'false', maxlength: 72 });
     const msg = h('p', { class: 'small', hidden: true });
     const btn = h('button', { class: 'btn btn-primary', type: 'button' }, t('sync.connect'));
     input.addEventListener('input', () => {
-      const c = A.sync.normCode(input.value).slice(0, 16);
+      const c = A.sync.normCode(input.value).slice(0, A.sync.KEY_LEN);
       const f = c ? A.sync.formatCode(c) : '';
       if (input.value !== f) input.value = f;
     });
     const go = async () => {
-      if (A.sync.normCode(input.value).length !== 16) { input.focus(); return; }
+      const len = A.sync.normCode(input.value).length;
+      if (len !== 16 && len !== A.sync.KEY_LEN) { input.focus(); return; }
       btn.disabled = true;
       msg.hidden = false;
       msg.className = 'small muted';
@@ -93,6 +94,7 @@
       try {
         const kind = await A.sync.join(input.value);
         m.close();
+        A.persist();
         A.i18n.setRuntime(null);
         A.toast(t(kind === 'link' ? 'sync.joined_link' : 'sync.joined_transfer'), 'ok');
         A.applyTheme();
@@ -117,6 +119,36 @@
     return m;
   }
 
+  /* Ключ восстановления: единственный способ вернуть облачную копию, если данные стёрты на всех устройствах */
+  async function showKey() {
+    const key = await A.sync.recoveryKey();
+    if (!key) return;
+    const copy = h('button', { class: 'btn btn-ghost btn-sm', type: 'button' }, icon('copy', 16), t('sync.copy'));
+    copy.addEventListener('click', () => navigator.clipboard?.writeText(key).then(() => A.toast(t('sync.copied'))));
+    const save = h('button', { class: 'btn btn-ghost btn-sm', type: 'button' }, icon('download', 16), t('sync.download_key'));
+    save.addEventListener('click', () => {
+      const text = `Ordkort — ${t('sync.key_title')}
+
+${key}
+
+${t('sync.key_text')}
+${location.origin}
+`;
+      const url = URL.createObjectURL(new Blob([text], { type: 'text/plain' }));
+      const a = h('a', { href: url, download: 'ordkort-recovery-key.txt' });
+      document.body.append(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    });
+    A.modal({
+      title: t('sync.key_title'),
+      body: h('div', { class: 'enter-code' },
+        h('p', { class: 'muted small' }, t('sync.key_text')),
+        h('div', { class: 'code-show key-show' }, key),
+        h('div', { class: 'row gap wrap' }, copy, save),
+        h('p', { class: 'small muted safe-note' }, icon('info', 14), t('sync.key_warn'))),
+    });
+  }
+
   /* карточка «Устройства» для страницы настроек */
   function card() {
     const el = h('section', { class: 'set-card devices' });
@@ -135,6 +167,7 @@
           ? h('div', { class: 'row gap wrap' },
             h('button', { class: 'btn btn-primary btn-sm', type: 'button', onclick: () => offer('link') }, icon('plus', 16), t('sync.add')),
             h('button', { class: 'btn btn-ghost btn-sm', type: 'button', onclick: () => A.sync.syncNow() }, icon('refresh', 16), t('sync.now')),
+            h('button', { class: 'btn btn-ghost btn-sm', type: 'button', onclick: showKey }, icon('check', 16), t('sync.key')),
             h('button', { class: 'btn btn-ghost btn-sm', type: 'button', onclick: () => offer('transfer') }, icon('upload', 16), t('sync.transfer')))
           : h('div', { class: 'row gap wrap' },
             h('button', { class: 'btn btn-primary btn-sm', type: 'button', onclick: () => offer('link') }, icon('refresh', 16), t('sync.link')),
@@ -170,5 +203,5 @@
     return rtf.format(-Math.round(s / 86400), 'day');
   }
 
-  A.devices = { offer, enterCode, card };
+  A.devices = { offer, enterCode, card, showKey };
 })();

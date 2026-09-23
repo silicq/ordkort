@@ -10,6 +10,7 @@
     ['ip', 'info'],
     ['sync', 'refresh'],
     ['transfer', 'upload'],
+    ['wipe', 'trash'],
     ['codes', 'check'],
     ['third', 'globe'],
     ['free', 'grammar'],
