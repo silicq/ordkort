@@ -575,4 +575,8 @@ globalThis.App.i18nData.ar = {
   'csv.none_new': "كل هذه الكلمات موجودة في بطاقاتك بالفعل.",
   'study.other_form': "الكلمة صحيحة، لكن الصيغة المطلوبة هنا:",
   'study.roman': "صحيح! وتُكتب هكذا:",
+  'gender.m': "مذكّر",
+  'gender.f': "مؤنّث",
+  'gender.n': "محايد",
+  'gender.c': "جنس مشترك",
 };

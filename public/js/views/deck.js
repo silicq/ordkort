@@ -108,9 +108,10 @@
 
   function row(c, s) {
     const ex = A.store.example(c);
+    const { gram, pron, forms } = A.store.shown(c);
     const detail = h('div', { class: 'wdetail' },
-      c.gram || c.pos ? h('p', null, h('span', { class: 'k' }, t('card.gram')), [c.pos ? t('pos.' + c.pos) : '', c.gram].filter(Boolean).join(' · ')) : null,
-      c.forms ? h('p', null, h('span', { class: 'k' }, t('card.forms')), A.lt(c.forms, s.target, 'serif')) : null,
+      gram || c.pos ? h('p', null, h('span', { class: 'k' }, t('card.gram')), [c.pos ? t('pos.' + c.pos) : '', gram].filter(Boolean).join(' · ')) : null,
+      forms ? h('p', null, h('span', { class: 'k' }, t('card.forms')), A.lt(forms, s.target, 'serif')) : null,
       ex.text ? h('p', null, h('span', { class: 'k' }, t('card.example')), A.lt(ex.text, s.target, 'serif'), A.speakBtn(ex.text, s.target, 'sm'), ex.tr ? h('span', { class: 'muted d-block' }, ex.tr) : null) : null,
       h('div', { class: 'row gap wrap' },
         h('button', { class: 'btn btn-ghost btn-sm', type: 'button', onclick: () => editCard(c, c.deck) }, icon('edit', 16), t('common.edit')),
@@ -125,7 +126,7 @@
     const el = h('details', { class: 'wrow' },
       h('summary', null,
         A.speakBtn(c.term, s.target),
-        h('span', { class: 'w-term' }, A.lt(c.term, s.target, 'serif'), c.pron ? h('small', null, c.pron) : null),
+        h('span', { class: 'w-term' }, A.lt(c.term, s.target, 'serif'), pron ? h('small', null, pron) : null),
         A.lt(c.tr, s.native, 'w-tr'),
         pips(c.box),
         h('span', { class: 'w-caret' }, icon('chevron', 18))),

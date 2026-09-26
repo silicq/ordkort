@@ -559,4 +559,8 @@ globalThis.App.i18nData.en = {
   'csv.none_new': "All these words are already in your cards.",
   'study.other_form': "Right word — the form needed here:",
   'study.roman': "Correct! It is written:",
+  'gender.m': "masculine",
+  'gender.f': "feminine",
+  'gender.n': "neuter",
+  'gender.c': "common gender",
 };

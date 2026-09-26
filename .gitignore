@@ -6,3 +6,5 @@ node_modules/
 .DS_Store
 Thumbs.db
 .claude/
+# written at every deploy by scripts/build.mjs
+public/js/build.js

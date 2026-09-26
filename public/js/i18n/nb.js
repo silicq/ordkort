@@ -559,4 +559,8 @@ globalThis.App.i18nData.nb = {
   'csv.none_new': "Du har allerede alle disse ordene i kortene dine.",
   'study.other_form': "Riktig ord, men her trengs formen:",
   'study.roman': "Riktig! Det skrives:",
+  'gender.m': "hankjønn",
+  'gender.f': "hunkjønn",
+  'gender.n': "intetkjønn",
+  'gender.c': "felleskjønn",
 };

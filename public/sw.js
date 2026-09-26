@@ -1,9 +1,13 @@
 /* Ordkort service worker: keeps the site usable offline.
    The site itself (HTML, CSS, JS, fonts, icons) is cached; AI requests (/api/*) always go to the network.
-   Pages and scripts are network-first, so a new deploy is picked up as soon as you are online. */
-const CACHE = 'ordkort-v2';
+   Pages and scripts are network-first, so a new deploy is picked up as soon as you are online.
+   The cache is named after the version of the site (js/build.js, written at every deploy): a new deploy
+   changes this worker too, so it installs a fresh copy of the site and throws the old one away. */
+try { importScripts('/js/build.js'); } catch { /* a copy of public/ without a build */ }
+const CACHE = 'ordkort-' + (self.App?.build || 'dev');
 const CORE = [
   '/',
+  ...(self.App?.build ? ['/js/build.js'] : []),
   '/css/fonts.css',
   '/css/style.css',
   '/js/boot.js',
@@ -43,7 +47,8 @@ const CORE = [
 const TIMEOUT = 3500; // on a very slow network fall back to the cached copy
 
 self.addEventListener('install', (e) => {
-  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(CORE)).then(() => self.skipWaiting()));
+  // `reload`: straight from the server, never an older copy from the browser's HTTP cache
+  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(CORE.map((u) => new Request(u, { cache: 'reload' })))).then(() => self.skipWaiting()));
 });
 
 self.addEventListener('activate', (e) => {
@@ -56,7 +61,8 @@ self.addEventListener('fetch', (e) => {
   const req = e.request;
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
-  if (url.origin !== location.origin || url.pathname.startsWith('/api/')) return;
+  // ?fresh — the app asking the server for its current version: never from the cache
+  if (url.origin !== location.origin || url.pathname.startsWith('/api/') || url.searchParams.has('fresh')) return;
 
   // fonts and icons never change: cache first
   if (url.pathname.startsWith('/fonts/') || url.pathname.startsWith('/icons/')) {

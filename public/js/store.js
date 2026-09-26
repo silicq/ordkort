@@ -158,6 +158,21 @@
     return { text: sentenceWith(c.ex, stem), tr: '' };
   }
 
+  /* What a card shows, tidied up. Cards written by the AI before its answers were checked may call
+     "en tallerken" feminine, put the article into the pronunciation ("/en bʉˈtɪk/") or leave out the spaces
+     between forms. A noun's gender is its article's, so the label comes from the article — in the language
+     the card is explained in when there is a table for it. Hand-made cards keep what the person wrote. */
+  function shown(c) {
+    const s = state.settings;
+    const g = c.pos === 'noun' && c.src !== 'user' && A.langs.articleGender(s.target, c.term);
+    const art = ART.exec(c.term || '')?.[1];
+    return {
+      gram: g ? A.i18n.tIn(s.native, 'gender.' + g) : c.gram || '',
+      pron: art && c.pron ? c.pron.replace(new RegExp(`^([/[])${art}\\s+`, 'i'), '$1') : c.pron || '',
+      forms: (c.forms || '').split(/\s*,\s*/).filter(Boolean).join(', '),
+    };
+  }
+
   const cards = (deckId) => {
     const all = Object.values(pair().cards);
     return deckId ? all.filter((c) => c.deck === deckId) : all;
@@ -482,7 +497,7 @@
     get ready() { return !!state.settings; },
     decks, deck, addDeck, updateDeck, deleteDeck, mineDeck,
     cards, card, addCards, updateCard, deleteCard, resetCard, hasTerm, norm, fromBank,
-    sentences, sentenceWith, example,
+    sentences, sentenceWith, example, shown,
     overview, streak, week, today,
     buildSession, cramQueue, answer, stage, MAX_BOX, schedule, dayKey,
     get days() { return state.days; },

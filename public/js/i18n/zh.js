@@ -555,4 +555,8 @@ globalThis.App.i18nData.zh = {
   'csv.none_new': "这些词已经全部在你的卡片里了。",
   'study.other_form': "词对了，但这里要用这个形式：",
   'study.roman': "正确！写作：",
+  'gender.m': "阳性",
+  'gender.f': "阴性",
+  'gender.n': "中性",
+  'gender.c': "通性",
 };

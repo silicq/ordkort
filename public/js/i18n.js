@@ -64,7 +64,10 @@
     }
   }
 
+  // a string in a given language if there is a table for it, else in the interface language
+  const tIn = (l, key) => fmt(table(l)?.[key] ?? t(key));
+
   A.t = t;
   A.tn = tn;
-  A.i18n = { lang, ensure, setRuntime: (l) => { runtime = l; }, has: (l) => !!table(l) };
+  A.i18n = { lang, ensure, tIn, setRuntime: (l) => { runtime = l; }, has: (l) => !!table(l) };
 })();

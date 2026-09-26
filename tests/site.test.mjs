@@ -62,6 +62,17 @@ test('the service worker caches every script and stylesheet of the page, and all
   for (const p of core) if (p !== '/') assert.ok(existsSync(new URL('public' + p, ROOT)), `${p} does not exist`);
 });
 
+test('every deploy has a version the app can compare with the server', () => {
+  const build = read('public/js/build.js'); // written by scripts/build.mjs (npm runs it before the tests)
+  const pattern = /\.build = '(\w+)'/; // the one app.js reads the server's version with
+  assert.ok(read('public/js/app.js').includes(String(pattern)));
+  assert.match(build, pattern);
+  assert.match(read('wrangler.jsonc'), /"command": "node scripts\/build\.mjs"/, 'wrangler writes it before every deploy');
+  assert.match(read('public/sw.js'), /importScripts\('\/js\/build\.js'\)/, 'a new version updates the service worker');
+  const html = read('public/index.html');
+  assert.ok(html.indexOf('js/build.js') < html.indexOf('js/app.js'));
+});
+
 /* ---------- server-side input cleaning ---------- */
 
 test('untrusted strings are trimmed, cut and stripped of control characters', () => {

@@ -33,20 +33,8 @@ const nounRule = (code, T) => (ARTICLES[code]
   ? `Nouns: ALWAYS begin with the ${T} article ${ARTICLES[code]} — never a bare noun.`
   : `Nouns: the dictionary form, with an article only if ${T} learners' dictionaries always show one (like Greek "ο/η/το"); never a gender mark such as "(m.)" — the gender goes into "gram".`);
 
-/* The gender each article stands for (c = common gender). The AI sometimes labels "en tallerken" feminine:
-   the prompt spells the pairs out, and a card whose gender contradicts its article loses the wrong label. */
-const ART_GENDER = {
-  nb: { en: 'm', ei: 'f', et: 'n' },
-  nn: { ein: 'm', ei: 'f', eit: 'n' },
-  de: { der: 'm', die: 'f', das: 'n' },
-  sv: { en: 'c', ett: 'n' },
-  da: { en: 'c', et: 'n' },
-  nl: { de: 'c', het: 'n' },
-  fr: { le: 'm', la: 'f' },
-  es: { el: 'm', la: 'f' },
-  it: { il: 'm', lo: 'm', la: 'f' },
-  pt: { o: 'm', a: 'f' },
-};
+// the AI sometimes labels "en tallerken" feminine: the prompt spells out which article means which gender
+const ART_GENDER = App.langs.ARTICLE_GENDER;
 const GENDER_NAMES = { m: 'masculine', f: 'feminine', n: 'neuter', c: 'common gender' };
 const genderPairs = (code) => Object.entries(ART_GENDER[code] || {}).map(([a, g]) => `"${a}" = ${GENDER_NAMES[g]}`).join(', ');
 
@@ -55,9 +43,9 @@ const cardRules = (t, T, N, level) => `Field rules:
 - "tr": ${N} translation, 1–3 short variants separated by commas.
 - "pos": one of noun, verb, adjective, adverb, pronoun, preposition, conjunction, numeral, phrase, interjection.${ART_GENDER[t] ? `
 - "gender": for nouns the grammatical gender, "m", "f", "n" or "c" (common); "" for other words. It must match the article in "term": ${genderPairs(t)}.` : ''}
-- "gram": a very short grammar label of 1–3 words written in ${N} — for nouns just the gender${ART_GENDER[t] ? ' (the same as "gender" and the article)' : ''}, for verbs the verb group or "irregular"; no abbreviations, not in ${T}${N === 'English' ? '' : ' or English'}, and nothing obvious such as singular, indefinite or infinitive; "" if nothing to say.
-- "forms": the key inflected ${T} forms, comma-separated (nouns: definite singular, indefinite plural, definite plural; verbs: present, past, perfect; adjectives: neuter, plural/definite, comparative, superlative — adapt to how ${T} inflects), or "" if ${T} does not inflect it.
-- "pron": pronunciation — IPA in slashes for alphabetic scripts; pinyin with tone marks for Chinese; romaji for Japanese; standard romanization for other non-Latin scripts.
+- "gram": a very short grammar label of 1–3 words, every word in ${N}${N === 'English' ? '' : ' (never English)'} — for nouns just the gender${ART_GENDER[t] ? ' (the same as "gender" and the article)' : ''}, for verbs the verb group or that the verb is irregular; no abbreviations, not the word class alone, nothing obvious such as singular, indefinite or infinitive; "" if nothing to say.
+- "forms": the key inflected ${T} forms separated by ", " (nouns: definite singular, indefinite plural, definite plural; verbs: present, past, perfect; adjectives: neuter, plural/definite, comparative, superlative — adapt to how ${T} inflects), or "" if ${T} does not inflect it.
+- "pron": pronunciation of the word itself, without the article — IPA in slashes for alphabetic scripts; pinyin with tone marks for Chinese; romaji for Japanese; standard romanization for other non-Latin scripts.
 - "ex": one short, natural ${T} example sentence (level ${level}) using the word; "ex_tr": its ${N} translation.`;
 
 const cardShape = (t) => `{"term":"","tr":"","pos":"",${ART_GENDER[t] ? '"gender":"",' : ''}"gram":"","forms":"","pron":"","ex":"","ex_tr":""}`;
@@ -248,7 +236,7 @@ export function cleanWord(w) {
 export function aiWord(raw, target) {
   const w = cleanWord(raw);
   w.term = w.term.replace(/\s+\([^()]{1,12}\)$/u, '') || w.term;
-  const want = ART_GENDER[target]?.[w.term.split(/\s+/)[0].toLowerCase()];
+  const want = App.langs.articleGender(target, w.term);
   const said = S(raw?.gender, 20).toLowerCase().charAt(0); // "m" or "masculine"
   if (w.pos === 'noun' && want && said && 'mfnc'.includes(said) && said !== want && !(want === 'c' && (said === 'm' || said === 'f'))) w.gram = '';
   return w;

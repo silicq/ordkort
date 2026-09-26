@@ -4,6 +4,9 @@
   "main": "src/worker.js",
   "compatibility_date": "2026-09-01",
 
+  // Before every deploy (and `wrangler dev`): write the site's version to public/js/build.js
+  "build": { "command": "node scripts/build.mjs" },
+
   // The site in public/ is served as free, unlimited static assets; the Worker runs only for /api/*
   "assets": {
     "directory": "./public",

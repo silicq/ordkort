@@ -68,6 +68,25 @@
   const map = Object.fromEntries(list.map((l) => [l.code, l]));
   const get = (c) => map[c] || { code: c, name: c, en: c, tts: c, hello: '', rtl: false };
 
+  /* The gender an article shows (c = common gender). A noun's gender is its article's: "en tallerken" is
+     masculine whatever the AI wrote — used in the prompts, to check AI cards and for the label on a card. */
+  const ARTICLE_GENDER = {
+    nb: { en: 'm', ei: 'f', et: 'n' },
+    nn: { ein: 'm', ei: 'f', eit: 'n' },
+    de: { der: 'm', die: 'f', das: 'n' },
+    sv: { en: 'c', ett: 'n' },
+    da: { en: 'c', et: 'n' },
+    nl: { de: 'c', het: 'n' },
+    fr: { le: 'm', la: 'f' },
+    es: { el: 'm', la: 'f' },
+    it: { il: 'm', lo: 'm', la: 'f' },
+    pt: { o: 'm', a: 'f' },
+  };
+  function articleGender(code, term) {
+    const [art, ...rest] = String(term || '').trim().toLowerCase().split(/\s+/);
+    return (rest.length && ARTICLE_GENDER[code]?.[art]) || '';
+  }
+
   return {
     list,
     get,
@@ -75,5 +94,7 @@
     en: (c) => get(c).en,
     rtl: (c) => get(c).rtl,
     has: (c) => !!map[c],
+    ARTICLE_GENDER,
+    articleGender,
   };
 })();

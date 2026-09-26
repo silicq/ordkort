@@ -8,7 +8,7 @@ import { aiWord, wordsPrompt } from '../src/prompts.js';
 import { App as Shared } from '../src/shared.js';
 
 function tab() {
-  const { App } = browser(['public/js/store.js', 'public/js/views/study.js']);
+  const { App } = browser(['public/js/langs.js', 'public/js/i18n/en.js', 'public/js/i18n/ru.js', 'public/js/i18n.js', 'public/js/store.js', 'public/js/views/study.js']);
   App.store.load();
   App.store.init({ native: 'ru', target: 'nb', level: 'A1' });
   return App;
@@ -90,6 +90,23 @@ test('typing: pinyin without tone marks counts for a Chinese word', () => {
   assert.equal(compare('xie xie', '您好', ninhao), 'wrong');
   // IPA is not a spelling: a Russian word still has to be typed in Cyrillic
   assert.equal(compare('privet', 'привет', card({ term: 'привет', pron: '/prʲɪˈvʲet/' })), 'wrong');
+});
+
+/* ---------- what a card shows ---------- */
+
+test('a noun shows the gender of its article, whatever the AI wrote', () => {
+  const shown = (x) => ({ ...S.shown(card(x)) });
+  assert.equal(shown({ term: 'en tallerken', gram: 'женский род' }).gram, 'мужской род');
+  assert.equal(shown({ term: 'en vei', gram: 'женский род, единственное число, неопределённый' }).gram, 'мужской род');
+  assert.equal(shown({ term: 'ei jente', gram: '' }).gram, 'женский род');
+  assert.equal(shown({ term: 'et hus', gram: 'муж.р., неодуш.' }).gram, 'средний род');
+  assert.equal(shown({ term: 'å bestå', pos: 'verb', gram: 'неправильный' }).gram, 'неправильный', 'only nouns');
+  assert.equal(shown({ term: 'en bil', gram: 'моя пометка', src: 'user' }).gram, 'моя пометка', 'hand-made cards keep what the person wrote');
+  assert.equal(shown({ term: 'en butikk', pron: '/en bʉˈtɪk/' }).pron, '/bʉˈtɪk/', 'no article in the pronunciation');
+  assert.equal(shown({ term: 'en butikk', pron: '/bʉˈtɪk/' }).pron, '/bʉˈtɪk/');
+  assert.equal(shown({ term: 'en butikk', forms: 'butikken,butikker,butikkene' }).forms, 'butikken, butikker, butikkene');
+  assert.equal(A.langs.articleGender('nb', 'en'), '', 'the word "en" alone is not a noun with an article');
+  assert.equal(A.langs.articleGender('de', 'Die Katze'), 'f');
 });
 
 /* ---------- "report a mistake" only for words from the shared bank ---------- */

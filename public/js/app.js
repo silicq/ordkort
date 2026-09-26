@@ -113,6 +113,8 @@
   }
 
   function route() {
+    if (updater.apply()) return; // a new version is out: this move to another screen loads it
+    updater.check();
     applyLang();
     current?.view?.leave?.();
     const app = document.getElementById('app');
@@ -210,6 +212,50 @@
   }
   A.jobs = { generate, state: (id) => jobs.get(id) || null };
 
+  /* ---------- new versions of the site ----------
+     An app added to the Home Screen is not reloaded when it is opened again — iOS wakes the old page up,
+     so a fix could stay unseen for days. The app compares its version (js/build.js, written at every deploy)
+     with the server's when it starts, when it comes back to the screen and every few minutes while in use.
+     A new version loads at once when the app opens or comes back after a long break, otherwise at the next
+     move to another screen — never in the middle of a study session or while words are being generated. */
+  const updater = (() => {
+    let stale = false, checked = 0, hiddenAt = 0, pending = null;
+    function check(force) {
+      if (pending) return pending;
+      if (!A.build || stale || navigator.onLine === false || (!force && Date.now() - checked < 5 * 6e4)) return Promise.resolve(stale);
+      checked = Date.now();
+      pending = fetch('/js/build.js?fresh', { cache: 'no-store' })
+        .then((r) => (r.ok ? r.text() : ''))
+        .then((text) => { const m = /\.build = '(\w+)'/.exec(text); stale = !!m && m[1] !== A.build; })
+        .catch(() => { /* offline */ })
+        .then(() => { pending = null; return stale; });
+      return pending;
+    }
+    function apply() {
+      if (!stale || busy) return false;
+      try { // never a reload loop, whatever the server says
+        if (Date.now() - Number(sessionStorage.getItem('ordkort.updated') || 0) < 6e4) return false;
+        sessionStorage.setItem('ordkort.updated', String(Date.now()));
+      } catch { /* no session storage */ }
+      stale = false;
+      // drop the offline copy and fetch every file of the page straight from the server first,
+      // so that no file of the old version — from either cache — is mixed into the new one
+      (async () => {
+        try { for (const k of await caches.keys()) await caches.delete(k); } catch { /* no Cache API */ }
+        const files = ['/', ...[...document.querySelectorAll('script[src], link[rel="stylesheet"]')].map((el) => el.src || el.href)];
+        await Promise.all(files.map((u) => fetch(u, { cache: 'reload' }).catch(() => {})));
+        location.reload();
+      })();
+      return true;
+    }
+    document.addEventListener('visibilitychange', async () => {
+      if (document.hidden) { hiddenAt = Date.now(); return; }
+      const away = hiddenAt && Date.now() - hiddenAt > 10 * 6e4;
+      if ((await check(true)) && away && current?.name !== 'study') apply();
+    });
+    return { check, apply };
+  })();
+
   /* Ask the browser not to evict the site's data when space runs low (called after a user action) */
   A.persist = async () => {
     try {
@@ -241,10 +287,12 @@
     prefersDark.addEventListener?.('change', () => { applyTheme(); if (A.store.settings?.theme === 'auto') route(); });
     A.sync.start();
     route();
+    updater.check().then((stale) => stale && updater.apply()); // opened with an old copy: load the new one now
     A.i18n.ensure();
-    // offline mode: the site itself is cached by a service worker; AI features need the network
+    // offline mode: the site itself is cached by a service worker; AI features need the network.
+    // updateViaCache 'none': the browser checks the worker (and the build file it imports) on the server every time
     if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
-      navigator.serviceWorker.register('/sw.js').catch(() => {});
+      navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' }).catch(() => {});
     }
     window.addEventListener('offline', () => A.toast(t('net.offline')));
     window.addEventListener('online', () => A.toast(t('net.online'), 'ok'));

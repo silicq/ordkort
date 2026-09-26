@@ -212,6 +212,7 @@
     const fwd = S.dir === 'forward';
     const sizeOf = (x) => (x.length > 30 ? ' xl' : x.length > 14 ? ' l' : '');
     const ex = A.store.example(c);
+    const { gram, pron, forms } = A.store.shown(c);
 
     const tag = h('div', { class: 'flash-tag' },
       h('span', { class: 'badge ' + (isNew ? 'new' : 'rev') }, t(isNew ? 'study.new' : 'study.review')),
@@ -220,7 +221,7 @@
     let frontBody;
     if (S.mode === 'type') {
       frontBody = [h('div', { class: 'flash-ask' }, t('study.ask_type')), A.lt(c.tr, N, 'flash-word serif' + sizeOf(c.tr), 'div'),
-        c.gram ? h('div', { class: 'flash-pron' }, c.gram) : c.pos ? h('div', { class: 'flash-pron' }, t('pos.' + c.pos)) : null];
+        gram ? h('div', { class: 'flash-pron' }, gram) : c.pos ? h('div', { class: 'flash-pron' }, t('pos.' + c.pos)) : null];
     } else if (S.mode === 'listen') {
       frontBody = [h('div', { class: 'flash-ask' }, t('study.ask_listen')),
         h('button', { class: 'listen-big', type: 'button', 'aria-label': t('common.listen'), onclick: (e) => { e.stopPropagation(); A.speak(c.term, T); } }, icon('speaker', 40))];
@@ -231,7 +232,7 @@
         S.cloze.tr ? A.lt(S.cloze.tr, N, 'flash-small', 'p') : null,
         h('div', { class: 'flash-pron' }, `${c.tr}`)];
     } else if (fwd) {
-      frontBody = [A.lt(c.term, T, 'flash-word serif' + sizeOf(c.term), 'div'), c.pron ? h('div', { class: 'flash-pron' }, c.pron) : null, A.speakBtn(c.term, T, 'lg')];
+      frontBody = [A.lt(c.term, T, 'flash-word serif' + sizeOf(c.term), 'div'), pron ? h('div', { class: 'flash-pron' }, pron) : null, A.speakBtn(c.term, T, 'lg')];
     } else {
       frontBody = [A.lt(c.tr, N, 'flash-word serif' + sizeOf(c.tr), 'div'), c.pos ? h('div', { class: 'flash-pron' }, t('pos.' + c.pos)) : null];
     }
@@ -246,11 +247,11 @@
       h('div', { class: 'face-body' },
         A.lt(fwd ? c.term : c.tr, fwd ? T : N, 'flash-small', 'div'),
         A.lt(fwd ? c.tr : c.term, fwd ? N : T, 'flash-word serif' + sizeOf(fwd ? c.tr : c.term), 'div'),
-        S.mode === 'flip' && !fwd ? h('div', { class: 'row gap center' }, c.pron ? h('span', { class: 'flash-pron' }, c.pron) : null, A.speakBtn(c.term, T)) : null,
-        S.mode !== 'flip' ? h('div', { class: 'row gap center' }, c.pron ? h('span', { class: 'flash-pron' }, c.pron) : null, A.speakBtn(c.term, T)) : null,
-        c.gram || c.forms ? h('div', { class: 'flash-gram' },
-          c.gram ? h('span', null, c.gram) : null,
-          c.forms ? A.lt(c.forms, T, 'serif') : null) : null,
+        S.mode === 'flip' && !fwd ? h('div', { class: 'row gap center' }, pron ? h('span', { class: 'flash-pron' }, pron) : null, A.speakBtn(c.term, T)) : null,
+        S.mode !== 'flip' ? h('div', { class: 'row gap center' }, pron ? h('span', { class: 'flash-pron' }, pron) : null, A.speakBtn(c.term, T)) : null,
+        gram || forms ? h('div', { class: 'flash-gram' },
+          gram ? h('span', null, gram) : null,
+          forms ? A.lt(forms, T, 'serif') : null) : null,
         ex.text ? h('div', { class: 'flash-ex' },
           h('p', null, A.lt(ex.text, T, 'serif'), A.speakBtn(ex.text, T, 'sm')),
           ex.tr ? A.lt(ex.tr, N, 'muted', 'p') : null) : null));

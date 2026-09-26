@@ -28,6 +28,8 @@ Ordkort is a lightweight site for learning almost any language from almost any o
 - **Your own words in and out**: CSV export and import (including Anki “Notes in plain text”),
   and sharing a deck by link or QR code — only the words, never your progress.
 - **Works offline**: a service worker keeps the site, so cards open without a connection.
+  After a deploy the app notices the new version by itself — also when it is installed on a phone
+  and only woken up — and loads it at the next move to another screen.
 - **Report a mistake** on any AI entry; after independent reports it is regenerated for everyone.
 - **60 languages** to learn and explain in. The interface is hand-translated into English, Russian,
   Ukrainian, Norwegian, Arabic (RTL) and Chinese; other interface languages are translated once by AI
@@ -39,6 +41,7 @@ Ordkort is a lightweight site for learning almost any language from almost any o
 public/            the site: HTML, CSS, JS, fonts — served by Cloudflare as static assets
   _headers         security headers (CSP etc.)
   sw.js            service worker for offline use
+  js/build.js      the version of the site, written at every deploy (not in git)
 src/               Cloudflare Worker — runs only for /api/*
   worker.js        routing and same-origin check
   api.js           AI requests: shared cache → word bank → limits → Groq
@@ -48,6 +51,7 @@ src/               Cloudflare Worker — runs only for /api/*
   limits.js        burst, hourly, daily and site-wide limits
   sync.js          device sync and one-time codes (the server only ever sees ciphertext)
   db.js            D1: the schema is created automatically on the first request
+scripts/build.mjs  writes public/js/build.js; wrangler runs it before every deploy and `wrangler dev`
 tests/             node:test suites (see below)
 wrangler.jsonc     Cloudflare configuration
 ```
