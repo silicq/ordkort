@@ -16,7 +16,9 @@ Ordkort is a lightweight site for learning almost any language from almost any o
 - **Dictionary** in the spirit of [ordbokene.no](https://ordbokene.no) and
   [Lexin](https://lexin.oslomet.no): translation, inflection tables, meanings with examples,
   fixed expressions, compounds. For Norwegian, the official Bokmål/Nynorsk dictionary data is shown
-  alongside and used as ground truth for the AI entry.
+  alongside and used as ground truth for the AI entry, and every AI-written noun and verb card is checked
+  against it once: a wrong article or wrong forms are fixed (in the shared word bank for everyone, and in
+  cards saved earlier by a background check in the browser). Other languages rely on the AI alone.
 - **Grammar book**: 15 chapters by part of speech (nouns, adjectives, verbs, word order…) with tables,
   examples, typical mistakes and exercises, plus free-form grammar questions.
 - **Translator with explanations**: every word colour-coded by part of speech, with its form and the rule

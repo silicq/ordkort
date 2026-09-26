@@ -115,6 +115,7 @@
   function route() {
     if (updater.apply()) return; // a new version is out: this move to another screen loads it
     updater.check();
+    setTimeout(checker.run, 1500); // new cards from a text, the dictionary or the translator
     applyLang();
     current?.view?.leave?.();
     const app = document.getElementById('app');
@@ -200,6 +201,7 @@
         n,
       });
       const added = A.store.addCards(deckId, words.map((w) => ({ ...w, src: 'bank' })));
+      checker.run(); // words the server had no time to check
       A.toast(added ? A.tn('gen.added', added, { deck: A.deckTitle(d) }) : t('gen.none'), added ? 'ok' : '');
     } catch (e) {
       A.toast(A.ai.errorText(e), 'error');
@@ -211,6 +213,39 @@
     }
   }
   A.jobs = { generate, state: (id) => jobs.get(id) || null };
+
+  /* ---------- cards checked against the official dictionary ----------
+     Norwegian nouns and verbs the AI wrote before the server checked them (or taken from a text) are checked
+     once in the background, a card at a time: a wrong article or wrong forms are fixed. Hand-made and
+     imported cards stay exactly as the person made them. */
+  const checker = (() => {
+    let running = false;
+    const due = (c) => !c.chk && (c.pos === 'noun' || c.pos === 'verb') && c.src !== 'user' && c.src !== 'csv';
+    async function run() {
+      const lang = A.store.settings?.target;
+      if (running || !A.store.ready || !A.ordbok.supports(lang) || navigator.onLine === false) return;
+      running = true;
+      let results = [], fixed = 0;
+      const flush = () => { fixed += A.store.applyChecks(results); results = []; };
+      try {
+        for (const c of A.store.cards().filter(due)) {
+          if (document.hidden || A.store.settings.target !== lang) break;
+          let r;
+          try { r = await A.ordbok.verify(c, lang); } catch { break; } // offline or the dictionary is down: next time
+          const fix = r && (r.term !== c.term || r.forms !== c.forms)
+            ? { term: r.term, forms: r.forms, ...(r.term !== c.term ? { gram: '' } : {}) } : null;
+          results.push({ id: c.id, fix });
+          if (results.length >= 10) flush();
+          await new Promise((res) => setTimeout(res, 300)); // gently: ordbokene.no is a public service
+        }
+      } finally {
+        flush();
+        running = false;
+        if (fixed) refresh();
+      }
+    }
+    return { run };
+  })();
 
   /* ---------- new versions of the site ----------
      An app added to the Home Screen is not reloaded when it is opened again — iOS wakes the old page up,
@@ -295,7 +330,8 @@
       navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' }).catch(() => {});
     }
     window.addEventListener('offline', () => A.toast(t('net.offline')));
-    window.addEventListener('online', () => A.toast(t('net.online'), 'ok'));
+    window.addEventListener('online', () => { A.toast(t('net.online'), 'ok'); checker.run(); });
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) checker.run(); });
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
   else start();

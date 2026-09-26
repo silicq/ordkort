@@ -32,7 +32,9 @@
     'nederl.': 'nederlandsk', 'mlat.': 'middelalderlatin', 'gno.': 'gammelnorsk',
   };
 
-  async function getJSON(url, signal) {
+  // budget: { left } — how many requests may still be made (a Cloudflare Worker may make only 50)
+  async function getJSON(url, signal, budget) {
+    if (budget && budget.left-- <= 0) throw new Error('ordbok budget');
     const r = await fetch(url, { signal });
     if (!r.ok) throw new Error('ordbok ' + r.status);
     return r.json();
@@ -167,6 +169,68 @@
     return [...new Set(out)].slice(0, 8);
   }
 
+  /* Checks a noun or verb card against the dictionary: the article must be one the noun really takes
+     ("et ingrediens" → "en ingrediens") and the forms must be its real forms ("potten, pott, pottene" →
+     "potten, potter, pottene"). Homonyms count: "et øre" may be the ear or the coin, so forms that fit either
+     stay. Resolves to { term, forms } — unchanged when all is right — or null when the dictionary cannot tell
+     (not a noun or verb, a phrase, a word it does not have); rejects when the network or the budget fails. */
+  const SLOTS = { NOUN: ['Sing+Def', 'Plur+Ind', 'Plur+Def'], VERB: ['Pres', 'Past', '<PerfPart>'] };
+  async function verify({ term, pos, forms }, lang, { signal, budget } = {}) {
+    const dict = dictFor(lang);
+    const wc = pos === 'noun' ? 'NOUN' : pos === 'verb' ? 'VERB' : '';
+    const [art = '', lemma, ...rest] = String(term || '').trim().split(/\s+/);
+    if (!dict || !wc || !lemma || rest.length) return null;
+    const L = LABELS[dict];
+    const genders = Object.keys(L.art); // Masc, Fem, Neuter — in the order an article is chosen when it must be fixed
+    const a = art.toLowerCase();
+    if (wc === 'NOUN' ? !genders.some((g) => L.art[g] === a) : a !== L.to) return null;
+
+    const s = await getJSON(`${API}/api/articles?w=${encodeURIComponent(lemma)}&dict=${dict}&scope=e&wc=${wc}`, signal, budget);
+    const ids = (s.articles?.[dict] || []).slice(0, 4);
+    const arts = await Promise.all(ids.map((id) => getJSON(`${API}/${dict}/article/${id}.json`, signal, budget)));
+    const pars = []; // every current paradigm of this very word: { id, g (gender), f: slot → Set of forms }
+    for (const entry of arts) {
+      for (const l of entry?.lemmas || []) {
+        if (String(l.lemma).toLowerCase() !== lemma.toLowerCase()) continue;
+        for (const p of l.paradigm_info || []) {
+          if (p.to || p.tags?.[0] !== wc || (p.standardisation && p.standardisation !== 'STANDARD')) continue;
+          const f = {};
+          for (const i of p.inflection || []) if (i.word_form) (f[(i.tags || []).join('+')] ||= new Set()).add(i.word_form);
+          pars.push({ id: entry.article_id, g: p.tags[1] || '', f });
+        }
+      }
+    }
+    if (!pars.length) return null;
+
+    let article = art, use = pars;
+    if (wc === 'NOUN') {
+      use = pars.filter((p) => L.art[p.g] === a);
+      if (!use.length) { // an article this noun never takes: its own one
+        const g = genders.find((x) => pars.some((p) => p.g === x));
+        if (!g) return null;
+        article = L.art[g];
+        use = pars.filter((p) => p.g === g);
+      }
+    }
+
+    const slots = SLOTS[wc];
+    const bare = (x) => x.trim().replace(new RegExp(`^${L.have}\\s+`, 'i'), ''); // "har kunnet" → "kunnet"
+    const given = String(forms || '').split(/\s*,\s*/).filter(Boolean);
+    const has = (group, slot, x) => group.some((p) => p.f[slot]?.has(bare(x)));
+    const ok = (group, x, i) => x.split('/').every((v) => (given.length === slots.length ? has(group, slots[i], v) : slots.some((sl) => has(group, sl, v))));
+    const groups = [...new Set(use.map((p) => p.id))].map((id) => use.filter((p) => p.id === id)); // one homonym each
+    const score = (group) => given.filter((x, i) => ok(group, x, i)).length;
+    let out = given.join(', ');
+    if (!given.length || !groups.some((g) => score(g) === given.length)) {
+      const best = groups.reduce((b, g) => (score(g) > score(b) ? g : b), groups[0]);
+      out = slots.map((sl, i) => {
+        const v = [...new Set(best.flatMap((p) => [...(p.f[sl] || [])]))].join('/');
+        return v && wc === 'VERB' && i === 2 ? `${L.have} ${v}` : v;
+      }).filter(Boolean).join(', ');
+    }
+    return { term: `${article} ${lemma}`, forms: out };
+  }
+
   const link = (word) => `https://ordbokene.no/nob/bm,nn/${encodeURIComponent(word)}`;
 
   /* A short summary of the official entry — ground truth for the AI, so that it translates rather than invents */
@@ -192,5 +256,5 @@
     return `${r.name}:\n${out.join('\n')}`.slice(0, 2600);
   }
 
-  A.ordbok = { supports: (lang) => !!dictFor(lang), lookup, suggest, summary, link, lexin: 'https://lexin.oslomet.no/' };
+  A.ordbok = { supports: (lang) => !!dictFor(lang), lookup, suggest, summary, verify, link, lexin: 'https://lexin.oslomet.no/' };
 })();

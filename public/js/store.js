@@ -166,8 +166,9 @@
     const s = state.settings;
     const g = c.pos === 'noun' && c.src !== 'user' && A.langs.articleGender(s.target, c.term);
     const art = ART.exec(c.term || '')?.[1];
+    const same = (x) => c.pos && [s.native, A.i18n.lang()].some((l) => A.i18n.tIn(l, 'pos.' + c.pos).toLowerCase() === x.trim().toLowerCase());
     return {
-      gram: g ? A.i18n.tIn(s.native, 'gender.' + g) : c.gram || '',
+      gram: g ? A.i18n.tIn(s.native, 'gender.' + g) : c.gram && !same(c.gram) ? c.gram : '', // not "verb" again for a verb
       pron: art && c.pron ? c.pron.replace(new RegExp(`^([/[])${art}\\s+`, 'i'), '$1') : c.pron || '',
       forms: (c.forms || '').split(/\s*,\s*/).filter(Boolean).join(', '),
     };
@@ -199,6 +200,7 @@
         box: 0, due: 0, reps: 0, lapses: 0, last: 0, created: t + added, u: t,
       };
       if (w.src) c.src = w.src; // where the card came from: bank (AI words for a topic), user, dict, read, tr, csv, share
+      if (w.chk) c.chk = 1; // already checked against the official dictionary (Norwegian)
       p.cards[c.id] = c;
       added++;
     }
@@ -217,6 +219,19 @@
   }
   function resetCard(id) {
     updateCard(id, { box: 0, due: 0, reps: 0, lapses: 0, s: 0, d: 0 });
+  }
+  /* Results of the check against the official dictionary, saved at once: a fix is a real edit (it syncs
+     to other devices), a card found right only remembers here that it was checked. */
+  function applyChecks(results) {
+    let fixed = 0;
+    for (const { id, fix } of results) {
+      const c = card(id);
+      if (!c) continue;
+      c.chk = 1;
+      if (fix) { Object.assign(c, fix, { u: now() }); fixed++; }
+    }
+    if (results.length) save();
+    return fixed;
   }
   /* A word from the shared bank of AI words for a topic (only those can be reported as a mistake).
      Cards saved before `src` existed are recognised by their batch: one generation adds cards created 1 ms apart. */
@@ -496,7 +511,7 @@
     get settings() { return state.settings; },
     get ready() { return !!state.settings; },
     decks, deck, addDeck, updateDeck, deleteDeck, mineDeck,
-    cards, card, addCards, updateCard, deleteCard, resetCard, hasTerm, norm, fromBank,
+    cards, card, addCards, updateCard, deleteCard, resetCard, hasTerm, norm, fromBank, applyChecks,
     sentences, sentenceWith, example, shown,
     overview, streak, week, today,
     buildSession, cramQueue, answer, stage, MAX_BOX, schedule, dayKey,

@@ -102,6 +102,7 @@ test('a noun shows the gender of its article, whatever the AI wrote', () => {
   assert.equal(shown({ term: 'et hus', gram: 'муж.р., неодуш.' }).gram, 'средний род');
   assert.equal(shown({ term: 'å bestå', pos: 'verb', gram: 'неправильный' }).gram, 'неправильный', 'only nouns');
   assert.equal(shown({ term: 'en bil', gram: 'моя пометка', src: 'user' }).gram, 'моя пометка', 'hand-made cards keep what the person wrote');
+  assert.equal(shown({ term: 'å kunne', pos: 'verb', gram: 'глагол' }).gram, '', 'not the word class again');
   assert.equal(shown({ term: 'en butikk', pron: '/en bʉˈtɪk/' }).pron, '/bʉˈtɪk/', 'no article in the pronunciation');
   assert.equal(shown({ term: 'en butikk', pron: '/bʉˈtɪk/' }).pron, '/bʉˈtɪk/');
   assert.equal(shown({ term: 'en butikk', forms: 'butikken,butikker,butikkene' }).forms, 'butikken, butikker, butikkene');
@@ -159,4 +160,79 @@ test('word-class topics ask for, and keep, only that word class', () => {
   assert.match(p.user, /"en" = masculine, "ei" = feminine, "et" = neuter/);
   assert.match(p.user, /"gender":""/);
   assert.doesNotMatch(wordsPrompt({ target: 'ru', native: 'uk', topic: 'Greetings', level: 'A1', n: 20, avoid: [] }).user, /"gender"/);
+});
+
+/* ---------- Norwegian cards checked against ordbokene.no (answers recorded from ord.uib.no) ---------- */
+
+const noun = (g, def, pl, plDef) => ({ tags: ['NOUN', g], standardisation: 'STANDARD', inflection: [
+  { tags: ['Sing', 'Ind'], word_form: 'x' }, { tags: ['Sing', 'Def'], word_form: def }, { tags: ['Plur', 'Ind'], word_form: pl }, { tags: ['Plur', 'Def'], word_form: plDef }] });
+const verb = (pres, past, perf) => ({ tags: ['VERB'], standardisation: 'STANDARD', inflection: [
+  { tags: ['Inf'], word_form: 'x' }, { tags: ['Pres'], word_form: pres }, { tags: ['Past'], word_form: past }, { tags: ['<PerfPart>'], word_form: perf }] });
+const ARTICLES = {
+  1: ['tallerken', [noun('Masc', 'tallerkenen', 'tallerkener', 'tallerkenene')]],
+  2: ['ingrediens', [noun('Masc', 'ingrediensen', 'ingredienser', 'ingrediensene')]],
+  3: ['pott', [noun('Masc', 'potten', 'potter', 'pottene')]],
+  4: ['øre', [noun('Masc', 'øren', 'øre', 'ørene'), noun('Neuter', 'øret', 'øre', 'ørene')]], // the coin
+  5: ['øre', [noun('Neuter', 'øret', 'ører', 'øra'), noun('Neuter', 'øret', 'ører', 'ørene')]], // the ear
+  6: ['jente', [noun('Masc', 'jenten', 'jenter', 'jentene'), noun('Fem', 'jenta', 'jenter', 'jentene')]],
+  7: ['spise', [verb('spiser', 'spiste', 'spist')]],
+};
+const SEARCH = { tallerken: [1], ingrediens: [2], pott: [3], øre: [4, 5], jente: [6], spise: [7] };
+
+function dictionaryTab() {
+  const { App, ctx } = browser(['public/js/ordbok.js']);
+  const calls = [];
+  ctx.fetch = async (url) => {
+    calls.push(url);
+    const u = new URL(url);
+    const body = u.pathname === '/api/articles'
+      ? { articles: { bm: SEARCH[u.searchParams.get('w')] || [] } }
+      : (() => { const [lemma, paradigm_info] = ARTICLES[u.pathname.match(/(\d+)\.json$/)[1]]; return { article_id: +u.pathname.match(/(\d+)\.json$/)[1], lemmas: [{ lemma, paradigm_info }] }; })();
+    return { ok: true, json: async () => body };
+  };
+  return { O: App.ordbok, calls };
+}
+
+test('a wrong article or wrong forms are fixed from the official dictionary', async () => {
+  const { O } = dictionaryTab();
+  const check = async (term, forms, pos = 'noun') => ({ ...(await O.verify({ term, pos, forms }, 'nb')) });
+  assert.deepEqual(await check('en tallerken', 'tallerkenen, tallerkener, tallerkenene'), { term: 'en tallerken', forms: 'tallerkenen, tallerkener, tallerkenene' });
+  assert.deepEqual(await check('et ingrediens', 'ingrediensen, ingredienser, ingrediensene'), { term: 'en ingrediens', forms: 'ingrediensen, ingredienser, ingrediensene' });
+  assert.equal((await check('en pott', 'potten, pott, pottene')).forms, 'potten, potter, pottene');
+  assert.equal((await check('en pott', '')).forms, 'potten, potter, pottene', 'missing forms are filled in');
+  assert.equal((await check('ei jente', 'jenta, jenter, jentene')).forms, 'jenta, jenter, jentene');
+  assert.equal((await check('en jente', 'jenta, jenter, jentene')).forms, 'jenten, jenter, jentene', 'forms follow the article');
+  assert.equal((await check('å spise', 'spiser, spist, har spist', 'verb')).forms, 'spiser, spiste, har spist');
+  assert.equal((await check('å spise', 'spiser,spiste,spist', 'verb')).forms, 'spiser, spiste, spist');
+});
+
+test('homonyms: forms that fit any word with this spelling and article stay', async () => {
+  const { O } = dictionaryTab();
+  const ear = await O.verify({ term: 'et øre', pos: 'noun', forms: 'øret, ører, ørene' }, 'nb');
+  assert.equal(ear.forms, 'øret, ører, ørene');
+  const coin = await O.verify({ term: 'et øre', pos: 'noun', forms: 'øret, øre, ørene' }, 'nb');
+  assert.equal(coin.forms, 'øret, øre, ørene');
+});
+
+test('what the dictionary cannot tell stays as it is, and a Worker never goes over its request budget', async () => {
+  const { O, calls } = dictionaryTab();
+  assert.equal(await O.verify({ term: 'en huiaka', pos: 'noun', forms: '' }, 'nb'), null, 'a made-up word');
+  assert.equal(await O.verify({ term: 'god morgen', pos: 'phrase' }, 'nb'), null);
+  assert.equal(await O.verify({ term: 'å glede seg', pos: 'verb' }, 'nb'), null, 'a reflexive verb is a phrase here');
+  assert.equal(await O.verify({ term: 'der Hund', pos: 'noun' }, 'de'), null, 'only Norwegian has an official dictionary here');
+  assert.equal(calls.length, 1, 'only the made-up word was looked up');
+  await assert.rejects(O.verify({ term: 'et øre', pos: 'noun', forms: '' }, 'nb', { budget: { left: 2 } }), /budget/);
+});
+
+test('checked cards remember it; a fix is an edit that syncs', () => {
+  const T = tab().store;
+  const deck = T.addDeck({ topic: 'cooking', level: 'A1' });
+  T.addCards(deck.id, [{ term: 'et ingrediens', tr: 'ингредиент', pos: 'noun', gram: 'средний род', src: 'bank' }, { term: 'en tallerken', tr: 'тарелка', pos: 'noun', src: 'bank', chk: 1 }]);
+  const [a, b] = T.cards(deck.id).sort((x, y) => x.created - y.created);
+  assert.equal(b.chk, 1, 'checked on the server already');
+  const u = a.u;
+  assert.equal(T.applyChecks([{ id: a.id, fix: { term: 'en ingrediens', forms: 'ingrediensen, ingredienser, ingrediensene', gram: '' } }]), 1);
+  assert.equal(T.card(a.id).term, 'en ingrediens');
+  assert.equal(T.card(a.id).chk, 1);
+  assert.ok(T.card(a.id).u >= u);
 });

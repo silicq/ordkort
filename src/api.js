@@ -80,7 +80,11 @@ export async function words(request, env, key) {
   const fits = (w) => !tp?.pos || tp.pos.includes(w.pos);
   const bank = (await env.DB.prepare('SELECT norm, data FROM words WHERE grp = ? ORDER BY id LIMIT 500').bind(grp).all()).results || [];
   const avail = bank.filter((r) => !have.has(r.norm)).map((r) => JSON.parse(r.data)).filter(fits);
-  if (avail.length >= n) return json({ words: avail.slice(0, n), source: 'bank' }, 200, quotaHeaders(null));
+  if (avail.length >= n) {
+    const out = avail.slice(0, n);
+    await saveChecked(env, grp, await checkWords(target, out));
+    return json({ words: out, source: 'bank' }, 200, quotaHeaders(null));
+  }
 
   const quota = await takeAI(env, key);
   try {
@@ -94,6 +98,10 @@ export async function words(request, env, key) {
       seen.add(k);
       fresh.push({ k, w });
     }
+    // the new words (they go into the bank already checked) and the bank words served with them
+    const served = avail.slice(0, n);
+    const checked = await checkWords(target, [...fresh.map((f) => f.w), ...served]);
+    await saveChecked(env, grp, checked.filter((w) => served.includes(w)));
     // into the bank in one statement (up to 30 rows × 3 parameters ≤ 100 D1 parameters)
     for (let i = 0; i < fresh.length; i += 30) {
       const part = fresh.slice(i, i + 30);
@@ -107,6 +115,39 @@ export async function words(request, env, key) {
   }
 }
 
+/* Norwegian nouns and verbs are checked against the official dictionary (ordbokene.no) once: a wrong article
+   ("et ingrediens") or wrong forms ("pott" as the plural of "pott") are fixed in the bank for everyone, and
+   `chk` marks the word as checked. A Worker may make only 50 requests to other sites and the AI call may need
+   up to 8, so this check makes at most 30 (about 2 per word) and leaves the rest for the next time. */
+async function checkWords(target, words) {
+  if (!App.ordbok.supports(target)) return [];
+  const todo = words.filter((w) => !w.chk && (w.pos === 'noun' || w.pos === 'verb'));
+  const budget = { left: 30 };
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 6000);
+  const done = [];
+  let i = 0;
+  await Promise.all(Array.from({ length: 4 }, async () => {
+    while (i < todo.length && budget.left > 5) {
+      const w = todo[i++];
+      try {
+        const r = await App.ordbok.verify(w, target, { signal: ctrl.signal, budget });
+        if (r && r.term !== w.term) w.gram = ''; // a gender label written for the wrong article
+        if (r) Object.assign(w, r);
+        w.chk = 1;
+        done.push(w);
+      } catch { /* timeout, budget or network: another time */ }
+    }
+  }));
+  clearTimeout(timer);
+  return done;
+}
+async function saveChecked(env, grp, words) {
+  if (!words.length) return;
+  const q = 'UPDATE words SET data = ? WHERE grp = ? AND norm = ?';
+  await env.DB.batch(words.map((w) => env.DB.prepare(q).bind(JSON.stringify(w), grp, norm(w.term))));
+}
+
 /* ---------- card autofill (personal, not cached) ---------- */
 export async function fill(request, env, key) {
   const b = await readJSON(request, 4000);
@@ -116,6 +157,7 @@ export async function fill(request, env, key) {
   const quota = await takeAI(env, key);
   try {
     const w = P.aiWord(await groq(env, P.fillPrompt({ target, native, level: LEVELS.includes(b.level) ? b.level : 'A1', term, tr })), target);
+    await checkWords(target, [w]);
     return json(w, 200, quotaHeaders(quota));
   } catch (e) {
     await quota.refund();
