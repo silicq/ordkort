@@ -60,11 +60,15 @@
           h('a', { class: 'icon-btn' + (active === 'settings' ? ' active' : ''), href: '#/settings', title: t('nav.settings'), 'aria-label': t('nav.settings') }, icon('settings')))));
   }
 
+  // the plain page about the site (public/<lang>/, made by scripts/landing.mjs) in the interface language
+  const SITE_PAGES = ['en', 'ru', 'uk', 'nb', 'ar', 'zh'];
   function footer() {
+    const ui = A.i18n.lang() === 'nn' ? 'nb' : A.i18n.lang();
     return h('footer', { class: 'foot shell' },
       h('span', null, t('foot.local')),
       h('span', { class: 'foot-links' },
         h('a', { href: '#/about' }, t('foot.about')),
+        h('a', { href: `/${SITE_PAGES.includes(ui) ? ui : 'en'}/` }, t('foot.site')),
         h('a', { href: 'https://ordbokene.no', target: '_blank', rel: 'noopener' }, 'ordbokene.no'),
         h('a', { href: 'https://lexin.oslomet.no', target: '_blank', rel: 'noopener' }, 'Lexin'),
         h('a', { href: '#/settings' }, t('nav.settings'))));

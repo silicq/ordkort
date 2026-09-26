@@ -73,6 +73,31 @@ test('every deploy has a version the app can compare with the server', () => {
   assert.ok(html.indexOf('js/build.js') < html.indexOf('js/app.js'));
 });
 
+/* ---------- pages for search engines ---------- */
+
+test('the pages about the site are up to date, linked to each other and readable without JavaScript', async () => {
+  const L = await import('../scripts/landing.mjs');
+  const sitemap = read('public/sitemap.xml');
+  assert.equal(sitemap, L.sitemap(), 'public/sitemap.xml is out of date: run npm run landing');
+  for (const code of L.CODES) {
+    const html = read(`public/${code}/index.html`);
+    assert.equal(html, L.render(code), `public/${code}/index.html is out of date: run npm run landing`);
+    assert.match(html, new RegExp(`<link rel="canonical" href="https://ordkort.com/${code}/">`));
+    for (const other of L.CODES) assert.ok(html.includes(`href="https://ordkort.com/${other}/"`), `${code} → ${other}`);
+    assert.match(html, /hreflang="x-default"/);
+    assert.ok(sitemap.includes(`<loc>https://ordkort.com/${code}/</loc>`));
+    const ld = JSON.parse(html.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)[1]);
+    assert.deepEqual(ld['@graph'].map((x) => x['@type']), ['WebApplication', 'WebPage', 'FAQPage']);
+    assert.ok(ld['@graph'][2].mainEntity.length >= 5);
+    assert.ok(html.includes('href="/#/"'), 'a way into the app');
+    assert.doesNotMatch(html, /<script(?! type="application\/ld\+json")/, 'no scripts: plain HTML');
+    const title = html.match(/<title>([^<]+)<\/title>/)[1], desc = html.match(/name="description" content="([^"]+)"/)[1];
+    assert.ok(title.length <= 90 && desc.length >= 70 && desc.length <= 200, `${code}: title ${title.length}, description ${desc.length}`);
+  }
+  assert.match(read('public/index.html'), /<noscript>[\s\S]*href="\/ru\/"[\s\S]*<\/noscript>/, 'the app links to them for crawlers without JavaScript');
+  assert.match(read('public/robots.txt'), /Sitemap: https:\/\/ordkort\.com\/sitemap\.xml/);
+});
+
 /* ---------- server-side input cleaning ---------- */
 
 test('untrusted strings are trimmed, cut and stripped of control characters', () => {

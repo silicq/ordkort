@@ -58,6 +58,8 @@ src/               Cloudflare Worker — runs only for /api/*
   sync.js          device sync and one-time codes (the server only ever sees ciphertext)
   db.js            D1: the schema is created automatically on the first request
 scripts/build.mjs  writes public/js/build.js; wrangler runs it before every deploy and `wrangler dev`
+scripts/landing.mjs  plain pages about the site for search engines (public/<lang>/, 6 languages) and sitemap.xml;
+                   run `npm run landing` after changing their texts (a test checks they are up to date)
 tests/             node:test suites (see below)
 wrangler.jsonc     Cloudflare configuration
 ```

@@ -8,6 +8,6 @@ App.config = {
   cacheKey: 'ordkort.cache.v1',  // saved AI answers (safe to clear)
   syncKey: 'ordkort.sync.v1',    // sync secret — stays on this device, never goes into backups
   cacheLimit: 300,
-  uiVersion: 7,                // bump when UI strings change, so machine-translated UIs are rebuilt
+  uiVersion: 8,                // bump when UI strings change, so machine-translated UIs are rebuilt
   repoUrl: 'https://github.com/silicq/ordkort', // source code, linked from the About page
 };

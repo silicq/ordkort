@@ -566,4 +566,5 @@ globalThis.App.i18nData.en = {
   'about.check_h': "Dictionary checks",
   'about.check_p': "Nouns and verbs on AI-written cards are checked against a dictionary once: the official ordbokene.no for Norwegian (your browser asks it directly), Wiktionary for other languages (the server asks it). A wrong article or a form that does not exist is fixed. Only the word itself is sent, never anything about you, and cards you made yourself are never changed.",
   'set.src_wikt': "checks articles, genders and forms of words in other languages",
+  'foot.site': "About Ordkort",
 };
