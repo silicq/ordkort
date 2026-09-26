@@ -31,30 +31,53 @@ const ARTICLES = {
 };
 const nounRule = (code, T) => (ARTICLES[code]
   ? `Nouns: ALWAYS begin with the ${T} article ${ARTICLES[code]} — never a bare noun.`
-  : `Nouns: with the article or gender marker if ${T} dictionaries customarily show one.`);
+  : `Nouns: the dictionary form, with an article only if ${T} learners' dictionaries always show one (like Greek "ο/η/το"); never a gender mark such as "(m.)" — the gender goes into "gram".`);
+
+/* The gender each article stands for (c = common gender). The AI sometimes labels "en tallerken" feminine:
+   the prompt spells the pairs out, and a card whose gender contradicts its article loses the wrong label. */
+const ART_GENDER = {
+  nb: { en: 'm', ei: 'f', et: 'n' },
+  nn: { ein: 'm', ei: 'f', eit: 'n' },
+  de: { der: 'm', die: 'f', das: 'n' },
+  sv: { en: 'c', ett: 'n' },
+  da: { en: 'c', et: 'n' },
+  nl: { de: 'c', het: 'n' },
+  fr: { le: 'm', la: 'f' },
+  es: { el: 'm', la: 'f' },
+  it: { il: 'm', lo: 'm', la: 'f' },
+  pt: { o: 'm', a: 'f' },
+};
+const GENDER_NAMES = { m: 'masculine', f: 'feminine', n: 'neuter', c: 'common gender' };
+const genderPairs = (code) => Object.entries(ART_GENDER[code] || {}).map(([a, g]) => `"${a}" = ${GENDER_NAMES[g]}`).join(', ');
 
 const cardRules = (t, T, N, level) => `Field rules:
-- "term": the ${T} dictionary form exactly as a learner should see it on a flashcard. ${nounRule(t, T)} Verbs: the infinitive as dictionaries show it (e.g. "å lese", "to read", "lesen").
+- "term": the ${T} dictionary form exactly as a learner should see it on a flashcard — only the word itself, no notes or brackets. ${nounRule(t, T)} Verbs: the infinitive as dictionaries show it (e.g. "å lese", "to read", "lesen").
 - "tr": ${N} translation, 1–3 short variants separated by commas.
-- "pos": one of noun, verb, adjective, adverb, pronoun, preposition, conjunction, numeral, phrase, interjection.
-- "gram": very short grammar label written in ${N} words (gender, verb group, etc.) — not abbreviations and not in ${T} or English; "" if nothing to say.
+- "pos": one of noun, verb, adjective, adverb, pronoun, preposition, conjunction, numeral, phrase, interjection.${ART_GENDER[t] ? `
+- "gender": for nouns the grammatical gender, "m", "f", "n" or "c" (common); "" for other words. It must match the article in "term": ${genderPairs(t)}.` : ''}
+- "gram": a very short grammar label of 1–3 words written in ${N} — for nouns just the gender${ART_GENDER[t] ? ' (the same as "gender" and the article)' : ''}, for verbs the verb group or "irregular"; no abbreviations, not in ${T}${N === 'English' ? '' : ' or English'}, and nothing obvious such as singular, indefinite or infinitive; "" if nothing to say.
 - "forms": the key inflected ${T} forms, comma-separated (nouns: definite singular, indefinite plural, definite plural; verbs: present, past, perfect; adjectives: neuter, plural/definite, comparative, superlative — adapt to how ${T} inflects), or "" if ${T} does not inflect it.
 - "pron": pronunciation — IPA in slashes for alphabetic scripts; pinyin with tone marks for Chinese; romaji for Japanese; standard romanization for other non-Latin scripts.
 - "ex": one short, natural ${T} example sentence (level ${level}) using the word; "ex_tr": its ${N} translation.`;
 
+const cardShape = (t) => `{"term":"","tr":"","pos":"",${ART_GENDER[t] ? '"gender":"",' : ''}"gram":"","forms":"","pron":"","ex":"","ex_tr":""}`;
+
 /* ---------- prompts ---------- */
 
-export function wordsPrompt({ target, native, topic, hint, level, n, avoid }) {
+export function wordsPrompt({ target, native, topic, hint, only, level, n, avoid }) {
   const T = nameOf(target), N = nameOf(native);
+  const kinds = only?.length
+    ? `Use ONLY these word classes: ${only.join(', ')} — "pos" of every card must be one of them.`
+    : 'Choose frequent, genuinely useful words for this topic and level: mostly nouns, verbs and adjectives, plus a few short set phrases if natural. If the topic names a word class or a grammar area (e.g. prepositions, irregular verbs, question words), use only words of that kind.';
   const user = `Create ${n} vocabulary flashcards for a ${N} speaker learning ${T}.
 Topic: ${JSON.stringify(topic)}${hint ? ` (${hint})` : ''}
 CEFR level: ${level}
 ${avoid.length ? `Already known — do NOT repeat these words or their forms: ${avoid.join(', ')}\n` : ''}
-Choose frequent, genuinely useful words for this topic and level: mostly nouns, verbs and adjectives, plus a few short set phrases if natural. Every word must be real and correct. If the topic text is not a sensible vocabulary topic, use everyday words instead.
+${kinds} Every word must be real, correct and clearly belong to the topic. If the topic text is not a sensible vocabulary topic, use everyday words instead.
 
 ${cardRules(target, T, N, level)}
 
-JSON shape: {"words":[{"term":"","tr":"","pos":"","gram":"","forms":"","pron":"","ex":"","ex_tr":""}]}`;
+JSON shape: {"words":[${cardShape(target)}]}`;
   return { system: SYSTEM(target), user, max: Math.min(7500, 1200 + n * 200), temperature: 0.4, effort: 'medium' };
 }
 
@@ -66,7 +89,7 @@ If the term is empty, find the best ${T} equivalent of the translation. If the t
 
 ${cardRules(target, T, N, level)}
 
-JSON shape: {"term":"","tr":"","pos":"","gram":"","forms":"","pron":"","ex":"","ex_tr":""}`;
+JSON shape: ${cardShape(target)}`;
   return { system: SYSTEM(target), user, max: 1500, temperature: 0.2, effort: 'medium' };
 }
 
@@ -218,6 +241,17 @@ export function cleanWord(w) {
     term: S(w?.term, 80), tr: S(w?.tr, 160), pos: S(w?.pos, 20).toLowerCase(), gram: S(w?.gram, 120),
     forms: S(w?.forms, 200), pron: S(w?.pron, 100), ex: S(w?.ex, 300), ex_tr: S(w?.ex_tr, 300),
   };
+}
+
+/* A card written by the AI: cleaned, without a note in brackets after the word ("привет (м.)"),
+   and without a gender label that contradicts the article ("en tallerken" called feminine). */
+export function aiWord(raw, target) {
+  const w = cleanWord(raw);
+  w.term = w.term.replace(/\s+\([^()]{1,12}\)$/u, '') || w.term;
+  const want = ART_GENDER[target]?.[w.term.split(/\s+/)[0].toLowerCase()];
+  const said = S(raw?.gender, 20).toLowerCase().charAt(0); // "m" or "masculine"
+  if (w.pos === 'noun' && want && said && 'mfnc'.includes(said) && said !== want && !(want === 'c' && (said === 'm' || said === 'f'))) w.gram = '';
+  return w;
 }
 
 export function cleanEntry(e) {

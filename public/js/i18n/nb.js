@@ -557,4 +557,6 @@ globalThis.App.i18nData.nb = {
   'about.offline_h': "Virker uten nett",
   'about.offline_p': "Nettleseren har en kopi av siden, så kortene åpnes uten internett. Ordboka, grammatikken, lesingen og oversetteren trenger nett — unntatt oppslag du allerede har åpnet.",
   'csv.none_new': "Du har allerede alle disse ordene i kortene dine.",
+  'study.other_form': "Riktig ord, men her trengs formen:",
+  'study.roman': "Riktig! Det skrives:",
 };

@@ -6,8 +6,10 @@ Ordkort is a lightweight site for learning almost any language from almost any o
 
 - **Flashcards** by topic with spaced repetition (FSRS-4.5) — “I know / I don’t know” for new words,
   “I remember / I forgot” for reviews. Tap to flip, swipe, keyboard shortcuts, text-to-speech.
-  Five more study modes: multiple choice, typing (with an on-screen row of special letters),
-  listening, fill-the-gap in the example sentence, or a mix.
+  Five more study modes: multiple choice, typing (with an on-screen row of special letters;
+  one typo or pinyin/romaji for a non-Latin script still count, the right word in another form
+  is half-right: not a mistake, but the card comes back), listening, fill-the-gap in the example
+  sentence, or a mix.
 - **Topics**: 29 built-in topics in 6 groups (first steps, people, everyday life, the world around,
   work & society, grammar sets), any custom topic, or an empty deck for your own words.
   AI picks real, frequent words for levels A1–C1; “+20 words” keeps extending a deck without repeats.

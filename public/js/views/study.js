@@ -81,6 +81,7 @@
       clearTimeout(autoNext);
       window.speechSynthesis?.cancel();
     },
+    _test: { compare, clozeOf },
   };
 
   const cur = () => A.store.card(S.queue[S.i]);
@@ -147,15 +148,21 @@
     return out.length === n ? out : null;
   }
 
-  /* Find the word form of the card inside its example sentence → { before, answer, after } */
+  /* Find the word form of the card inside its example sentence → { before, answer, after, tr } */
   function clozeOf(c) {
-    if (!c.ex) return null;
+    const { text: ex, tr } = A.store.example(c);
+    if (!ex) return null;
     const base = c.term.replace(/^(en|ei|et|ein|eit|å|der|die|das|eine?|le|la|les|l['’]|une?|el|los|las|il|lo|gli|uno|o|os|as|uma?|het|ett|att|to|the|an?)\s+/i, '').trim();
     if (!base) return null;
-    const ex = c.ex, low = ex.toLowerCase(), b = base.toLowerCase();
+    const low = ex.toLowerCase(), b = base.toLowerCase();
     const isWord = (ch) => !!ch && /[\p{L}\p{M}\p{N}]/u.test(ch);
-    let at = low.indexOf(b), len = b.length;
-    if (at >= 0 && /[\p{L}]/u.test(b[0]) && /[぀-ヿ㐀-鿿가-힯฀-๿]/.test(b) === false) {
+    const spaced = /[\p{L}]/u.test(b[0]) && !/[぀-ヿ㐀-鿿가-힯฀-๿]/.test(b);
+    // prefer a match at the start of a word: "øre" → "øret", not the "øre" inside "høre"
+    const starts = [];
+    for (let i = low.indexOf(b); i >= 0; i = low.indexOf(b, i + 1)) starts.push(i);
+    let at = (spaced ? starts.find((i) => !isWord(ex[i - 1])) : undefined) ?? (starts.length ? starts[0] : -1);
+    let len = b.length;
+    if (at >= 0 && spaced) {
       while (at > 0 && isWord(ex[at - 1])) { at--; len++; } // expand to whole word(s)
       while (isWord(ex[at + len])) len++;
     }
@@ -166,7 +173,7 @@
       }
     }
     if (at < 0 || len > 40) return null;
-    return { before: ex.slice(0, at), answer: ex.slice(at, at + len), after: ex.slice(at + len) };
+    return { before: ex.slice(0, at), answer: ex.slice(at, at + len), after: ex.slice(at + len), tr };
   }
 
   function available(mode, c) {
@@ -204,6 +211,7 @@
     const T = s.target, N = s.native;
     const fwd = S.dir === 'forward';
     const sizeOf = (x) => (x.length > 30 ? ' xl' : x.length > 14 ? ' l' : '');
+    const ex = A.store.example(c);
 
     const tag = h('div', { class: 'flash-tag' },
       h('span', { class: 'badge ' + (isNew ? 'new' : 'rev') }, t(isNew ? 'study.new' : 'study.review')),
@@ -220,7 +228,7 @@
       S.cloze = clozeOf(c);
       frontBody = [h('div', { class: 'flash-ask' }, t('study.ask_cloze')),
         h('p', { class: 'cloze serif', lang: T, dir: 'auto' }, S.cloze.before, h('span', { class: 'gap' }, '＿＿＿'), S.cloze.after),
-        c.exTr ? A.lt(c.exTr, N, 'flash-small', 'p') : null,
+        S.cloze.tr ? A.lt(S.cloze.tr, N, 'flash-small', 'p') : null,
         h('div', { class: 'flash-pron' }, `${c.tr}`)];
     } else if (fwd) {
       frontBody = [A.lt(c.term, T, 'flash-word serif' + sizeOf(c.term), 'div'), c.pron ? h('div', { class: 'flash-pron' }, c.pron) : null, A.speakBtn(c.term, T, 'lg')];
@@ -243,9 +251,9 @@
         c.gram || c.forms ? h('div', { class: 'flash-gram' },
           c.gram ? h('span', null, c.gram) : null,
           c.forms ? A.lt(c.forms, T, 'serif') : null) : null,
-        c.ex ? h('div', { class: 'flash-ex' },
-          h('p', null, A.lt(c.ex, T, 'serif'), A.speakBtn(c.ex, T, 'sm')),
-          c.exTr ? A.lt(c.exTr, N, 'muted', 'p') : null) : null));
+        ex.text ? h('div', { class: 'flash-ex' },
+          h('p', null, A.lt(ex.text, T, 'serif'), A.speakBtn(ex.text, T, 'sm')),
+          ex.tr ? A.lt(ex.tr, N, 'muted', 'p') : null) : null));
 
     const inner = h('div', { class: 'flash-inner' }, front, back);
     const card = h('div', { class: 'flash mode-' + S.mode, tabindex: '0', role: 'button', 'aria-label': t('study.tap') },
@@ -312,50 +320,77 @@
       if (S.answered) { next(); return; }
       const v = input.value.trim();
       if (!v && !gaveUp) { input.focus(); return; }
-      const res = gaveUp ? 'wrong' : compare(v, expected);
+      const res = gaveUp ? 'wrong' : compare(v, expected, c);
+      const ok = res !== 'wrong', hard = res === 'form';
       input.disabled = true;
       check.textContent = t('study.next');
       giveUp.hidden = true;
       if (letters) letters.hidden = true;
       feedback.hidden = false;
-      feedback.className = 'feedback ' + (res === 'wrong' ? 'bad' : 'good');
-      feedback.replaceChildren(
-        icon(res === 'wrong' ? 'x' : 'check', 16),
-        h('span', null, res === 'right' ? t('study.right') : res === 'almost' ? t('study.almost') : t('study.correct_is')),
+      feedback.className = 'feedback ' + (hard ? 'partial' : ok ? 'good' : 'bad');
+      A.put(feedback,
+        icon(hard ? 'refresh' : ok ? 'check' : 'x', 16),
+        h('span', null, t(FEEDBACK[res])),
         res !== 'right' ? A.lt(expected, T, 'serif fb-word') : null);
-      settle(res !== 'wrong');
+      settle(ok, { auto: res === 'right', hard }); // give time to read the correct spelling or form
     };
     input.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); submit(false); } });
     check.addEventListener('click', () => submit(false));
     giveUp.addEventListener('click', () => submit(true));
 
     S.actions.className = 'answer-row typing';
-    S.actions.replaceChildren(h('div', { class: 'type-line' }, input, check), letters, h('div', { class: 'type-foot' }, feedback, giveUp));
+    A.put(S.actions, h('div', { class: 'type-line' }, input, check), letters, h('div', { class: 'type-foot' }, feedback, giveUp));
     // on phones focusing opens the keyboard; do it only on devices with a real keyboard
     if (matchMedia('(hover: hover)').matches) setTimeout(() => input.focus(), 60);
   }
 
-  /* compare the typed answer: exact → right, one typo in a longer word → almost */
-  function compare(value, expected) {
+  /* The typed answer is judged as:
+     right  — the expected word or one of its variants; notes in brackets such as "(м.)" may be left out
+     almost — one typo (a wrong, missing, extra or two swapped letters) in a word of 5+ letters
+     form   — the same word in another form, e.g. "tallerken" where the gap needs "tallerkenen":
+              half-right — not a mistake, but graded "hard" and asked again in this session
+     roman  — the romanization of a word in another script, e.g. pinyin "qing" for 请
+     wrong  — anything else. Everything but "wrong" counts as remembered. */
+  const FEEDBACK = { right: 'study.right', almost: 'study.almost', form: 'study.other_form', roman: 'study.roman', wrong: 'study.correct_is' };
+  function compare(value, expected, c) {
     const n = (x) => A.store.norm(x).replace(/\s+/g, ' ');
-    const a = n(value), variants = expected.split(/\s*[/,;]\s*/).map(n).concat(n(expected));
-    if (variants.includes(a)) return 'right';
-    const close = variants.some((b) => b.length >= 5 && lev(a, b) <= 1);
-    return close ? 'almost' : 'wrong';
+    const variants = (x) => {
+      const out = new Set();
+      for (const s of [x, x.replace(/\([^)]*\)/g, ' ')]) {
+        out.add(n(s));
+        for (const v of s.split(/\s*[/,;]\s*/)) out.add(n(v));
+      }
+      out.delete('');
+      return [...out];
+    };
+    const a = n(value), exp = variants(expected);
+    if (exp.includes(a)) return 'right';
+    if (c && variants([c.term, c.forms].filter(Boolean).join(', ')).includes(a)) return 'form';
+    if (exp.some((b) => b.length >= 5 && dist(a, b) <= 1)) return 'almost';
+    if (!c) return 'wrong';
+    const roman = romanOf(c);
+    if (roman && n(expected) === n(c.term)) {
+      const flat = (x) => x.normalize('NFD').replace(/[^\p{L}]/gu, '').toLowerCase(); // no tone marks, spaces or digits
+      const r = flat(roman), v = flat(value);
+      if (v === r) return 'roman';
+      if (r.length >= 5 && dist(v, r) <= 1) return 'almost';
+    }
+    return 'wrong';
   }
-  function lev(a, b) {
+  // pinyin, romaji and the like — the pronunciation of a word in a non-Latin script, unless it is IPA
+  const romanOf = (c) => (c.pron && !/^\s*[/[]/.test(c.pron) && !/\p{Script=Latin}/u.test(c.term) && /\p{Script=Latin}/u.test(c.pron) ? c.pron : '');
+
+  // edit distance where two swapped neighbouring letters are one typo; anything above 1 is just "2"
+  function dist(a, b) {
     if (Math.abs(a.length - b.length) > 1) return 2;
-    const prev = Array.from({ length: b.length + 1 }, (_, i) => i);
+    const d = Array.from({ length: a.length + 1 }, (_, i) => Array.from({ length: b.length + 1 }, (_, j) => (i ? (j ? 0 : i) : j)));
     for (let i = 1; i <= a.length; i++) {
-      let diag = prev[0];
-      prev[0] = i;
       for (let j = 1; j <= b.length; j++) {
-        const tmp = prev[j];
-        prev[j] = Math.min(prev[j] + 1, prev[j - 1] + 1, diag + (a[i - 1] === b[j - 1] ? 0 : 1));
-        diag = tmp;
+        d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+        if (i > 1 && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1]) d[i][j] = Math.min(d[i][j], d[i - 2][j - 2] + 1);
       }
     }
-    return prev[b.length];
+    return Math.min(2, d[a.length][b.length]);
   }
 
   /* ---------- answering ---------- */
@@ -366,11 +401,12 @@
     S.card.classList.toggle('flipped', S.flipped);
   }
 
-  function store(ok) {
+  // hard: half-right (the right word in a wrong form) — not a mistake, but the card comes back like one
+  function store(ok, hard = false) {
     const id = S.queue[S.i];
     if (!(id in S.first)) S.first[id] = ok;
-    A.store.answer(id, ok, S.cram);
-    if (!ok) {
+    A.store.answer(id, ok, S.cram, hard);
+    if (!ok || hard) {
       const n = (S.fails[id] = (S.fails[id] || 0) + 1);
       if (n <= 3) S.queue.splice(Math.min(S.i + 4, S.queue.length), 0, id);
     }
@@ -397,16 +433,16 @@
   }
 
   // other modes: show the answer on the back, move on by itself after a correct answer
-  function settle(ok) {
-    store(ok);
+  function settle(ok, { auto = ok, hard = false } = {}) {
+    store(ok, hard);
     S.answered = true;
-    if (!ok) S.card.classList.add('failed');
+    if (!ok || hard) S.card.classList.add(hard ? 'partial' : 'failed');
     flip(true);
     const nextBtn = S.actions.querySelector('.btn-next');
     if (!nextBtn && S.mode !== 'type' && S.mode !== 'cloze') {
       S.actions.append(h('button', { class: 'btn btn-primary btn-next wide', type: 'button', onclick: next }, t('study.next'), icon('arrow', 18)));
     }
-    if (ok) autoNext = setTimeout(next, 1600);
+    if (auto) autoNext = setTimeout(next, 1600);
     progress();
   }
 

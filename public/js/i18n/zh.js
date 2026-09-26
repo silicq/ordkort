@@ -553,4 +553,6 @@ globalThis.App.i18nData.zh = {
   'about.offline_h': "离线可用",
   'about.offline_p': "浏览器会保存网站的副本，所以卡片无需联网即可打开。词典、语法、阅读和翻译需要联网——已经打开过的词条除外。",
   'csv.none_new': "这些词已经全部在你的卡片里了。",
+  'study.other_form': "词对了，但这里要用这个形式：",
+  'study.roman': "正确！写作：",
 };

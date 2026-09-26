@@ -146,7 +146,7 @@
       for (const tb of e.inflection || []) for (const r of tb.rows || []) for (const c of r.slice(1)) if (c && !forms.includes(c) && c !== e.lemma && forms.length < 4) forms.push(c);
       const n = A.store.addCards(deckId, [{
         term: head, tr: e.tr || e.senses?.[0]?.tr || '', pos: e.pos, gram: e.pos_label, pron: e.pron,
-        forms: forms.join(', '), ex: ex?.text, ex_tr: ex?.tr,
+        forms: forms.join(', '), ex: ex?.text, ex_tr: ex?.tr, src: 'dict',
       }]);
       A.toast(n ? t('card.added') : t('card.duplicate'), n ? 'ok' : 'error');
       addBtn.disabled = true;

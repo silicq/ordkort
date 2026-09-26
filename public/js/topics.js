@@ -1,6 +1,7 @@
 /* Catalogue of deck topics and grammar textbook chapters.
    Interface names come from i18n (topic.<id>, ch.<id>),
-   English descriptions are hints for the AI. */
+   English descriptions are hints for the AI. A topic that is a word class lists the only
+   parts of speech its words may have (the server drops the rest). */
 (globalThis.App ||= {}).topics = (() => {
   const groups = [
     { id: 'start', items: [
@@ -9,7 +10,7 @@
       ['numbers', '🔢', 'Numbers, quantities and measures'],
       ['time', '🕰️', 'Time, days, months and seasons'],
       ['colors', '🎨', 'Colors, shapes and sizes'],
-      ['questions', '❓', 'Question words and connectors', 'who, what, where, why, because, but, if, then'],
+      ['questions', '❓', 'Question words and connectors', 'who, what, where, why, because, but, if, then', ['pronoun', 'adverb', 'conjunction', 'phrase']],
     ] },
     { id: 'people', items: [
       ['family', '👪', 'Family and relationships'],
@@ -39,17 +40,17 @@
       ['official', '📄', 'Documents and public services', 'residence permit, tax office, bank account, police, municipality, filling in forms, appointments'],
     ] },
     { id: 'grammar', items: [
-      ['verbs', '🏃', 'Essential verbs', 'the most useful verbs, including irregular ones'],
-      ['adjectives', '✨', 'Essential adjectives', 'common adjectives and their opposites'],
-      ['preps', '🧭', 'Prepositions and adverbs of place and time'],
-      ['phrases', '💬', 'Everyday phrases and idioms', 'short set phrases and common idioms used in conversation'],
+      ['verbs', '🏃', 'Essential verbs', 'the most useful verbs, including irregular ones', ['verb']],
+      ['adjectives', '✨', 'Essential adjectives', 'common adjectives and their opposites', ['adjective']],
+      ['preps', '🧭', 'Prepositions and adverbs of place and time', 'in, on, under, behind, between, next to, at home, outside, here, there, now, soon, always, already, before, after', ['preposition', 'adverb']],
+      ['phrases', '💬', 'Everyday phrases and idioms', 'short set phrases and common idioms used in conversation', ['phrase', 'interjection']],
     ] },
   ];
 
   const list = [];
   for (const g of groups) {
-    g.items = g.items.map(([id, emoji, en, hint]) => {
-      const t = { id, emoji, en, hint: hint || '', group: g.id };
+    g.items = g.items.map(([id, emoji, en, hint, pos]) => {
+      const t = { id, emoji, en, hint: hint || '', group: g.id, pos: pos || null };
       list.push(t);
       return t;
     });

@@ -112,6 +112,52 @@
   const norm = (s) => (s || '').toLowerCase().normalize('NFC')
     .replace(/[.,!?;:"«»“”„()[\]¿¡]/g, '').replace(/^l['’]/, '').trim().replace(ART, '').trim();
 
+  /* Examples copied from a longer text (reading, translator): only the sentence with the word.
+     A line counts as a sentence too — song lyrics have no full stops — and a sentence that is
+     still too long is cut to the words around the word. */
+  const isLetter = (ch) => !!ch && /[\p{L}\p{M}\p{N}]/u.test(ch);
+  // where the word starts in the text: at the start of a word ("øre" in "øret", not in "høre"),
+  // else anywhere unless `strict`; -1 if not found
+  function findWord(text, word, strict) {
+    const low = text.toLowerCase(), w = String(word || '').toLowerCase().trim();
+    if (!w) return -1;
+    let first = -1;
+    for (let i = low.indexOf(w); i >= 0; i = low.indexOf(w, i + 1)) {
+      if (!isLetter(text[i - 1])) return i;
+      if (first < 0) first = i;
+    }
+    return strict ? -1 : first;
+  }
+  const sentences = (text) => String(text || '').replace(/\r/g, '')
+    .replace(/\[[^\]\n]{1,30}\]/g, ' ') // [Chorus], [Vers 1]
+    .split(/(?<=[.!?…。！？])\s+|\s*\n+\s*/u)
+    .map((s) => s.replace(/\s+/g, ' ').trim()).filter(Boolean);
+  function sentenceWith(text, word, max = 120) {
+    const all = sentences(text);
+    const s = all.find((x) => findWord(x, word, true) >= 0) || all.find((x) => findWord(x, word) >= 0) || all[0] || '';
+    if (s.length <= max) return s;
+    const at = Math.max(0, findWord(s, word));
+    let a = at, b = Math.min(s.length, at + String(word || '').length);
+    while (b - a < max && (a > 0 || b < s.length)) { // grow around the word, one side at a time
+      if (a > 0) a--;
+      if (b < s.length && b - a < max) b++;
+    }
+    // don't cut words in half (texts without spaces, like Chinese, are cut anywhere)
+    const left = s.indexOf(' ', a), right = s.lastIndexOf(' ', b);
+    if (a > 0 && left >= 0 && left < at) a = left + 1;
+    if (b < s.length && right > at) b = right;
+    return (a > 0 ? '… ' : '') + s.slice(a, b).trim() + (b < s.length ? ' …' : '');
+  }
+  const EX_MAX = 200;
+  const bareTerm = (term) => String(term || '').replace(ART, '').trim();
+  /* The example to show on a card: a long one (from a card saved before examples were cut) is cut here */
+  function example(c) {
+    if (!c?.ex || c.ex.length <= EX_MAX) return { text: c?.ex || '', tr: c?.exTr || '' };
+    const base = bareTerm(c.term);
+    const stem = base.includes(' ') ? base : base.slice(0, Math.max(3, Math.ceil(base.length * 0.6)));
+    return { text: sentenceWith(c.ex, stem), tr: '' };
+  }
+
   const cards = (deckId) => {
     const all = Object.values(pair().cards);
     return deckId ? all.filter((c) => c.deck === deckId) : all;
@@ -137,6 +183,7 @@
         ex: w.ex || '', exTr: w.ex_tr || w.exTr || '',
         box: 0, due: 0, reps: 0, lapses: 0, last: 0, created: t + added, u: t,
       };
+      if (w.src) c.src = w.src; // where the card came from: bank (AI words for a topic), user, dict, read, tr, csv, share
       p.cards[c.id] = c;
       added++;
     }
@@ -155,6 +202,12 @@
   }
   function resetCard(id) {
     updateCard(id, { box: 0, due: 0, reps: 0, lapses: 0, s: 0, d: 0 });
+  }
+  /* A word from the shared bank of AI words for a topic (only those can be reported as a mistake).
+     Cards saved before `src` existed are recognised by their batch: one generation adds cards created 1 ms apart. */
+  function fromBank(c) {
+    if (c.src) return c.src === 'bank';
+    return cards(c.deck).some((x) => x.id !== c.id && Math.abs(x.created - c.created) === 1);
   }
 
   /* ---------- statistics ---------- */
@@ -240,11 +293,12 @@
   const LEGACY_S = [0, 0.5, 1, 3, 7, 16, 35, 90];
   const boxFromS = (s) => (s < 1 ? 1 : s < 3 ? 2 : s < 7 ? 3 : s < 16 ? 4 : s < 35 ? 5 : s < 90 ? 6 : 7);
 
-  function schedule(c, ok, now) {
+  function schedule(c, ok, now, hard = false) {
     const wasNew = c.box === 0 && !c.s;
     if (!c.s && c.box > 0) { c.s = LEGACY_S[c.box]; c.d = 5; } // cards from the old Leitner scheduler
-    // grades: 1 = again, 3 = good, 4 = easy ("I already know this" on a brand-new card)
-    const g = ok ? (wasNew ? 4 : 3) : 1;
+    // grades: 1 = again, 2 = hard (the right word in a wrong form: remembered, but due sooner),
+    // 3 = good, 4 = easy ("I already know this" on a brand-new card)
+    const g = !ok ? 1 : hard ? 2 : wasNew ? 4 : 3;
     if (wasNew) {
       c.d = initD(g);
       c.s = initS(g);
@@ -265,13 +319,13 @@
     }
   }
 
-  function answer(id, ok, cram) {
+  function answer(id, ok, cram, hard = false) {
     const c = card(id);
     if (!c) return;
     const wasNew = c.box === 0;
     if (!cram) {
       const now = Date.now();
-      schedule(c, ok, now);
+      schedule(c, ok, now, hard);
       c.reps++;
       c.last = now;
       c.u = now;
@@ -427,7 +481,8 @@
     get settings() { return state.settings; },
     get ready() { return !!state.settings; },
     decks, deck, addDeck, updateDeck, deleteDeck, mineDeck,
-    cards, card, addCards, updateCard, deleteCard, resetCard, hasTerm, norm,
+    cards, card, addCards, updateCard, deleteCard, resetCard, hasTerm, norm, fromBank,
+    sentences, sentenceWith, example,
     overview, streak, week, today,
     buildSession, cramQueue, answer, stage, MAX_BOX, schedule, dayKey,
     get days() { return state.days; },

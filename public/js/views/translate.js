@@ -156,6 +156,16 @@
             A.reportBtn('translate', { text: r._src, from: st.from, to: st.to }, `tr:${s.target}:${s.native}:${st.from}:${st.to}:${r._src}`)));
       }
 
+      /* The card's example: the sentence with the word, and its translation when the sentences of both texts line up.
+         The token's "form" is not used as the card's grammar: it describes the form in this text, not the dictionary word. */
+      function example(text, other, word) {
+        const ex = A.store.sentenceWith(text, word);
+        const mine = A.store.sentences(text), theirs = A.store.sentences(other);
+        const i = mine.indexOf(ex); // -1 when the sentence had to be cut
+        const exTr = i < 0 ? '' : mine.length === 1 ? theirs.join(' ') : mine.length === theirs.length ? theirs[i] : '';
+        return { ex, ex_tr: exTr };
+      }
+
       function addWordBtn(x, pk) {
         const b = h('button', { class: 'link-btn small', type: 'button' }, icon('plus', 14), t('tr.add'));
         if (A.store.hasTerm(x.lemma)) { b.disabled = true; b.replaceChildren(icon('check', 14), t('dict.in_cards')); }
@@ -163,7 +173,8 @@
           e.stopPropagation();
           const deckId = await A.pickDeck();
           if (!deckId) return;
-          const n = A.store.addCards(deckId, [{ term: x.lemma, tr: x.other || '', pos: pk, gram: x.form, ex: st.result.analyzed === 'source' ? st.result._src : st.result.translation, ex_tr: st.result.analyzed === 'source' ? st.result.translation : st.result._src }]);
+          const [text, other] = st.result.analyzed === 'source' ? [st.result._src, st.result.translation] : [st.result.translation, st.result._src];
+          const n = A.store.addCards(deckId, [{ term: x.lemma, tr: x.other || '', pos: pk, ...example(text, other, x.t), src: 'tr' }]);
           if (!n && !x.other) { A.toast(t('card.need_both'), 'error'); return; }
           A.toast(n ? t('card.added') : t('card.duplicate'), n ? 'ok' : 'error');
           b.disabled = true;

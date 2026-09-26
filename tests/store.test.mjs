@@ -79,6 +79,24 @@ test('difficulty stays within 1..10', () => {
   assert.ok(c.d >= 1 && c.d <= 10, `d = ${c.d}`);
 });
 
+test('a half-right answer (the word in a wrong form) is not a lapse, but comes back sooner than a right one', () => {
+  const S = device();
+  const good = fresh(), hard = fresh();
+  S.schedule(good, true, T0);
+  S.schedule(hard, true, T0, true);
+  assert.equal(days(hard.due - T0), 1, 'a new word answered in the wrong form is asked again tomorrow');
+  assert.ok(hard.box < 4, 'still learning');
+
+  let now = T0 + 30 * DAY;
+  const a = { ...good, last: T0 }, b = { ...good, last: T0 };
+  S.schedule(a, true, now);
+  S.schedule(b, true, now, true);
+  assert.equal(b.lapses, 0);
+  assert.ok(b.s > good.s, 'remembered: stability still grows');
+  assert.ok(b.due < a.due, 'but less than after a right answer');
+  assert.ok(b.d > a.d, 'and the word counts as harder');
+});
+
 test('answer() updates reps, today stats and the card', () => {
   const S = device();
   const deck = S.addDeck({ title: 'T', emoji: '🗂️', group: 'custom' });

@@ -67,7 +67,7 @@
           h('button', { class: 'btn btn-ghost', type: 'button', onclick: () => m.close() }, t('common.cancel')),
           h('button', {
             class: 'btn btn-primary', type: 'button',
-            onclick: () => { const n = A.store.addCards(d.id, words); m.close(); A.toast(n ? t('csv.added', { n }) : t('csv.none_new'), n ? 'ok' : ''); A.refresh(); },
+            onclick: () => { const n = A.store.addCards(d.id, words.map((w) => ({ ...w, src: 'csv' }))); m.close(); A.toast(n ? t('csv.added', { n }) : t('csv.none_new'), n ? 'ok' : ''); A.refresh(); },
           }, t('csv.add')),
         ],
       });
@@ -141,7 +141,7 @@
                 if (!A.store.ready) A.store.init({ native: N, target: T, level: deck.level || 'A1' });
                 else if (s.target !== T) A.store.set({ target: T });
                 const d = A.store.addDeck({ title: deck.title, emoji: deck.emoji || '🗂️', group: deck.group || 'custom', level: deck.level, manual: true });
-                const n = A.store.addCards(d.id, deck.words);
+                const n = A.store.addCards(d.id, deck.words.map((w) => ({ ...w, src: 'share' })));
                 if (!n) { A.store.deleteDeck(d.id); A.toast(t('csv.none_new')); A.go('#/'); return; }
                 A.toast(t('csv.added', { n }), 'ok');
                 A.go('#/deck/' + d.id);

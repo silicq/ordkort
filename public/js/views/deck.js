@@ -92,10 +92,11 @@
     },
   };
 
-  // words that came from the shared bank can be reported, so they get replaced for everyone
+  // words that came from the shared bank can be reported, so they get replaced for everyone;
+  // a word the person typed in (or took from the dictionary, a text, a file) has nothing to report
   function wordReport(c) {
     const d = A.store.deck(c.deck);
-    if (!d || d.manual || d.kind === 'mine' || !(d.topic || d.title)) return null;
+    if (!d || d.manual || d.kind === 'mine' || !(d.topic || d.title) || !A.store.fromBank(c)) return null;
     return A.reportBtn('word', { topic: d.topic || undefined, custom: d.topic ? undefined : d.title, level: d.level || 'A1', term: c.term });
   }
 
@@ -106,10 +107,11 @@
   }
 
   function row(c, s) {
+    const ex = A.store.example(c);
     const detail = h('div', { class: 'wdetail' },
       c.gram || c.pos ? h('p', null, h('span', { class: 'k' }, t('card.gram')), [c.pos ? t('pos.' + c.pos) : '', c.gram].filter(Boolean).join(' · ')) : null,
       c.forms ? h('p', null, h('span', { class: 'k' }, t('card.forms')), A.lt(c.forms, s.target, 'serif')) : null,
-      c.ex ? h('p', null, h('span', { class: 'k' }, t('card.example')), A.lt(c.ex, s.target, 'serif'), A.speakBtn(c.ex, s.target, 'sm'), c.exTr ? h('span', { class: 'muted d-block' }, c.exTr) : null) : null,
+      ex.text ? h('p', null, h('span', { class: 'k' }, t('card.example')), A.lt(ex.text, s.target, 'serif'), A.speakBtn(ex.text, s.target, 'sm'), ex.tr ? h('span', { class: 'muted d-block' }, ex.tr) : null) : null,
       h('div', { class: 'row gap wrap' },
         h('button', { class: 'btn btn-ghost btn-sm', type: 'button', onclick: () => editCard(c, c.deck) }, icon('edit', 16), t('common.edit')),
         h('a', { class: 'btn btn-ghost btn-sm', href: '#/dict/' + encodeURIComponent(c.term.replace(/^(en|ei|et|å|der|die|das|la|le|el|the|to)\s+/i, '')) }, icon('book', 16), t('card.in_dict')),
@@ -176,7 +178,7 @@
       if (typeof f.pos === 'string') data.pos = f.pos;
       if (card) A.store.updateCard(card.id, data);
       else {
-        const n = A.store.addCards(deckId, [data]);
+        const n = A.store.addCards(deckId, [{ ...data, src: 'user' }]);
         if (!n) { A.toast(t('card.duplicate'), 'error'); return; }
       }
       m.close();

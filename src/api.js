@@ -75,19 +75,22 @@ export async function words(request, env, key) {
   const { tp, custom, level, grp } = await groupOf(b, target, native);
 
   const have = new Set(arr(b.have, 3000).map((x) => norm(str(x, 80))).filter(Boolean));
+  // topics that are a word class ("prepositions and adverbs") get only words of that class — also from the bank,
+  // which may still hold words generated before this rule (verbs such as "å ligge" among prepositions)
+  const fits = (w) => !tp?.pos || tp.pos.includes(w.pos);
   const bank = (await env.DB.prepare('SELECT norm, data FROM words WHERE grp = ? ORDER BY id LIMIT 500').bind(grp).all()).results || [];
-  const avail = bank.filter((r) => !have.has(r.norm)).map((r) => JSON.parse(r.data));
+  const avail = bank.filter((r) => !have.has(r.norm)).map((r) => JSON.parse(r.data)).filter(fits);
   if (avail.length >= n) return json({ words: avail.slice(0, n), source: 'bank' }, 200, quotaHeaders(null));
 
   const quota = await takeAI(env, key);
   try {
     const avoid = [...new Set([...bank.map((r) => r.norm), ...have])].slice(-220);
-    const raw = await groq(env, P.wordsPrompt({ target, native, topic: tp ? tp.en : custom, hint: tp?.hint, level, n, avoid }));
+    const raw = await groq(env, P.wordsPrompt({ target, native, topic: tp ? tp.en : custom, hint: tp?.hint, only: tp?.pos, level, n, avoid }));
     const seen = new Set([...have, ...bank.map((r) => r.norm)]);
     const fresh = [];
-    for (const w of arr(raw.words, 40).map(P.cleanWord)) {
+    for (const w of arr(raw.words, 40).map((x) => P.aiWord(x, target))) {
       const k = norm(w.term);
-      if (!w.term || !w.tr || !k || seen.has(k)) continue;
+      if (!w.term || !w.tr || !k || seen.has(k) || !fits(w)) continue;
       seen.add(k);
       fresh.push({ k, w });
     }
@@ -112,7 +115,7 @@ export async function fill(request, env, key) {
   if (!term && !tr) throw new HttpError(400, 'empty');
   const quota = await takeAI(env, key);
   try {
-    const w = P.cleanWord(await groq(env, P.fillPrompt({ target, native, level: LEVELS.includes(b.level) ? b.level : 'A1', term, tr })));
+    const w = P.aiWord(await groq(env, P.fillPrompt({ target, native, level: LEVELS.includes(b.level) ? b.level : 'A1', term, tr })), target);
     return json(w, 200, quotaHeaders(quota));
   } catch (e) {
     await quota.refund();

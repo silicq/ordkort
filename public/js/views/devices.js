@@ -160,7 +160,7 @@ ${location.origin}
       else if (st.state === 'syncing') line = t('sync.on') + ' · …';
       else if (st.state === 'error') line = t('sync.error');
       else line = t('sync.on') + ' · ' + (st.at ? t('sync.last', { time: ago(st.at) }) : t('sync.never'));
-      el.replaceChildren(
+      A.put(el,
         h('h2', null, t('sync.title')),
         h('p', { class: 'sync-line' + (on ? ' on' : '') + (st.state === 'error' ? ' bad' : '') }, h('i', { class: 'sync-dot' }), line),
         on

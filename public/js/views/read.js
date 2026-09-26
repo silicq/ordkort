@@ -193,13 +193,14 @@
     const s = A.store.settings;
     const T = s.target, N = s.native;
     const term = g.term || g.w;
-    const sentence = (partText.split(/(?<=[.!?…。！？])\s+/u).find((x) => x.toLowerCase().includes(form.toLowerCase())) || partText).trim();
     const add = h('button', { class: 'btn btn-primary btn-sm', type: 'button' }, icon('plus', 16), t('dict.add'));
     if (A.store.hasTerm(term)) { add.disabled = true; add.replaceChildren(icon('check', 16), t('dict.in_cards')); }
     add.addEventListener('click', async () => {
       const deckId = await A.pickDeck();
       if (!deckId) return;
-      const n = A.store.addCards(deckId, [{ term, tr: g.tr, pos: g.pos, gram: g.note, ex: sentence }]);
+      // the example is the one sentence (or line of lyrics) with the word, never the whole text;
+      // the note describes the form in this text ("past tense"), not the card's word, so it is not the card's grammar
+      const n = A.store.addCards(deckId, [{ term, tr: g.tr, pos: g.pos, ex: A.store.sentenceWith(partText, form), src: 'read' }]);
       A.toast(n ? t('card.added') : t('card.duplicate'), n ? 'ok' : 'error');
       add.disabled = true;
       add.replaceChildren(icon('check', 16), t('dict.in_cards'));

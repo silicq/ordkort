@@ -557,4 +557,6 @@ globalThis.App.i18nData.en = {
   'about.offline_h': "Works offline",
   'about.offline_p': "The browser keeps a copy of the site, so your cards open without internet. The dictionary, grammar, reading and translator need a connection, except for entries you have already opened.",
   'csv.none_new': "All these words are already in your cards.",
+  'study.other_form': "Right word — the form needed here:",
+  'study.roman': "Correct! It is written:",
 };

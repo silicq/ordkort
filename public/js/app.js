@@ -197,7 +197,7 @@
         level: d.level || A.store.settings.level,
         n,
       });
-      const added = A.store.addCards(deckId, words);
+      const added = A.store.addCards(deckId, words.map((w) => ({ ...w, src: 'bank' })));
       A.toast(added ? A.tn('gen.added', added, { deck: A.deckTitle(d) }) : t('gen.none'), added ? 'ok' : '');
     } catch (e) {
       A.toast(A.ai.errorText(e), 'error');
