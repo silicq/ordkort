@@ -7,6 +7,7 @@ import { cacheGet, cacheSet, cacheForget } from './db.js';
 import { takeAI, aiLeft, takeSimple } from './limits.js';
 import { HttpError, json, readJSON, str, arr, int, sha256, norm, randomCode, isCode } from './util.js';
 import * as P from './prompts.js';
+import * as W from './wiktionary.js';
 
 const LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1'];
 const BUILT_IN_UI = ['en', 'ru', 'uk', 'nb', 'nn', 'ar', 'zh'];
@@ -82,7 +83,7 @@ export async function words(request, env, key) {
   const avail = bank.filter((r) => !have.has(r.norm)).map((r) => JSON.parse(r.data)).filter(fits);
   if (avail.length >= n) {
     const out = avail.slice(0, n);
-    await saveChecked(env, grp, await checkWords(target, out));
+    await saveChecked(env, grp, await checkWords(env, target, out));
     return json({ words: out, source: 'bank' }, 200, quotaHeaders(null));
   }
 
@@ -100,7 +101,7 @@ export async function words(request, env, key) {
     }
     // the new words (they go into the bank already checked) and the bank words served with them
     const served = avail.slice(0, n);
-    const checked = await checkWords(target, [...fresh.map((f) => f.w), ...served]);
+    const checked = await checkWords(env, target, [...fresh.map((f) => f.w), ...served]);
     await saveChecked(env, grp, checked.filter((w) => served.includes(w)));
     // into the bank in one statement (up to 30 rows × 3 parameters ≤ 100 D1 parameters)
     for (let i = 0; i < fresh.length; i += 30) {
@@ -115,12 +116,17 @@ export async function words(request, env, key) {
   }
 }
 
-/* Norwegian nouns and verbs are checked against the official dictionary (ordbokene.no) once: a wrong article
-   ("et ingrediens") or wrong forms ("pott" as the plural of "pott") are fixed in the bank for everyone, and
-   `chk` marks the word as checked. A Worker may make only 50 requests to other sites and the AI call may need
-   up to 8, so this check makes at most 30 (about 2 per word) and leaves the rest for the next time. */
-async function checkWords(target, words) {
-  if (!App.ordbok.supports(target)) return [];
+/* Nouns and verbs are checked against a dictionary once — the official one (ordbokene.no) for Norwegian,
+   Wiktionary for other languages: a wrong article ("et ingrediens", "die Hund") or forms that do not exist are
+   fixed, in the bank for everyone, and `chk` marks the word as checked; `g` is a gender Wiktionary confirmed
+   for a noun whose term does not show it ("книга", "l’école"). A Worker may make only 50 requests to other sites
+   and the AI call may need up to 8, so this check makes at most 30 and leaves the rest for the next time. */
+const dictCache = (env) => ({ get: (k, age) => cacheGet(env.DB, k, age), set: (k, v) => cacheSet(env.DB, k, v) });
+const checkable = (target) => App.ordbok.supports(target) || W.supports(target);
+async function checkWords(env, target, words) {
+  if (!checkable(target)) return [];
+  const official = App.ordbok.supports(target);
+  const cache = dictCache(env);
   const todo = words.filter((w) => !w.chk && (w.pos === 'noun' || w.pos === 'verb'));
   const budget = { left: 30 };
   const ctrl = new AbortController();
@@ -131,9 +137,10 @@ async function checkWords(target, words) {
     while (i < todo.length && budget.left > 5) {
       const w = todo[i++];
       try {
-        const r = await App.ordbok.verify(w, target, { signal: ctrl.signal, budget });
+        const opts = { signal: ctrl.signal, budget };
+        const r = official ? await App.ordbok.verify(w, target, opts) : await W.check(cache, target, w, opts);
         if (r && r.term !== w.term) w.gram = ''; // a gender label written for the wrong article
-        if (r) Object.assign(w, r);
+        if (r) { w.term = r.term; w.forms = r.forms; if (r.g) w.g = r.g; }
         w.chk = 1;
         done.push(w);
       } catch { /* timeout, budget or network: another time */ }
@@ -148,6 +155,18 @@ async function saveChecked(env, grp, words) {
   await env.DB.batch(words.map((w) => env.DB.prepare(q).bind(JSON.stringify(w), grp, norm(w.term))));
 }
 
+/* ---------- cards saved before the check existed: the browser sends them 10 at a time ---------- */
+export async function check(request, env, key) {
+  await takeSimple(env, 'check', key, 120, 36e5);
+  const b = await readJSON(request, 20000);
+  const { target } = pairOf(b);
+  if (!checkable(target)) throw new HttpError(400, 'bad_lang');
+  const words = arr(b.words, 10).map((w) => ({ term: str(w?.term, 80), pos: str(w?.pos, 20), forms: str(w?.forms, 200) }));
+  await checkWords(env, target, words.filter((w) => w.term));
+  // null: not checked this time (a timeout or the budget) — the browser asks again later
+  return json({ words: words.map((w) => (w.chk ? { term: w.term, forms: w.forms, g: w.g || '' } : null)) });
+}
+
 /* ---------- card autofill (personal, not cached) ---------- */
 export async function fill(request, env, key) {
   const b = await readJSON(request, 4000);
@@ -157,7 +176,7 @@ export async function fill(request, env, key) {
   const quota = await takeAI(env, key);
   try {
     const w = P.aiWord(await groq(env, P.fillPrompt({ target, native, level: LEVELS.includes(b.level) ? b.level : 'A1', term, tr })), target);
-    await checkWords(target, [w]);
+    await checkWords(env, target, [w]);
     return json(w, 200, quotaHeaders(quota));
   } catch (e) {
     await quota.refund();

@@ -6,6 +6,7 @@
   const SECTIONS = [
     ['local', 'cards'],
     ['ai', 'sparkle'],
+    ['check', 'book'],
     ['shared', 'share'],
     ['limits', 'flame'],
     ['ip', 'info'],

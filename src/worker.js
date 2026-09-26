@@ -17,6 +17,7 @@ const POST = {
   ui: api.ui,
   report: api.report,
   gloss: api.gloss,
+  check: api.check,
 };
 
 export default {

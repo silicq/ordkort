@@ -81,6 +81,7 @@
     es: { el: 'm', la: 'f' },
     it: { il: 'm', lo: 'm', la: 'f' },
     pt: { o: 'm', a: 'f' },
+    el: { ο: 'm', η: 'f', το: 'n' },
   };
   function articleGender(code, term) {
     const [art, ...rest] = String(term || '').trim().toLowerCase().split(/\s+/);

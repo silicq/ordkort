@@ -108,7 +108,7 @@
   }
 
   /* ---------- cards ---------- */
-  const ART = /^(a|an|the|to|en|ei|et|å|der|die|das|ein|eine|le|la|les|un|une|el|los|las|il|lo|gli|uno|o|os|as|um|uma|het|ett|att|at)\s+/i;
+  const ART = /^(a|an|the|to|en|ei|et|eit|å|der|die|das|ein|eine|le|la|les|un|une|el|los|las|il|lo|gli|uno|o|os|as|um|uma|het|ett|att|at|ο|η|το)\s+/i;
   const norm = (s) => (s || '').toLowerCase().normalize('NFC')
     .replace(/[.,!?;:"«»“”„()[\]¿¡]/g, '').replace(/^l['’]/, '').trim().replace(ART, '').trim();
 
@@ -162,9 +162,11 @@
      "en tallerken" feminine, put the article into the pronunciation ("/en bʉˈtɪk/") or leave out the spaces
      between forms. A noun's gender is its article's, so the label comes from the article — in the language
      the card is explained in when there is a table for it. Hand-made cards keep what the person wrote. */
+  const GENDERS = ['m', 'f', 'n', 'c'];
   function shown(c) {
     const s = state.settings;
-    const g = c.pos === 'noun' && c.src !== 'user' && A.langs.articleGender(s.target, c.term);
+    // a gender a dictionary confirmed ("книга", "l’école"), else the article's
+    const g = c.pos === 'noun' && c.src !== 'user' && ((GENDERS.includes(c.g) && c.g) || A.langs.articleGender(s.target, c.term));
     const art = ART.exec(c.term || '')?.[1];
     const same = (x) => c.pos && [s.native, A.i18n.lang()].some((l) => A.i18n.tIn(l, 'pos.' + c.pos).toLowerCase() === x.trim().toLowerCase());
     return {
@@ -200,7 +202,8 @@
         box: 0, due: 0, reps: 0, lapses: 0, last: 0, created: t + added, u: t,
       };
       if (w.src) c.src = w.src; // where the card came from: bank (AI words for a topic), user, dict, read, tr, csv, share
-      if (w.chk) c.chk = 1; // already checked against the official dictionary (Norwegian)
+      if (w.chk) c.chk = 1; // already checked against a dictionary (ordbokene.no, Wiktionary)
+      if (GENDERS.includes(w.g)) c.g = w.g; // a noun's gender the dictionary confirmed
       p.cards[c.id] = c;
       added++;
     }

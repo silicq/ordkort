@@ -152,7 +152,7 @@
   function clozeOf(c) {
     const { text: ex, tr } = A.store.example(c);
     if (!ex) return null;
-    const base = c.term.replace(/^(en|ei|et|ein|eit|å|der|die|das|eine?|le|la|les|l['’]|une?|el|los|las|il|lo|gli|uno|o|os|as|uma?|het|ett|att|to|the|an?)\s+/i, '').trim();
+    const base = c.term.replace(/^(en|ei|et|ein|eit|å|der|die|das|eine?|le|la|les|l['’]|une?|el|los|las|il|lo|gli|uno|o|os|as|uma?|het|ett|att|to|the|an?|ο|η|το)\s+/i, '').trim();
     if (!base) return null;
     const low = ex.toLowerCase(), b = base.toLowerCase();
     const isWord = (ch) => !!ch && /[\p{L}\p{M}\p{N}]/u.test(ch);

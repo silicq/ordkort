@@ -214,29 +214,52 @@
   }
   A.jobs = { generate, state: (id) => jobs.get(id) || null };
 
-  /* ---------- cards checked against the official dictionary ----------
-     Norwegian nouns and verbs the AI wrote before the server checked them (or taken from a text) are checked
-     once in the background, a card at a time: a wrong article or wrong forms are fixed. Hand-made and
-     imported cards stay exactly as the person made them. */
+  /* ---------- cards checked against a dictionary ----------
+     Nouns and verbs the AI wrote before the server checked them (or taken from a text) are checked once in the
+     background: a wrong article or forms that do not exist are fixed, a confirmed gender is kept. Norwegian goes
+     straight to ordbokene.no, a card at a time; other languages go through the server (Wiktionary), 10 at a time.
+     Hand-made and imported cards stay exactly as the person made them. */
   const checker = (() => {
     let running = false;
+    const NO_CHECK = ['zh', 'ja', 'th', 'vi', 'ms', 'id', 'tl']; // hardly any inflection (the server skips them too)
     const due = (c) => !c.chk && (c.pos === 'noun' || c.pos === 'verb') && c.src !== 'user' && c.src !== 'csv';
+    const pause = (ms) => new Promise((res) => setTimeout(res, ms));
+    // what changes on a card: a new article, other forms (then its gender label is stale), a confirmed gender
+    function fixOf(c, r) {
+      if (!r) return null;
+      const fix = {};
+      if (r.term !== c.term) Object.assign(fix, { term: r.term, gram: '' });
+      if (r.forms !== c.forms) fix.forms = r.forms;
+      if (r.g && r.g !== c.g) fix.g = r.g;
+      return Object.keys(fix).length ? fix : null;
+    }
     async function run() {
       const lang = A.store.settings?.target;
-      if (running || !A.store.ready || !A.ordbok.supports(lang) || navigator.onLine === false) return;
+      if (running || !A.store.ready || !lang || NO_CHECK.includes(lang) || navigator.onLine === false) return;
       running = true;
       let results = [], fixed = 0;
       const flush = () => { fixed += A.store.applyChecks(results); results = []; };
+      const moved = () => document.hidden || A.store.settings.target !== lang;
       try {
-        for (const c of A.store.cards().filter(due)) {
-          if (document.hidden || A.store.settings.target !== lang) break;
-          let r;
-          try { r = await A.ordbok.verify(c, lang); } catch { break; } // offline or the dictionary is down: next time
-          const fix = r && (r.term !== c.term || r.forms !== c.forms)
-            ? { term: r.term, forms: r.forms, ...(r.term !== c.term ? { gram: '' } : {}) } : null;
-          results.push({ id: c.id, fix });
-          if (results.length >= 10) flush();
-          await new Promise((res) => setTimeout(res, 300)); // gently: ordbokene.no is a public service
+        const todo = A.store.cards().filter(due);
+        if (A.ordbok.supports(lang)) {
+          for (const c of todo) {
+            if (moved()) break;
+            let r;
+            try { r = await A.ordbok.verify(c, lang); } catch { break; } // offline or the dictionary is down: next time
+            results.push({ id: c.id, fix: fixOf(c, r) });
+            if (results.length >= 10) flush();
+            await pause(300); // gently: ordbokene.no is a public service
+          }
+        } else {
+          for (let i = 0; i < todo.length && !moved(); i += 10) {
+            const part = todo.slice(i, i + 10);
+            let res;
+            try { res = await A.ai.check(part); } catch { break; } // offline, limits: next time
+            part.forEach((c, j) => { if (res[j]) results.push({ id: c.id, fix: fixOf(c, res[j]) }); }); // null: not checked yet
+            flush();
+            await pause(1000);
+          }
         }
       } finally {
         flush();

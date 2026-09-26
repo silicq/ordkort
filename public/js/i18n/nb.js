@@ -563,4 +563,7 @@ globalThis.App.i18nData.nb = {
   'gender.f': "hunkjønn",
   'gender.n': "intetkjønn",
   'gender.c': "felleskjønn",
+  'about.check_h': "Kontroll mot ordbøker",
+  'about.check_p': "Substantiver og verb på kort som KI har skrevet, kontrolleres én gang mot en ordbok: den offisielle ordbokene.no for norsk (nettleseren din spør den direkte) og Wiktionary for andre språk (serveren spør). Feil artikkel eller en form som ikke finnes, rettes. Bare selve ordet sendes, aldri noe om deg, og kort du har laget selv, endres aldri.",
+  'set.src_wikt': "kontroll av artikler, kjønn og bøyningsformer på andre språk",
 };

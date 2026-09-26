@@ -101,6 +101,13 @@
     return cached(`gloss:${s.target}:${s.native}:${text}`, false, async () => (await api('gloss', { ...pair(), text }, { signal })).data);
   }
 
+  /* cards saved before the dictionary check existed (not Norwegian: that one the browser does itself),
+     up to 10 at a time → [{ term, forms, g } | null (not checked this time)] */
+  async function check(words) {
+    const { data } = await api('check', { ...pair(), words: words.map((w) => ({ term: w.term, pos: w.pos, forms: w.forms })) });
+    return Array.isArray(data?.words) ? data.words : [];
+  }
+
   async function shareDeck(deck) {
     const { data } = await api('share', { deck });
     return data.id;
@@ -121,5 +128,5 @@
     return A.t('err.' + (e?.kind || 'server'));
   };
 
-  A.ai = { api, words, fill, lookup, chapter, ask, translate, uiPart, limits, report, gloss, shareDeck, sharedDeck, errorText, AIError, quota: null };
+  A.ai = { api, words, fill, lookup, chapter, ask, translate, uiPart, limits, report, gloss, check, shareDeck, sharedDeck, errorText, AIError, quota: null };
 })();

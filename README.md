@@ -18,7 +18,10 @@ Ordkort is a lightweight site for learning almost any language from almost any o
   fixed expressions, compounds. For Norwegian, the official Bokmål/Nynorsk dictionary data is shown
   alongside and used as ground truth for the AI entry, and every AI-written noun and verb card is checked
   against it once: a wrong article or wrong forms are fixed (in the shared word bank for everyone, and in
-  cards saved earlier by a background check in the browser). Other languages rely on the AI alone.
+  cards saved earlier by a background check in the browser). For other languages the server checks nouns
+  and verbs against [Wiktionary](https://en.wiktionary.org) the same way: the article must fit the noun's
+  gender ("die Hund" → "der Hund"), a gender is confirmed where the word does not show it ("книга"), and
+  forms Wiktionary has never heard of are dropped. Translations and examples still come from the AI alone.
 - **Grammar book**: 15 chapters by part of speech (nouns, adjectives, verbs, word order…) with tables,
   examples, typical mistakes and exercises, plus free-form grammar questions.
 - **Translator with explanations**: every word colour-coded by part of speech, with its form and the rule
@@ -49,6 +52,7 @@ src/               Cloudflare Worker — runs only for /api/*
   api.js           AI requests: shared cache → word bank → limits → Groq
   prompts.js       all prompts and validation of AI output
   facts.js         verified Norwegian Bokmål grammar facts used to ground the AI
+  wiktionary.js    articles, genders and forms from Wiktionary, to check cards in other languages
   groq.js          Groq client with model fallback
   limits.js        burst, hourly, daily and site-wide limits
   sync.js          device sync and one-time codes (the server only ever sees ciphertext)
@@ -145,7 +149,8 @@ npm run deploy
 - Cross-site requests are rejected (`Origin` check); the API accepts JSON only.
 - Bursts are cut in memory, generations are counted in D1, plus a site-wide daily budget.
 - The CSP forbids third-party scripts and framing; fonts are self-hosted. The only third-party
-  request is the open ordbokene.no API for Norwegian.
+  request from the browser is the open ordbokene.no API for Norwegian. The server looks words up in
+  Wiktionary (only the word, with a User-Agent as Wikimedia asks) and caches the answers for 30 days.
 - Worker request logs are off. Limit counters, link codes and abandoned sync copies are deleted
   by a daily scheduled task.
 - Cloudflare’s network absorbs volumetric attacks. On a custom domain you can additionally enable

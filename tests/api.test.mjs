@@ -102,6 +102,16 @@ test('sync: versioned writes, token check, conflicts, delete', async () => {
   assert.deepEqual(await (await call('sync/' + id, { method: 'DELETE', headers: { 'X-Sync-Token': token } })).json(), { deleted: true });
 });
 
+test('dictionary check: only languages that inflect, at most 10 words, no AI limit used', async () => {
+  let r = await call('check', { method: 'POST', body: { target: 'zh', native: 'en', words: [{ term: '书', pos: 'noun' }] } });
+  assert.equal(r.status, 400);
+  r = await call('check', { method: 'POST', body: { target: 'de', native: 'en', words: [] } });
+  assert.deepEqual(await r.json(), { words: [] });
+  r = await call('check', { method: 'POST', body: { target: 'de', native: 'en', words: [{ term: 'guten Tag', pos: 'phrase' }] } });
+  assert.deepEqual(await r.json(), { words: [null] }, 'a phrase is not checked');
+  assert.equal(r.headers.get('X-AI-Left'), null);
+});
+
 test('limits endpoint reports the daily allowance', async () => {
   const r = await call('limits');
   const q = await r.json();

@@ -72,7 +72,7 @@ export function safeEqual(a, b) {
 }
 
 /* The same normalisation as in the browser (store.js): for finding duplicate words */
-const ART = /^(a|an|the|to|en|ei|et|ein|eit|å|der|die|das|ein|eine|le|la|les|un|une|el|los|las|il|lo|gli|uno|o|os|as|um|uma|het|ett|att|at)\s+/i;
+const ART = /^(a|an|the|to|en|ei|et|ein|eit|å|der|die|das|ein|eine|le|la|les|un|une|el|los|las|il|lo|gli|uno|o|os|as|um|uma|het|ett|att|at|ο|η|το)\s+/i;
 export const norm = (s) => String(s || '').toLowerCase().normalize('NFC')
   .replace(/[.,!?;:"«»“”„()[\]¿¡]/g, '').replace(/^l['’]/, '').trim().replace(ART, '').trim();
 

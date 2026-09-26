@@ -28,6 +28,7 @@ const ARTICLES = {
   es: '"el" or "la" (e.g. "el libro", "la casa")',
   it: '"il", "lo", "la" or "l’" (e.g. "il libro", "la casa")',
   pt: '"o" or "a" (e.g. "o livro", "a casa")',
+  el: '"ο", "η" or "το" (e.g. "ο σκύλος", "η γάτα", "το σπίτι")',
 };
 const nounRule = (code, T) => (ARTICLES[code]
   ? `Nouns: ALWAYS begin with the ${T} article ${ARTICLES[code]} — never a bare noun.`
