@@ -92,9 +92,16 @@ test('the pages about the site are up to date, linked to each other and readable
     assert.ok(html.includes('href="/#/"'), 'a way into the app');
     assert.doesNotMatch(html, /<script(?! type="application\/ld\+json")/, 'no scripts: plain HTML');
     const title = html.match(/<title>([^<]+)<\/title>/)[1], desc = html.match(/name="description" content="([^"]+)"/)[1];
-    assert.ok(title.length <= 90 && desc.length >= 70 && desc.length <= 200, `${code}: title ${title.length}, description ${desc.length}`);
+    // search engines cut or ignore longer titles (Bing: over 70 characters)
+    assert.ok(title.length <= 70 && desc.length >= 70 && desc.length <= 200, `${code}: title ${title.length}, description ${desc.length}`);
   }
-  assert.match(read('public/index.html'), /<noscript>[\s\S]*href="\/ru\/"[\s\S]*<\/noscript>/, 'the app links to them for crawlers without JavaScript');
+  // the app's page has a real <h1> and links to these pages in its source, for crawlers without JavaScript
+  const app = read('public/index.html');
+  assert.match(app, /<div id="app">\s*<!--[^>]*-->\s*<main class="static-intro"[^>]*>\s*<h1>[^<]+<\/h1>[\s\S]*href="\/ru\/"[\s\S]*<\/main>\s*<\/div>/);
+  assert.ok(app.indexOf('js/boot.js') < app.indexOf('<body>'), 'the page is marked before the description could be drawn');
+  assert.match(read('public/js/boot.js'), /classList\.add\('js'\)/);
+  assert.match(read('public/css/style.css'), /\.js \.static-intro \{ display: none; \}/);
+  assert.ok(app.match(/<title>([^<]+)<\/title>/)[1].length <= 70);
   assert.match(read('public/robots.txt'), /Sitemap: https:\/\/ordkort\.com\/sitemap\.xml/);
 });
 

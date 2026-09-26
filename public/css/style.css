@@ -175,6 +175,7 @@
 *::after { box-sizing: border-box; }
 
 html { -webkit-text-size-adjust: 100%; scroll-padding-top: 90px; }
+.js .static-intro { display: none; } /* the description for search engines in index.html: the app replaces it */
 
 body {
   margin: 0;

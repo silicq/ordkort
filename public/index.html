@@ -33,9 +33,9 @@
   <script src="js/boot.js"></script>
 </head>
 <body>
-  <div id="app"></div>
-  <noscript>
-    <main style="max-width:720px;margin:0 auto;padding:24px;font:17px/1.6 system-ui,sans-serif">
+  <div id="app">
+    <!-- For search engines and browsers without JavaScript; the app replaces it, and it is hidden as soon as JavaScript runs -->
+    <main class="static-intro" style="max-width:720px;margin:0 auto;padding:24px;font:17px/1.6 system-ui,sans-serif">
       <h1>Ordkort — learn any language with flashcards</h1>
       <p>Free flashcards with spaced repetition for 60 languages: ready word lists by topic and level, a learner’s dictionary with inflection tables, a grammar book, a translator that explains every word and a reading mode. No ads, no sign-up; your cards stay in your browser. The app needs JavaScript.</p>
       <p>About Ordkort:
@@ -43,7 +43,7 @@
         <a href="/nb/" lang="nb">Norsk</a> · <a href="/ar/" lang="ar">العربية</a> · <a href="/zh/" lang="zh-Hans">中文</a> ·
         <a href="https://github.com/silicq/ordkort">Source code</a></p>
     </main>
-  </noscript>
+  </div>
 
   <script src="js/build.js"></script>
   <script src="js/config.js"></script>
