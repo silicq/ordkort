@@ -69,6 +69,12 @@
     return data;
   }
 
+  /* what Wiktionary says about a word, for languages without an official dictionary here → { found, page, section, articles } */
+  function wikt(q, { signal } = {}) {
+    const s = S();
+    return cached(`wikt:${s.target}:${q.toLowerCase()}`, false, async () => (await api('wikt', { ...pair(), q }, { signal })).data);
+  }
+
   function chapter(id, { force, signal } = {}) {
     const s = S();
     return cached(`gram:${s.target}:${s.native}:${id}`, force, async () => (await api('chapter', { ...pair(), id, fresh: !!force }, { signal })).data);
@@ -128,5 +134,5 @@
     return A.t('err.' + (e?.kind || 'server'));
   };
 
-  A.ai = { api, words, fill, lookup, chapter, ask, translate, uiPart, limits, report, gloss, check, shareDeck, sharedDeck, errorText, AIError, quota: null };
+  A.ai = { api, words, fill, lookup, wikt, chapter, ask, translate, uiPart, limits, report, gloss, check, shareDeck, sharedDeck, errorText, AIError, quota: null };
 })();

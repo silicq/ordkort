@@ -110,6 +110,56 @@ test('answer() updates reps, today stats and the card', () => {
   assert.equal(S.today().ok, 1);
 });
 
+test('each language has its own limit of new words a day', () => {
+  const S = device();
+  S.set({ newPerDay: 2 });
+  const nb = S.addDeck({ title: 'N', emoji: '🗂️', group: 'custom' });
+  S.addCards(nb.id, [{ term: 'et hus', tr: 'house' }, { term: 'en bil', tr: 'car' }, { term: 'ei jente', tr: 'girl' }]);
+  for (const id of S.buildSession()) S.answer(id, true);
+  assert.equal(S.newToday(), 2);
+  assert.equal(S.overview().newLeft, 0);
+  assert.equal(S.buildSession().length, 0, 'Norwegian is done for today');
+
+  S.set({ target: 'es' });
+  const es = S.addDeck({ title: 'E', emoji: '🗂️', group: 'custom' });
+  S.addCards(es.id, [{ term: 'la casa', tr: 'house' }, { term: 'el perro', tr: 'dog' }]);
+  assert.equal(S.overview().newLeft, 2, 'Spanish still has its own new words');
+  assert.equal(S.buildSession().length, 2);
+  S.answer(S.buildSession()[0], true);
+  assert.equal(S.newToday(), 1);
+  assert.equal(S.today().new, 3, 'the day still counts all new words together');
+
+  S.set({ target: 'nb' });
+  assert.equal(S.newToday(), 2);
+});
+
+test('a day counted before the limit was per language keeps its total for the language in use', () => {
+  const S = device();
+  const day = S.dayKey();
+  S.merge({ pairs: {}, days: { [day]: { rev: 5, ok: 5, new: 5 } } });
+  assert.equal(S.newToday(), 5);
+  const d = S.addDeck({ title: 'N', emoji: '🗂️', group: 'custom' });
+  S.addCards(d.id, [{ term: 'et hus', tr: 'house' }]);
+  S.answer(S.cards()[0].id, true);
+  assert.equal(S.newToday(), 6);
+  assert.equal(S.today().new, 6);
+});
+
+test('the list of languages shows what is due in each', () => {
+  const S = device();
+  const d = S.addDeck({ title: 'N', emoji: '🗂️', group: 'custom' });
+  S.addCards(d.id, [{ term: 'et hus', tr: 'house' }, { term: 'en bil', tr: 'car' }]);
+  const [a] = S.cards();
+  S.updateCard(a.id, { box: 2, s: 1, d: 5, due: Date.now() - 1000 });
+  S.set({ target: 'es' });
+  const e = S.addDeck({ title: 'E', emoji: '🗂️', group: 'custom' });
+  S.addCards(e.id, [{ term: 'la casa', tr: 'house' }]);
+  const by = Object.fromEntries(S.pairs().map((p) => [p.target, p]));
+  assert.equal(by.nb.count, 2);
+  assert.equal(by.nb.due, 1);
+  assert.equal(by.es.due, 0, 'a new word is not due for review');
+});
+
 /* ---------- merge between devices ---------- */
 
 const clone = (x) => JSON.parse(JSON.stringify(x));
@@ -176,6 +226,24 @@ test('merge: daily stats take the maximum, never double', () => {
   B.merge(snapA);
   B.merge(snapA);
   assert.deepEqual(clone(B.days[day]), { rev: 5, ok: 4, new: 1 });
+});
+
+test('merge: new words per language take the maximum too, and survive a device without them', () => {
+  const A = device(), B = device();
+  const day = A.dayKey();
+  const snapA = clone(A.snapshot());
+  snapA.days = { [day]: { rev: 4, ok: 4, new: 4, nl: { 'nb:en': 3, 'es:en': 1 } } };
+  const snapB = clone(B.snapshot());
+  snapB.days = { [day]: { rev: 2, ok: 2, new: 2, nl: { 'es:en': 2 } } };
+  B.merge(snapB);
+  B.merge(snapA);
+  assert.deepEqual(clone(B.days[day].nl), { 'nb:en': 3, 'es:en': 2 });
+
+  const old = clone(A.snapshot());
+  old.days = { [day]: { rev: 9, ok: 9, new: 4 } }; // an older version of the site did not count per language
+  const r = B.merge(old);
+  assert.deepEqual(clone(B.days[day].nl), { 'nb:en': 3, 'es:en': 2 });
+  assert.ok(r.ahead, 'the other device still has to get them');
 });
 
 test('merge rejects garbage', () => {

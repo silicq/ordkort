@@ -74,20 +74,230 @@ export function parsePage(html, lang, word, pos) {
   return { genders, forms };
 }
 
-/* A word's entry for one language and part of speech — from the shared cache, or one request to Wikimedia.
-   cache: { get(key, maxAge), set(key, value) }; budget: { left } requests allowed (a Worker may make only 50). */
-export async function entry(cache, lang, word, pos, { signal, budget } = {}) {
-  const key = `wk2:${lang}:${pos}:${plain(word, lang)}`;
-  const hit = await cache.get(key, MONTH);
-  if (hit) return hit.none ? null : { genders: new Set(hit.g), forms: new Set(hit.f) };
+/* The HTML of a page, or '' when there is no such page. budget: { left } requests allowed (a Worker may make only 50). */
+async function page(word, { signal, budget } = {}) {
   if (budget && budget.left-- <= 0) throw new Error('wiktionary budget');
   const url = `${API}?action=parse&format=json&formatversion=2&prop=text&redirects=1&page=${encodeURIComponent(word)}`;
   const r = await fetch(url, { signal, headers: { 'User-Agent': UA, 'Api-User-Agent': UA } });
   if (!r.ok) throw new Error('wiktionary ' + r.status);
   const data = await r.json();
-  const e = data.parse?.text ? parsePage(data.parse.text, lang, word, pos) : null; // no such page at all
+  return data.parse?.text || '';
+}
+
+/* A word's entry for one language and part of speech — from the shared cache, or one request to Wikimedia.
+   cache: { get(key, maxAge), set(key, value) }. */
+export async function entry(cache, lang, word, pos, opts) {
+  const key = `wk2:${lang}:${pos}:${plain(word, lang)}`;
+  const hit = await cache.get(key, MONTH);
+  if (hit) return hit.none ? null : { genders: new Set(hit.g), forms: new Set(hit.f) };
+  const html = await page(word, opts);
+  const e = html ? parsePage(html, lang, word, pos) : null;
   await cache.set(key, e ? { g: [...e.genders], f: [...e.forms] } : { none: 1 });
   return e;
+}
+
+/* ---------- the entry shown in the dictionary next to the AI one ---------- */
+
+/* For every language without an official dictionary here the dictionary page shows what Wiktionary says:
+   each part of speech with its gender and key forms from the headword line, the pronunciation, the senses
+   with their short usage examples (not the long quotations) and the origin. Everything is in English, the
+   language of en.wiktionary.org. The same data grounds the AI entry, as ordbokene.no does for Norwegian. */
+export const hasEntries = (lang) => App.langs.has(lang) && !App.ordbok.supports(lang);
+
+const ENTITIES = { nbsp: ' ', amp: '&', lt: '<', gt: '>', quot: '"', apos: "'" };
+const decode = (s) => s.replace(/&(#x[0-9a-f]+|#\d+|[a-z]+);/gi, (m, e) => (e[0] === '#'
+  ? String.fromCodePoint(e[1] === 'x' || e[1] === 'X' ? parseInt(e.slice(2), 16) : +e.slice(1))
+  : ENTITIES[e.toLowerCase()] ?? m));
+// readable text of a piece of HTML: no readings over characters, footnote marks or Mandarin/Cantonese marks
+export const clean = (html) => decode(String(html || '')
+  .replace(/<(rp|rt|sup|style)\b[\s\S]*?<\/\1>/g, '')
+  .replace(/<span style="border-bottom[^"]*"[^>]*title="[^"]*"><i>[^<]*<\/i><\/span>/g, '')
+  .replace(/<br\s*\/?>/g, ' ')
+  .replace(/<[^>]+>/g, ''))
+  .replace(/\s+/g, ' ').replace(/\s+([,;:.!?)\]])/g, '$1').replace(/([([])\s+/g, '$1').replace(/;(\s*;)+/g, ';').trim();
+
+// the element that opens at `at` with <tag …>, up to its own closing tag
+function block(html, at, tag) {
+  const re = new RegExp(`<(/?)${tag}\\b[^>]*>`, 'g');
+  re.lastIndex = at;
+  let depth = 0, m;
+  while ((m = re.exec(html))) {
+    depth += m[1] ? -1 : 1;
+    if (!depth) return html.slice(at, m.index + m[0].length);
+  }
+  return html.slice(at);
+}
+// the inner HTML of the direct <li> children of a list
+function items(list) {
+  const inner = list.replace(/^<[ou]l\b[^>]*>/, '');
+  const out = [];
+  const re = /<li\b[^>]*>/g;
+  let m;
+  while ((m = re.exec(inner))) {
+    const li = block(inner, m.index, 'li');
+    out.push(li.slice(m[0].length).replace(/<\/li>$/, ''));
+    re.lastIndex = m.index + li.length;
+  }
+  return out;
+}
+
+// the Chinese entry covers every variety; a sense labelled only for another one than Mandarin is left out
+const OTHER_CHINESE = /^\((?![^)]*Mandarin)[^)]*\b(Cantonese|Hokkien|Min|Hakka|Wu|Teochew|Shanghainese|Xiang|Gan|Jin)\b[^)]*\)/;
+
+// one sense: its gloss, its short usage examples ({ text, tr }) and its sub-senses; `keep` picks the senses to show
+function sense(li, keep, depth = 0) {
+  const nested = li.search(/<ol\b/);
+  const own = nested >= 0 ? li.slice(0, nested) : li;
+  const cut = own.search(/<(ul|dl|ol|div)\b/);
+  const ex = [];
+  for (const m of own.matchAll(/<span class="h-usage-example">/g)) {
+    const u = block(own, m.index, 'span');
+    const e = /<(i|span) class="[^"]*\be-example\b[^"]*"[^>]*>/.exec(u);
+    const t = /<span class="e-translation">/.exec(u);
+    const text = e ? clean(block(u, e.index, e[1])) : '';
+    if (text) ex.push({ text, tr: t ? clean(block(u, t.index, 'span')) : '' });
+    if (ex.length === 2) break;
+  }
+  return {
+    expl: [clean(cut >= 0 ? own.slice(0, cut) : own)].filter(Boolean),
+    ex,
+    sub: nested >= 0 && !depth ? items(block(li, nested, 'ol')).map((x) => sense(x, keep, 1)).filter(keep).slice(0, 4) : [],
+  };
+}
+
+const lastBefore = (list, at) => list.filter((x) => x.at < at).pop();
+
+// the headword line after the word: its gender, tags such as "strong" or "transitive", and key forms by label
+function headwordLine(rest, code) {
+  const g = /<span class="gender">([\s\S]*?)<\/span>/.exec(rest);
+  const firstForm = rest.search(/<b /);
+  const gender = g && (firstForm < 0 || g.index < firstForm)
+    ? [...g[1].matchAll(/<abbr title="([^"]+)">/g)].map((a) => a[1].replace(/ gender$/, '')) : [];
+  const rows = [];
+  let row = null;
+  const re = new RegExp(`<i>([\\s\\S]*?)</i>|<b class="[^"]*" lang="${code}"[^>]*>([\\s\\S]*?)</b>`, 'g');
+  for (const m of rest.matchAll(re)) {
+    if (m[1] !== undefined) {
+      const label = clean(m[1]);
+      if (label && label !== 'or') rows.push((row = { label, forms: [] }));
+    } else {
+      const f = clean(m[2]);
+      if (!f) continue;
+      if (!row) rows.push((row = { label: '', forms: [] }));
+      if (row.forms.length < 3) row.forms.push(f);
+    }
+  }
+  const tr = /<span [^>]*class="headword-tr[^"]*"[^>]*>([\s\S]*?)<\/span>/.exec(rest);
+  return {
+    gender,
+    tags: rows.filter((r) => !r.forms.length).map((r) => r.label),
+    forms: rows.filter((r) => r.forms.length).slice(0, 6).map((r) => [r.label, r.forms.join(' / ')]),
+    translit: tr ? clean(tr[1]) : '',
+  };
+}
+
+// pronunciation near the headword: pinyin for Chinese, the kana over the characters for Japanese, else IPA
+function pronOf(html, from, to, code, strong) {
+  const part = html.slice(from, to);
+  if (code === 'zh') {
+    const p = /<span class="[^"]*\bpinyin-t?s?-form-of\b[^"]*"[^>]*>/.exec(part);
+    if (!p) return '';
+    const spans = [...block(part, p.index, 'span').matchAll(/<span class="Latn" lang="cmn">([\s\S]*?)<\/span>/g)];
+    return spans.filter((s) => !/<sup/.test(s[1])).map((s) => clean(s[1])).join(', ');
+  }
+  if (code === 'ja' && /<rt>/.test(strong)) return clean(strong.replace(/<ruby>[\s\S]*?<rt>([\s\S]*?)<\/rt>[\s\S]*?<\/ruby>/g, '$1'));
+  const ipa = /<span class="IPA[^"]*">([\s\S]*?)<\/span>/.exec(part);
+  return ipa ? clean(ipa[1]) : '';
+}
+
+/* The entry of `lang` on a page → { section, articles } (none when the page has nothing in this language), or
+   { see } when a simplified Chinese character sends to its traditional page for the definitions. */
+export function article(html, lang) {
+  const code = WIKT_LANG[lang] || lang;
+  const h2s = [...html.matchAll(/<h2 id="([^"]+)"/g)].map((m) => ({ at: m.index, id: m[1] }));
+  const heads = [...html.matchAll(/<h[3-6] id="([^"]+)"/g)].map((m) => ({ at: m.index, id: m[1] }));
+  const line = new RegExp(`<span class="headword-line"><strong class="[^"]*headword[^"]*" lang="${code}"[^>]*>([\\s\\S]*?)</strong>([\\s\\S]*?)</p>`, 'g');
+  const articles = [];
+  let section = ''; // the language's heading on the page, for a link straight to it
+  for (const m of html.matchAll(line)) {
+    const sec = lastBefore(h2s, m.index);
+    const secStart = sec ? sec.at : 0;
+    const pos = lastBefore(heads, m.index);
+    if (!pos || pos.at < secStart) continue;
+    const kind = pos.id.replace(/_\d+$/, '').replace(/_/g, ' ').toLowerCase().replace(/^definitions$/, ''); // a Chinese character
+    const hw = headwordLine(m[2], code);
+
+    // the senses: the list right after the headword line
+    const after = m.index + m[0].length;
+    const ol = html.slice(after, after + 400).search(/<ol\b/);
+    const keep = (s) => s.expl.length > 0 && !(code === 'zh' && OTHER_CHINESE.test(s.expl[0]));
+    const senses = ol >= 0 ? items(block(html, after + ol, 'ol')).map((li) => sense(li, keep)).filter(keep).slice(0, 8) : [];
+    if (!senses.length) continue;
+
+    const byKind = (re) => heads.filter((x) => x.at >= secStart && re.test(x.id));
+    const pr = lastBefore(byKind(/^Pronunciation/), m.index);
+    const ety = lastBefore(byKind(/^Etymology/), m.index);
+    let etym = '';
+    if (ety) {
+      const p = /<p>([\s\S]*?)<\/p>/.exec(html.slice(ety.at, pos.at));
+      etym = p ? clean(p[1]).replace(/^See the etymology of the (corresponding )?(lemma|main) (form|entry)\.?$/i, '') : '';
+      if (etym.length > 300) etym = etym.slice(0, 300).replace(/\s+\S*$/, '') + ' …';
+    }
+    section ||= sec?.id || '';
+    articles.push({
+      lemma: clean(m[1]),
+      cls: [kind, ...hw.gender, ...hw.tags].filter(Boolean).join(', '),
+      pron: [pronOf(html, pr ? pr.at : secStart, m.index, code, m[1]), code === 'ja' ? hw.translit : ''].filter(Boolean).join(' · ') || hw.translit,
+      table: hw.forms.length ? { headers: null, rows: hw.forms } : null,
+      senses,
+      etym,
+    });
+    if (articles.length === 4) break;
+  }
+  if (!articles.length && code === 'zh') {
+    const see = /<table class="wikitable zh-see[\s\S]*?<span class="Hant" lang="zh">([\s\S]*?)<\/span>/.exec(html);
+    if (see) return { see: clean(see[1]), articles };
+  }
+  return { section, articles };
+}
+
+/* What Wiktionary has on a word in `lang` → { page, section, articles } or null — from the shared cache, or a request or
+   two: the word as typed, then with the first letter's case changed ("hund" → "Hund"), and for a simplified
+   Chinese character the traditional page it points to. */
+export async function lookup(cache, lang, word, opts = {}) {
+  const key = `wk3:${lang}:${plain(word, lang)}`;
+  const hit = await cache.get(key, MONTH);
+  if (hit) return hit.none ? null : hit;
+  const first = word[0], flipped = first === first.toLowerCase() ? first.toUpperCase() : first.toLowerCase();
+  const tries = [word, flipped === first ? '' : flipped + word.slice(1)].filter(Boolean);
+  let out = null;
+  for (let i = 0; i < tries.length && !out; i++) {
+    const html = await page(tries[i], opts);
+    const e = html ? article(html, lang) : null;
+    if (e?.see) {
+      const trad = await page(e.see, opts);
+      const t = trad ? article(trad, lang) : null;
+      if (t?.articles.length) out = { page: e.see, section: t.section, articles: t.articles };
+    } else if (e?.articles.length) out = { page: tries[i], section: e.section, articles: e.articles };
+  }
+  await cache.set(key, out || { none: 1 });
+  return out;
+}
+
+/* A short summary — ground for the AI entry, so that the gender, forms and meanings are Wiktionary's */
+export function summary(r) {
+  if (!r?.articles?.length) return '';
+  const out = r.articles.slice(0, 3).map((a) => {
+    const lines = [`• ${a.lemma}${a.cls ? ` (${a.cls})` : ''}${a.pron ? ' ' + a.pron : ''}`];
+    if (a.table) lines.push('  Forms: ' + a.table.rows.map(([l, f]) => (l ? `${l}: ${f}` : f)).join('; '));
+    a.senses.slice(0, 6).forEach((s, i) => {
+      const ex = s.ex.map((x) => `"${x.text}"${x.tr ? ` (${x.tr})` : ''}`).join(', ');
+      const sub = s.sub.map((x) => x.expl.join('; ')).join('; ');
+      lines.push(`  ${i + 1}) ${s.expl.join('; ')}${sub ? ` (${sub})` : ''}${ex ? ' — e.g. ' + ex : ''}`);
+    });
+    return lines.join('\n');
+  });
+  return `Wiktionary (en.wiktionary.org, glosses in English):\n${out.join('\n')}`.slice(0, 2600);
 }
 
 /* ---------- checking a card ---------- */

@@ -9,7 +9,9 @@ Ordkort is a lightweight site for learning almost any language from almost any o
   Five more study modes: multiple choice, typing (with an on-screen row of special letters;
   one typo or pinyin/romaji for a non-Latin script still count, the right word in another form
   is half-right: not a mistake, but the card comes back), listening, fill-the-gap in the example
-  sentence, or a mix.
+  sentence, or a mix. Pinyin, romaji and other romanizations stay off the front of a card (one tap shows
+  them), so the characters themselves are read. Each language has its own limit of new words a day, and
+  the language switcher shows how many reviews wait in each.
 - **Topics**: 29 built-in topics in 6 groups (first steps, people, everyday life, the world around,
   work & society, grammar sets), any custom topic, or an empty deck for your own words.
   AI picks real, frequent words for levels A1–C1; “+20 words” keeps extending a deck without repeats.
@@ -21,7 +23,10 @@ Ordkort is a lightweight site for learning almost any language from almost any o
   cards saved earlier by a background check in the browser). For other languages the server checks nouns
   and verbs against [Wiktionary](https://en.wiktionary.org) the same way: the article must fit the noun's
   gender ("die Hund" → "der Hund"), a gender is confirmed where the word does not show it ("книга"), and
-  forms Wiktionary has never heard of are dropped. Translations and examples still come from the AI alone.
+  forms Wiktionary has never heard of are dropped. The dictionary page for these languages shows the
+  Wiktionary entry next to the AI one (gender, key forms, pronunciation, senses with short examples, origin;
+  explanations in English), uses it as ground truth for the AI entry, and links to the main dictionaries of
+  the language (RAE, Duden, Larousse, Treccani, Jisho…). Translations still come from the AI alone.
 - **Grammar book**: 15 chapters by part of speech (nouns, adjectives, verbs, word order…) with tables,
   examples, typical mistakes and exercises, plus free-form grammar questions.
 - **Translator with explanations**: every word colour-coded by part of speech, with its form and the rule
@@ -52,7 +57,7 @@ src/               Cloudflare Worker — runs only for /api/*
   api.js           AI requests: shared cache → word bank → limits → Groq
   prompts.js       all prompts and validation of AI output
   facts.js         verified Norwegian Bokmål grammar facts used to ground the AI
-  wiktionary.js    articles, genders and forms from Wiktionary, to check cards in other languages
+  wiktionary.js    Wiktionary for other languages: checks cards, and the entry shown in the dictionary
   groq.js          Groq client with model fallback
   limits.js        burst, hourly, daily and site-wide limits
   sync.js          device sync and one-time codes (the server only ever sees ciphertext)

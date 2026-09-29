@@ -81,7 +81,7 @@
       clearTimeout(autoNext);
       window.speechSynthesis?.cancel();
     },
-    _test: { compare, clozeOf },
+    _test: { compare, clozeOf, romanOf },
   };
 
   const cur = () => A.store.card(S.queue[S.i]);
@@ -213,6 +213,8 @@
     const sizeOf = (x) => (x.length > 30 ? ' xl' : x.length > 14 ? ' l' : '');
     const ex = A.store.example(c);
     const { gram, pron, forms } = A.store.shown(c);
+    // pinyin or romaji next to 你好 would be read instead of the characters: on the front only on request
+    const peek = !!romanOf(c);
 
     const tag = h('div', { class: 'flash-tag' },
       h('span', { class: 'badge ' + (isNew ? 'new' : 'rev') }, t(isNew ? 'study.new' : 'study.review')),
@@ -232,7 +234,8 @@
         S.cloze.tr ? A.lt(S.cloze.tr, N, 'flash-small', 'p') : null,
         h('div', { class: 'flash-pron' }, `${c.tr}`)];
     } else if (fwd) {
-      frontBody = [A.lt(c.term, T, 'flash-word serif' + sizeOf(c.term), 'div'), pron ? h('div', { class: 'flash-pron' }, pron) : null, A.speakBtn(c.term, T, 'lg')];
+      frontBody = [A.lt(c.term, T, 'flash-word serif' + sizeOf(c.term), 'div'),
+        pron ? (peek ? peekBtn(pron) : h('div', { class: 'flash-pron' }, pron)) : null, A.speakBtn(c.term, T, 'lg')];
     } else {
       frontBody = [A.lt(c.tr, N, 'flash-word serif' + sizeOf(c.tr), 'div'), c.pos ? h('div', { class: 'flash-pron' }, t('pos.' + c.pos)) : null];
     }
@@ -247,8 +250,7 @@
       h('div', { class: 'face-body' },
         A.lt(fwd ? c.term : c.tr, fwd ? T : N, 'flash-small', 'div'),
         A.lt(fwd ? c.tr : c.term, fwd ? N : T, 'flash-word serif' + sizeOf(fwd ? c.tr : c.term), 'div'),
-        S.mode === 'flip' && !fwd ? h('div', { class: 'row gap center' }, pron ? h('span', { class: 'flash-pron' }, pron) : null, A.speakBtn(c.term, T)) : null,
-        S.mode !== 'flip' ? h('div', { class: 'row gap center' }, pron ? h('span', { class: 'flash-pron' }, pron) : null, A.speakBtn(c.term, T)) : null,
+        S.mode !== 'flip' || !fwd || peek ? h('div', { class: 'row gap center' }, pron ? h('span', { class: 'flash-pron' }, pron) : null, A.speakBtn(c.term, T)) : null,
         gram || forms ? h('div', { class: 'flash-gram' },
           gram ? h('span', null, gram) : null,
           forms ? A.lt(forms, T, 'serif') : null) : null,
@@ -273,6 +275,15 @@
 
     if (S.mode === 'listen') setTimeout(() => A.speak(c.term, T), 300);
     else if (s.autoSpeak && S.mode !== 'type' && S.mode !== 'cloze' && fwd) setTimeout(() => A.speak(c.term, T), 250);
+  }
+
+  function peekBtn(pron) {
+    return h('button', {
+      class: 'pron-peek', type: 'button',
+      onclick: (e) => { e.stopPropagation(); e.currentTarget.replaceWith(h('div', { class: 'flash-pron' }, pron)); },
+      onpointerdown: (e) => e.stopPropagation(),
+      onkeydown: (e) => e.stopPropagation(), // Enter here opens the pronunciation, not the back of the card
+    }, t('study.show_pron'));
   }
 
   function flipButtons(isNew) {
@@ -379,7 +390,9 @@
     return 'wrong';
   }
   // pinyin, romaji and the like — the pronunciation of a word in a non-Latin script, unless it is IPA
-  const romanOf = (c) => (c.pron && !/^\s*[/[]/.test(c.pron) && !/\p{Script=Latin}/u.test(c.term) && /\p{Script=Latin}/u.test(c.pron) ? c.pron : '');
+  function romanOf(c) {
+    return c.pron && !/^\s*[/[]/.test(c.pron) && !/\p{Script=Latin}/u.test(c.term) && /\p{Script=Latin}/u.test(c.pron) ? c.pron : '';
+  }
 
   // edit distance where two swapped neighbouring letters are one typo; anything above 1 is just "2"
   function dist(a, b) {

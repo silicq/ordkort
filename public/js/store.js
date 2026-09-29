@@ -73,10 +73,16 @@
     if (Object.keys(patch).some((k) => !DEVICE_ONLY.includes(k))) state.settings.u = now();
     save();
   }
+  // every language learnt with the current native one, with how many of its cards wait for a review now
   function pairs() {
     const native = state.settings.native;
+    const t = now();
     return Object.entries(state.pairs)
-      .map(([k, p]) => { const [target, nat] = k.split(':'); return { target, native: nat, count: Object.keys(p.cards).length }; })
+      .map(([k, p]) => {
+        const [target, nat] = k.split(':');
+        const all = Object.values(p.cards);
+        return { target, native: nat, count: all.length, due: all.filter((c) => c.box > 0 && c.due <= t).length };
+      })
       .filter((p) => p.native === native);
   }
 
@@ -244,12 +250,22 @@
   }
 
   /* ---------- statistics ---------- */
+  /* Reviews, the daily goal and the streak count all languages together. The limit of new words is per language:
+     `nl` counts the new words of each language pair, so a morning of Chinese leaves Spanish its own new words. */
   const today = () => state.days[dayKey()] || { rev: 0, ok: 0, new: 0 };
+  function newToday() {
+    const d = state.days[dayKey()];
+    return d?.nl ? d.nl[pairKey()] || 0 : d?.new || 0; // a day counted before the split: its total
+  }
   function bump(ok, wasNew) {
     const d = (state.days[dayKey()] ||= { rev: 0, ok: 0, new: 0 });
     d.rev++;
     if (ok) d.ok++;
-    if (wasNew) d.new++;
+    if (wasNew) {
+      d.nl ||= d.new ? { [pairKey()]: d.new } : {};
+      d.nl[pairKey()] = (d.nl[pairKey()] || 0) + 1;
+      d.new++;
+    }
   }
   function streak() {
     const d = new Date();
@@ -277,7 +293,7 @@
       if (c.due <= now) o.due++;
       if (c.box >= KNOWN_BOX) o.known++; else o.learning++;
     }
-    o.newLeft = Math.max(0, state.settings.newPerDay - today().new);
+    o.newLeft = Math.max(0, state.settings.newPerDay - newToday());
     return o;
   }
 
@@ -290,7 +306,7 @@
     const fresh = all.filter((c) => c.box === 0).sort((a, b) => a.created - b.created);
     const size = Math.max(s.sessionSize, extraNew);
     const dueTake = due.slice(0, size);
-    const newLimit = extraNew || Math.max(0, s.newPerDay - today().new);
+    const newLimit = extraNew || Math.max(0, s.newPerDay - newToday());
     const newTake = fresh.slice(0, Math.max(0, Math.min(newLimit, size - dueTake.length)));
     const q = [];
     let i = 0, j = 0;
@@ -462,12 +478,17 @@
       }
     }
 
-    // daily stats: take the maximum (so repeated merges never double them)
+    // daily stats: take the maximum (so repeated merges never double them), new words per language too
+    const most = (lv, rv, f) => {
+      if ((rv[f] || 0) > (lv[f] || 0)) { lv[f] = rv[f]; changed = true; } else if ((lv[f] || 0) > (rv[f] || 0)) ahead = true;
+    };
     for (const [d, rv] of Object.entries(remote.days || {})) {
       const lv = (state.days[d] ||= { rev: 0, ok: 0, new: 0 });
-      for (const f of ['rev', 'ok', 'new']) {
-        if ((rv[f] || 0) > (lv[f] || 0)) { lv[f] = rv[f]; changed = true; } else if ((lv[f] || 0) > (rv[f] || 0)) ahead = true;
-      }
+      for (const f of ['rev', 'ok', 'new']) most(lv, rv, f);
+      const rn = rv.nl && typeof rv.nl === 'object' ? rv.nl : {};
+      if (!lv.nl && !Object.keys(rn).length) continue;
+      lv.nl ||= {};
+      for (const k of new Set([...Object.keys(lv.nl), ...Object.keys(rn)])) most(lv.nl, rn, k);
     }
     for (const d of Object.keys(state.days)) if (!remote.days?.[d]) ahead = true;
 
@@ -516,7 +537,7 @@
     decks, deck, addDeck, updateDeck, deleteDeck, mineDeck,
     cards, card, addCards, updateCard, deleteCard, resetCard, hasTerm, norm, fromBank, applyChecks,
     sentences, sentenceWith, example, shown,
-    overview, streak, week, today,
+    overview, streak, week, today, newToday,
     buildSession, cramQueue, answer, stage, MAX_BOX, schedule, dayKey,
     get days() { return state.days; },
     addRecent, recent,

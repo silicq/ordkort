@@ -41,6 +41,7 @@
   /* ---------- header ---------- */
   function header(active) {
     const s = A.store.settings;
+    const dueElsewhere = A.store.pairs().some((p) => p.target !== s.target && p.due);
     return h('header', { class: 'top' },
       h('div', { class: 'shell top-in' },
         h('a', { class: 'brand', href: '#/', 'aria-label': 'Ordkort' }, A.logo(32), h('span', { class: 'brand-name' }, 'ordkort')),
@@ -48,10 +49,11 @@
           NAV.map((n) => h('a', { href: n.href, class: 'tab' + (n.id === active ? ' active' : ''), 'aria-current': n.id === active ? 'page' : null },
             icon(n.icon), h('span', null, t(n.label))))),
         h('div', { class: 'top-actions' },
-          h('button', { class: 'pair', type: 'button', onclick: pairDialog, title: t('pair.title') },
+          h('button', { class: 'pair', type: 'button', onclick: pairDialog, title: t(dueElsewhere ? 'pair.due_elsewhere' : 'pair.title') },
             h('span', { class: 'pair-from' }, s.native.toUpperCase()),
             icon('arrow', 13),
             h('span', { class: 'pair-to' }, A.langs.name(s.target)),
+            dueElsewhere ? h('span', { class: 'pair-dot', 'aria-label': t('pair.due_elsewhere') }) : null,
             icon('chevron', 15)),
           h('button', {
             class: 'icon-btn', type: 'button', title: t('theme.toggle'), 'aria-label': t('theme.toggle'),
@@ -78,14 +80,15 @@
   function pairDialog() {
     const s = A.store.settings;
     const pairs = A.store.pairs();
-    if (!pairs.some((p) => p.target === s.target)) pairs.unshift({ target: s.target, native: s.native, count: 0 });
+    if (!pairs.some((p) => p.target === s.target)) pairs.unshift({ target: s.target, native: s.native, count: 0, due: 0 });
     const list = h('div', { class: 'pair-list' }, pairs.map((p) =>
       h('button', {
         class: 'pair-row' + (p.target === s.target ? ' on' : ''), type: 'button',
         onclick: () => { m.close(); switchTarget(p.target); },
       },
         h('span', { class: 'pair-hello serif', lang: p.target }, A.langs.get(p.target).hello),
-        h('span', { class: 'pair-name' }, A.langs.name(p.target), h('small', null, A.tn('n_words', p.count))),
+        h('span', { class: 'pair-name' }, A.langs.name(p.target),
+          h('small', null, A.tn('n_words', p.count), p.due ? h('b', { class: 'pair-due' }, t('pair.due', { n: p.due })) : null)),
         p.target === s.target ? icon('check') : null)));
 
     const grid = h('div', { class: 'lang-grid compact', hidden: true },

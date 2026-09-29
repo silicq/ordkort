@@ -18,6 +18,7 @@ const POST = {
   report: api.report,
   gloss: api.gloss,
   check: api.check,
+  wikt: api.wikt,
 };
 
 export default {

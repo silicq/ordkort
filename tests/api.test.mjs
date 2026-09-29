@@ -112,6 +112,13 @@ test('dictionary check: only languages that inflect, at most 10 words, no AI lim
   assert.equal(r.headers.get('X-AI-Left'), null);
 });
 
+test('Wiktionary entries: not for Norwegian (it has the official dictionary), not for an empty query', async () => {
+  let r = await call('wikt', { method: 'POST', body: { target: 'nb', native: 'en', q: 'hus' } });
+  assert.equal(r.status, 400);
+  r = await call('wikt', { method: 'POST', body: { target: 'de', native: 'en', q: ' ' } });
+  assert.equal(r.status, 400);
+});
+
 test('limits endpoint reports the daily allowance', async () => {
   const r = await call('limits');
   const q = await r.json();

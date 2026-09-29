@@ -2,7 +2,7 @@
 // and fixing a card from it. The pages are small copies of real en.wiktionary.org markup.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { parsePage, check, plain } from '../src/wiktionary.js';
+import { parsePage, check, plain, article, lookup, summary, hasEntries } from '../src/wiktionary.js';
 
 const h2 = (id) => `<div class="mw-heading mw-heading2"><h2 id="${id}">${id}</h2></div>`;
 const h3 = (id) => `<div class="mw-heading mw-heading3"><h3 id="${id}">${id}</h3></div>`;
@@ -82,4 +82,81 @@ test('a language without articles gets the noun’s gender; forms Wiktionary nev
     assert.equal(await check({ get: async () => null, set: async () => {} }, 'de', { term: 'das Quatschwort', pos: 'noun' }), null);
     assert.equal(await check({ get: async () => null, set: async () => {} }, 'zh', { term: '书', pos: 'noun' }), null, 'no inflection to check');
   } finally { w.restore(); }
+});
+
+/* ---------- the entry shown in the dictionary ---------- */
+
+const ol = (...li) => `<ol>${li.map((x) => `<li>${x}</li>`).join('\n')}</ol>`;
+const usex = (lang, text, tr) => `<dl><dd><span class="h-usage-example"><i class="Latn mention e-example" lang="${lang}">${text}</i> ― <span class="e-translation">${tr}</span></span></dd></dl>`;
+const ruby = (kanji, kana) => `<ruby>${kanji}<rp>(</rp><rt>${kana}</rt><rp>)</rp></ruby>`;
+const ENTRY = {
+  Hund: h2('German') + h3('Etymology') + '<p>From Middle High German <i class="Latn mention" lang="gmh">hunt</i>.</p>'
+    + h3('Pronunciation') + '<ul><li>IPA<sup>(key)</sup>: <span class="IPA">/hʊnt/</span></li></ul>' + h3('Noun')
+    + line('de', 'Hund', `&#160;${g('masculine gender')} (<i>strong</i>, <i>genitive</i> ${b('de', 'Hundes')} <i>or</i> ${b('de', 'Hunds')}, <i>plural</i> ${b('de', 'Hunde')})`)
+    + ol('dog, hound\n<ul><li><div class="citation-whole">1929, Tucholsky:<dl><dd><div class="h-quotation"><span class="e-quotation" lang="de">Ein <b>Hund</b> bellt …</span></div></dd></dl></div></li></ul>',
+      `<span class="usage-label-sense">(<span>derogatory</span>)</span> scoundrel\n${usex('de', 'ein gemeiner <b>Hund</b>', 'a mean <b>dog</b>')}`),
+  hund: h2('Danish') + h3('Noun') + line('da', 'hund', `&#160;${g('common gender')}`) + ol('dog'),
+  书: h2('Chinese') + h3('Definitions') + '<table class="wikitable zh-see"><tbody><tr><td><b>For pronunciation and definitions of </b><span class="Hans" lang="zh"><strong class="selflink">书</strong></span><b> – see <span class="Hant" lang="zh"><a href="/wiki/書">書</a></span> (“book”).</b></td></tr></tbody></table>',
+  書: h2('Chinese') + h3('Pronunciation') + '<dl><dd>(Pinyin): <span class="zhpron-monospace form-of pinyin-t-form-of transliteration-书" lang="cmn"><span class="Latn" lang="cmn"><a>shū</a></span> (<span class="Latn" lang="cmn"><a>shu<sup>1</sup></a></span>)</span></dd></dl>'
+    + h3('Definitions') + '<p><span class="headword-line"><strong class="Hant headword" lang="zh">書</strong></span>\n</p>'
+    + ol('book <span style="padding-left:15px"><span>(<i>Classifier</i>: <span class="Hani" lang="zh">本</span> <span style="border-bottom: 1px dotted; cursor:help" title="Mandarin"><i>m</i></span>)</span></span>',
+      '<span class="usage-label-sense">(Cantonese)</span> something else'),
+  食べる: h2('Japanese') + h3('Verb') + `<p><span class="headword-line"><strong class="Jpan headword" lang="ja">${ruby('食', 'た')}べる</strong> • (<span class="headword-tr tr" dir="ltr"><span class="Latn" lang="ja">taberu</span></span>)&#160;<i>transitive&#160;<abbr title="ichidan">ichidan</abbr></i> (<i>past</i> <b class="Jpan" lang="ja">${ruby('食', 'た')}べた</b>)</span>\n</p>`
+    + ol('to eat'),
+};
+
+test('a dictionary entry: gender, key forms, pronunciation, senses with short examples, origin', () => {
+  const r = article(ENTRY.Hund, 'de');
+  assert.equal(r.section, 'German');
+  const [a] = r.articles;
+  assert.equal(a.lemma, 'Hund');
+  assert.equal(a.cls, 'noun, masculine, strong');
+  assert.equal(a.pron, '/hʊnt/');
+  assert.deepEqual(a.table.rows, [['genitive', 'Hundes / Hunds'], ['plural', 'Hunde']]);
+  assert.deepEqual(a.senses[0], { expl: ['dog, hound'], ex: [], sub: [] }, 'long quotations are not examples');
+  assert.deepEqual(a.senses[1], { expl: ['(derogatory) scoundrel'], ex: [{ text: 'ein gemeiner Hund', tr: 'a mean dog' }], sub: [] });
+  assert.equal(a.etym, 'From Middle High German hunt.');
+  assert.deepEqual(article(ENTRY.Hund, 'nl').articles, [], 'another language');
+  assert.ok(hasEntries('es') && hasEntries('zh') && !hasEntries('nb') && !hasEntries('nn'), 'Norwegian has the official dictionary');
+});
+
+test('Chinese: pinyin, a measure word without dialect marks, Mandarin senses only; Japanese: the kana reading', () => {
+  const [shu] = article(ENTRY.書, 'zh').articles;
+  assert.equal(shu.pron, 'shū');
+  assert.equal(shu.cls, '');
+  assert.deepEqual(shu.senses.map((s) => s.expl[0]), ['book (Classifier: 本)']);
+  assert.equal(article(ENTRY.书, 'zh').see, '書', 'a simplified character sends to its traditional page');
+  const [taberu] = article(ENTRY.食べる, 'ja').articles;
+  assert.equal(taberu.lemma, '食べる');
+  assert.equal(taberu.pron, 'たべる · taberu');
+  assert.equal(taberu.cls, 'verb, transitive ichidan');
+  assert.deepEqual(taberu.table.rows, [['past', '食べた']]);
+});
+
+test('lookup: the other case of the first letter, the traditional page of a simplified character, then the cache', async () => {
+  const calls = [];
+  const mem = new Map();
+  const cache = { get: async (k) => mem.get(k) ?? null, set: async (k, v) => { mem.set(k, v); } };
+  const real = globalThis.fetch;
+  globalThis.fetch = async (url) => {
+    const p = decodeURIComponent(new URL(url).searchParams.get('page'));
+    calls.push(p);
+    return { ok: true, json: async () => (ENTRY[p] ? { parse: { text: ENTRY[p] } } : { error: { code: 'missingtitle' } }) };
+  };
+  try {
+    const de = await lookup(cache, 'de', 'hund');
+    assert.equal(de.page, 'Hund', '"hund" is Danish, the German noun is "Hund"');
+    assert.equal(de.articles[0].lemma, 'Hund');
+    assert.equal((await lookup(cache, 'da', 'hund')).page, 'hund');
+    assert.equal((await lookup(cache, 'zh', '书')).page, '書');
+    assert.equal(await lookup(cache, 'de', 'Quatschwort'), null);
+    const n = calls.length;
+    await lookup(cache, 'de', 'hund');
+    await lookup(cache, 'de', 'Quatschwort');
+    assert.equal(calls.length, n, 'answers, "nothing" too, come from the cache');
+    const s = summary(de);
+    assert.match(s, /• Hund \(noun, masculine, strong\) \/hʊnt\//);
+    assert.match(s, /Forms: genitive: Hundes \/ Hunds; plural: Hunde/);
+    assert.match(s, /"ein gemeiner Hund" \(a mean dog\)/);
+  } finally { globalThis.fetch = real; }
 });

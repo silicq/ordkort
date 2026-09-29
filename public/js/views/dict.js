@@ -1,4 +1,6 @@
-/* Dictionary: an entry in the spirit of ordbokene.no and Lexin, plus official ordbokene data for Norwegian. */
+/* Dictionary: an entry in the spirit of ordbokene.no and Lexin, and next to it a real dictionary —
+   the official ordbokene data for Norwegian, Wiktionary for other languages — with links to the main
+   dictionaries of the language. */
 (() => {
   const A = window.App;
   const { h, icon, t } = A;
@@ -57,6 +59,40 @@
     leave() { ctrl?.abort(); },
   };
 
+  /* The main dictionaries of a language: [name, address before the word, after it] */
+  const REFS = {
+    en: [['Cambridge', 'https://dictionary.cambridge.org/dictionary/english/'], ['Merriam-Webster', 'https://www.merriam-webster.com/dictionary/']],
+    es: [['RAE', 'https://dle.rae.es/']],
+    fr: [['Larousse', 'https://www.larousse.fr/dictionnaires/francais/'], ['CNRTL', 'https://www.cnrtl.fr/definition/']],
+    de: [['Duden', 'https://www.duden.de/suchen/dudenonline/'], ['DWDS', 'https://www.dwds.de/wb/']],
+    it: [['Treccani', 'https://www.treccani.it/vocabolario/ricerca/', '/']],
+    pt: [['Priberam', 'https://dicionario.priberam.org/']],
+    pl: [['SJP PWN', 'https://sjp.pwn.pl/szukaj/', '.html']],
+    nl: [['Woordenlijst', 'https://woordenlijst.org/zoeken/?q='], ['ANW', 'https://anw.ivdnt.org/article/']],
+    sv: [['Svenska Akademien', 'https://svenska.se/?q=']],
+    da: [['Den Danske Ordbog', 'https://ordnet.dk/ddo/ordbog?query=']],
+    fi: [['Kielitoimiston sanakirja', 'https://www.kielitoimistonsanakirja.fi/#/']],
+    is: [['BÍN', 'https://bin.arnastofnun.is/leit/?q=']],
+    cs: [['Internetová jazyková příručka', 'https://prirucka.ujc.cas.cz/?slovo=']],
+    ro: [['DEX online', 'https://dexonline.ro/definitie/']],
+    el: [['Λεξικό Τριανταφυλλίδη', 'https://www.greek-language.gr/greekLang/modern_greek/tools/lexica/triantafyllides/search.html?lq=']],
+    lv: [['Tēzaurs', 'https://tezaurs.lv/']],
+    tr: [['TDK', 'https://sozluk.gov.tr/kelime/']],
+    ru: [['Грамота.ру', 'https://gramota.ru/poisk?mode=slovari&query=']],
+    uk: [['Горох', 'https://goroh.pp.ua/%D0%A2%D0%BB%D1%83%D0%BC%D0%B0%D1%87%D0%B5%D0%BD%D0%BD%D1%8F/']],
+    ar: [['Almaany', 'https://www.almaany.com/ar/dict/ar-en/', '/']],
+    zh: [['MDBG', 'https://www.mdbg.net/chinese/dictionary?page=worddict&wdrst=0&wdqb=']],
+    ja: [['Jisho', 'https://jisho.org/search/']],
+    ko: [['한국어기초사전', 'https://krdict.korean.go.kr/eng/dicMarinerSearch/search?nation=eng&nationCode=6&mainSearchWord='],
+      ['표준국어대사전', 'https://stdict.korean.go.kr/search/searchResult.do?searchKeyword=']],
+  };
+  function refLinks(T, w) {
+    const list = REFS[T];
+    if (!list || !w) return null;
+    return h('div', { class: 'ob-refs' }, h('span', { class: 'k' }, t('dict.refs')),
+      list.map(([name, pre, post = '']) => h('a', { class: 'link-btn small', href: pre + encodeURIComponent(w) + post, target: '_blank', rel: 'noopener' }, name, icon('external', 14))));
+  }
+
   function go(q) {
     q = (q || '').trim();
     if (!q) return;
@@ -71,7 +107,7 @@
         h('h3', null, t('dict.how_title')),
         h('ul', { class: 'ticks' },
           h('li', null, t('dict.how_1')), h('li', null, t('dict.how_2')), h('li', null, t('dict.how_3')),
-          A.ordbok.supports(T) ? h('li', null, t('dict.how_nb')) : null),
+          h('li', null, t(A.ordbok.supports(T) ? 'dict.how_nb' : 'dict.how_wk'))),
         list.length ? h('div', { class: 'row gap wrap' }, h('span', { class: 'muted small' }, t('dict.try')),
           list.map((w) => h('a', { class: 'chip', href: '#/dict/' + encodeURIComponent(w), lang: T }, w))) : null)));
   }
@@ -86,20 +122,18 @@
     A.store.addRecent(q);
 
     const aiSlot = h('div', { class: 'slot-ai' }, A.loading(t('dict.loading')), A.skeleton(6));
-    const obSlot = A.ordbok.supports(T) ? h('div', { class: 'slot-ob' }, A.skeleton(5)) : null;
-    out.replaceChildren(h('div', { class: 'dict-grid' + (obSlot ? ' two' : '') }, aiSlot, obSlot));
+    const refSlot = h('div', { class: 'slot-ob' }, A.skeleton(5));
+    out.replaceChildren(h('div', { class: 'dict-grid two' }, aiSlot, refSlot));
 
-    // official data (Norwegian) is shown right away; the server passes it to the AI as ground truth itself
-    const obPromise = obSlot ? A.ordbok.lookup(q, T, signal).catch(() => null) : Promise.resolve(null);
-    if (obSlot) {
-      obPromise.then((r) => {
-        if (my !== seq) return;
-        if (r === null && signal.aborted) return;
-        obSlot.replaceChildren(r && r.articles.length ? official(r, q) : h('div', { class: 'official empty-ob' },
-          h('div', { class: 'official-head' }, h('span', { class: 'official-badge' }, 'ordbokene.no')),
-          h('p', { class: 'muted small' }, t('dict.ob_none'))));
-      });
-    }
+    // the dictionary is shown right away: the official one for Norwegian (asked from here), Wiktionary for other
+    // languages (through our server); the server passes the same data to the AI as ground truth itself
+    const ref = (w) => (A.ordbok.supports(T) ? A.ordbok.lookup(w, T, signal)
+      : A.ai.wikt(w, { signal }).then((d) => (d?.found ? { wk: true, name: 'Wiktionary', ...d } : null))).catch(() => null);
+    const refPromise = ref(q);
+    refPromise.then((r) => {
+      if (my !== seq || signal.aborted) return;
+      refSlot.replaceChildren(r?.articles?.length ? reference(r, q) : noReference(q));
+    });
 
     try {
       const force = forceNext === q;
@@ -107,11 +141,11 @@
       const e = await A.ai.lookup(q, { force, signal });
       if (my !== seq) return;
       aiSlot.replaceChildren(e.found === false ? notFound(e, q) : entry(e, q));
-      // the query was in the native language — show the official entry for the translation found
-      const ob2 = await obPromise;
-      if (obSlot && e.found !== false && e.lemma && !ob2?.articles?.length && e.lemma.toLowerCase() !== q.toLowerCase()) {
-        const r = await A.ordbok.lookup(e.lemma, T, signal).catch(() => null);
-        if (my === seq && r?.articles?.length) obSlot.replaceChildren(official(r, e.lemma));
+      // the query was in the native language — show the dictionary's entry for the translation found
+      const first = await refPromise;
+      if (e.found !== false && e.lemma && !first?.articles?.length && e.lemma.toLowerCase() !== q.toLowerCase()) {
+        const r = await ref(e.lemma);
+        if (my === seq && r?.articles?.length) refSlot.replaceChildren(reference(r, e.lemma));
       }
     } catch (err) {
       if (my !== seq || err.name === 'AbortError') return;
@@ -190,28 +224,43 @@
         A.ordbok.supports(T) ? h('a', { class: 'link-btn small', href: A.ordbok.lexin, target: '_blank', rel: 'noopener' }, 'Lexin', icon('external', 14)) : null));
   }
 
-  function official(r, q) {
+  /* The dictionary next to the AI entry: ordbokene.no (Norwegian labels) or Wiktionary (English, `wk`), whose
+     examples come with their translation */
+  const wikiLink = (r) => `https://en.wiktionary.org/wiki/${encodeURIComponent(r.page)}${r.section ? '#' + encodeURIComponent(r.section) : ''}`;
+  function reference(r, q) {
     const T = A.store.settings.target;
+    const exLine = (x) => h('p', { class: 'ob-ex' }, A.lt(x.text, T, 'serif'), x.tr ? h('span', { class: 'ob-tr' }, ' — ' + x.tr) : null);
     const senseList = (senses, depth = 0) => h('ol', { class: 'ob-senses' + (depth ? ' sub' : '') }, senses.map((sn) =>
       h('li', null,
         sn.expl.length ? h('p', { class: 'ob-expl' }, sn.expl.join('; ')) : null,
-        sn.ex.length ? h('p', { class: 'ob-ex serif', lang: T }, sn.ex.join(' · ')) : null,
+        sn.ex.length ? (r.wk ? sn.ex.map(exLine) : h('p', { class: 'ob-ex serif', lang: T }, sn.ex.join(' · '))) : null,
         sn.sub?.length ? senseList(sn.sub, depth + 1) : null)));
 
     return h('aside', { class: 'official' },
       h('div', { class: 'official-head' },
-        h('span', { class: 'official-badge' }, r.name),
-        h('small', null, t('dict.ob_source'))),
+        h('span', { class: 'official-badge' + (r.wk ? ' wk' : '') }, r.name),
+        h('small', null, t(r.wk ? 'dict.wk_source' : 'dict.ob_source'))),
       r.articles.map((a) => h('div', { class: 'oa' },
         h('div', { class: 'oa-head' },
           h('h3', { class: 'serif', lang: T }, a.lemma, a.hgno ? h('sup', null, a.hgno) : null),
-          h('span', { class: 'oa-class' }, a.cls)),
+          a.cls ? h('span', { class: 'oa-class' }, a.cls) : null,
+          r.wk && a.pron ? h('span', { class: 'oa-pron' }, a.pron) : null),
         a.table ? A.table(a.table, T) : null,
         a.senses.length ? senseList(a.senses) : null,
-        a.expr.length ? h('div', { class: 'ob-block' }, h('h4', null, r.labels.expr),
+        a.expr?.length ? h('div', { class: 'ob-block' }, h('h4', null, r.labels.expr),
           h('ul', { class: 'ob-expr' }, a.expr.slice(0, 8).map((x) => h('li', null, h('b', { lang: T }, x.text), x.meaning ? ' — ' + x.meaning : '')))) : null,
-        a.etym ? h('p', { class: 'ob-etym' }, h('span', { class: 'k' }, r.labels.etym), a.etym) : null)),
-      h('a', { class: 'link-btn small', href: A.ordbok.link(q), target: '_blank', rel: 'noopener' }, t('dict.ob_open'), icon('external', 14)));
+        a.etym ? h('p', { class: 'ob-etym' }, h('span', { class: 'k' }, r.wk ? 'Etymology' : r.labels.etym), a.etym) : null)),
+      h('a', { class: 'link-btn small', href: r.wk ? wikiLink(r) : A.ordbok.link(q), target: '_blank', rel: 'noopener' },
+        t(r.wk ? 'dict.wk_open' : 'dict.ob_open'), icon('external', 14)),
+      r.wk ? refLinks(T, r.page) : null);
+  }
+  function noReference(q) {
+    const T = A.store.settings.target;
+    const ob = A.ordbok.supports(T);
+    return h('div', { class: 'official empty-ob' },
+      h('div', { class: 'official-head' }, h('span', { class: 'official-badge' + (ob ? '' : ' wk') }, ob ? 'ordbokene.no' : 'Wiktionary')),
+      h('p', { class: 'muted small' }, t(ob ? 'dict.ob_none' : 'dict.wk_none')),
+      ob ? null : refLinks(T, q));
   }
 
   /* Choosing a deck for a new card */

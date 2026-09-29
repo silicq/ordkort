@@ -92,6 +92,15 @@ test('typing: pinyin without tone marks counts for a Chinese word', () => {
   assert.equal(compare('privet', 'привет', card({ term: 'привет', pron: '/prʲɪˈvʲet/' })), 'wrong');
 });
 
+test('pinyin and romaji stay off the front of a card, IPA stays on it', () => {
+  const { romanOf } = A.views.study._test;
+  assert.ok(romanOf(card({ term: '你好', pron: 'nǐ hǎo' })), 'the characters are read, not the pinyin');
+  assert.ok(romanOf(card({ term: 'ありがとう', pron: 'arigatō' })));
+  assert.ok(!romanOf(card({ term: 'привет', pron: '/prʲɪˈvʲet/' })));
+  assert.ok(!romanOf(card({ term: 'et hus', pron: '/hʉːs/' })));
+  assert.ok(!romanOf(card({ term: '你好', pron: '' })));
+});
+
 /* ---------- what a card shows ---------- */
 
 test('a noun shows the gender of its article, whatever the AI wrote', () => {

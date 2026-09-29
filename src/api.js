@@ -184,7 +184,7 @@ export async function fill(request, env, key) {
   }
 }
 
-/* ---------- dictionary entry (for Norwegian, grounded in ordbokene.no) ---------- */
+/* ---------- dictionary entry (grounded in ordbokene.no for Norwegian, in Wiktionary for other languages) ---------- */
 export async function lookup(request, env, key) {
   const b = await readJSON(request, 4000);
   const { target, native } = pairOf(b);
@@ -193,25 +193,47 @@ export async function lookup(request, env, key) {
   const cacheKey = await KEYS.lookup(target, native, b);
   return generate(env, key, cacheKey, {
     fresh: !!b.fresh,
-    prompt: async () => ({ ...P.lookupPrompt({ target, native, q, ground: await officialSummary(env, target, q) }) }),
+    prompt: async () => ({ ...P.lookupPrompt({ target, native, q, ...(await groundFor(env, target, q)) }) }),
     clean: P.cleanEntry,
     keep: (e) => e.found !== false,
   });
 }
 
+const inTime = (p) => Promise.race([p, new Promise((res) => setTimeout(() => res(null), 4000))]);
+async function groundFor(env, target, q) {
+  if (W.hasEntries(target)) {
+    const r = await inTime(W.lookup(dictCache(env), target, q, { budget: { left: 3 }, signal: AbortSignal.timeout(8000) })).catch(() => null);
+    return { ground: W.summary(r), source: 'wiktionary' };
+  }
+  return { ground: await officialSummary(env, target, q), source: 'official' };
+}
 async function officialSummary(env, target, q) {
   if (!App.ordbok.supports(target)) return '';
   const k = `o1:${target}:${await h32(q.toLowerCase())}`;
   const hit = await cacheGet(env.DB, k, WEEK);
   if (hit !== null) return hit.s;
   try {
-    const r = await Promise.race([App.ordbok.lookup(q, target), new Promise((res) => setTimeout(() => res(null), 4000))]);
-    const s = App.ordbok.summary(r);
+    const s = App.ordbok.summary(await inTime(App.ordbok.lookup(q, target)));
     await cacheSet(env.DB, k, { s });
     return s;
   } catch {
     return '';
   }
+}
+
+/* ---------- the Wiktionary entry shown next to the AI one (languages without an official dictionary here) ---------- */
+export async function wikt(request, env, key) {
+  const b = await readJSON(request, 2000);
+  const { target } = pairOf(b);
+  const q = str(b.q, 60);
+  if (!q) throw new HttpError(400, 'empty');
+  if (!W.hasEntries(target)) throw new HttpError(400, 'bad_lang');
+  const cache = dictCache(env);
+  // a word someone looked up before costs Wikimedia nothing; a new one takes from a small hourly limit
+  if (!(await cache.get(`wk3:${target}:${W.plain(q, target)}`, 30 * 864e5))) await takeSimple(env, 'wikt', key, 120, 36e5);
+  const r = await W.lookup(cache, target, q, { budget: { left: 3 }, signal: AbortSignal.timeout(8000) })
+    .catch(() => { throw new HttpError(503, 'busy'); });
+  return json(r ? { found: true, ...r } : { found: false });
 }
 
 /* ---------- textbook chapter ---------- */
