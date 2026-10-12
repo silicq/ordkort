@@ -1,11 +1,10 @@
 // Static pages about Ordkort for search engines and for people who have not opened it yet:
-// public/<lang>/index.html in the six interface languages, plus public/sitemap.xml.
-// The app itself lives at "/" and needs JavaScript; these pages are plain HTML that anyone — and any
-// crawler — can read. Run `npm run landing` after changing the texts below and commit the result
-// (a test checks that the files are up to date).
-import { writeFileSync, mkdirSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
+// public/<lang>/index.html in the six interface languages. The app itself lives at "/" and needs JavaScript;
+// these pages are plain HTML that anyone — and any crawler — can read. scripts/seo-pages.mjs writes them
+// together with the Norwegian word pages and the sitemap: run `npm run seo` after changing the texts below
+// and commit the result (a test checks that the files are up to date).
 import '../public/js/langs.js';
+import { UI as SEO, LEARN } from './seo-text.mjs';
 
 const SITE = 'https://ordkort.com';
 const REPO = 'https://github.com/silicq/ordkort';
@@ -13,7 +12,7 @@ const LANGS = globalThis.App.langs.list;
 
 /* ---------- texts ---------- */
 
-const PAGES = {
+export const PAGES = {
   en: {
     hreflang: 'en', htmlLang: 'en', locale: 'en_US', name: 'English',
     title: 'Ordkort — learn any language with flashcards, free and without ads',
@@ -409,7 +408,12 @@ ${ogAlt}
         ${p.honest.map((t) => `<p>${esc(t)}</p>`).join('\n        ')}
         <p class="links"><a href="/#/about">${esc(p.how)}</a><a href="${REPO}" rel="noopener">${esc(p.source)}</a></p>
       </section>
-      <section>
+${SEO[code] ? `      <section>
+        <h2>${esc(SEO[code].hubsH)}</h2>
+        <p>${esc(SEO[code].hubsP)}</p>
+        <p class="links"><a href="/${code}/${SEO[code].learn}/">${esc(SEO[code].alsoTopics)}</a><a href="/${code}/ordbok/${LEARN}/">${esc(SEO[code].alsoDict)}</a></p>
+      </section>
+` : ''}      <section>
         <h2>${esc(p.languagesH)}</h2>
         <p>${esc(p.languagesP)}</p>
         <ul class="lang-list">${LANGS.map((l) => `<li lang="${l.code}">${esc(l.name)}</li>`).join('')}</ul>
@@ -434,25 +438,4 @@ ${ogAlt}
 </body>
 </html>
 `;
-}
-
-export function sitemap() {
-  const links = CODES.map((c) => `    <xhtml:link rel="alternate" hreflang="${PAGES[c].hreflang}" href="${url(c)}"/>`).join('\n');
-  const pages = CODES.map((c) => `  <url>\n    <loc>${url(c)}</loc>\n${links}\n    <xhtml:link rel="alternate" hreflang="x-default" href="${url('en')}"/>\n  </url>`).join('\n');
-  return `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
-  <url><loc>${SITE}/</loc></url>
-${pages}
-</urlset>
-`;
-}
-
-if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
-  const pub = fileURLToPath(new URL('../public/', import.meta.url));
-  for (const code of CODES) {
-    mkdirSync(`${pub}${code}`, { recursive: true });
-    writeFileSync(`${pub}${code}/index.html`, render(code));
-  }
-  writeFileSync(`${pub}sitemap.xml`, sitemap());
-  console.log(`landing pages: ${CODES.map((c) => `/${c}/`).join(' ')} + sitemap.xml`);
 }

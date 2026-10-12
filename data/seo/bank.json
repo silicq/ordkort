@@ -1,0 +1,211 @@
+{
+ "source": "local",
+ "words": {
+  "ru": {
+   "food": [
+    {
+     "term": "et brød",
+     "tr": "хлеб",
+     "pos": "noun",
+     "forms": "brødet, brød, brødene",
+     "ex": "Jeg spiser et brød.",
+     "ex_tr": "Я ем хлеб.",
+     "level": "A1",
+     "chk": 0
+    },
+    {
+     "term": "en ost",
+     "tr": "сыр",
+     "pos": "noun",
+     "forms": "osten, oster, ostene",
+     "ex": "Jeg liker ost.",
+     "ex_tr": "Мне нравится сыр.",
+     "level": "A1",
+     "chk": 0
+    },
+    {
+     "term": "en pizza",
+     "tr": "пицца",
+     "pos": "noun",
+     "forms": "pizzaen, pizzaer, pizzaene",
+     "ex": "Vi bestiller en pizza.",
+     "ex_tr": "Мы заказываем пиццу.",
+     "level": "A1",
+     "chk": 0
+    },
+    {
+     "term": "en suppe",
+     "tr": "суп",
+     "pos": "noun",
+     "forms": "suppen, supper, suppene",
+     "ex": "Hun spiser suppe.",
+     "ex_tr": "Она ест суп.",
+     "level": "A1",
+     "chk": 0
+    },
+    {
+     "term": "et vann",
+     "tr": "вода",
+     "pos": "noun",
+     "forms": "vannet, vann, vannene",
+     "ex": "Kan jeg få et vann?",
+     "ex_tr": "Можно мне воду?",
+     "level": "A1",
+     "chk": 0
+    },
+    {
+     "term": "en kaffe",
+     "tr": "кофе",
+     "pos": "noun",
+     "forms": "kaffen, kaffer, kaffene",
+     "ex": "Jeg drikker kaffe.",
+     "ex_tr": "Я пью кофе.",
+     "level": "A1",
+     "chk": 0
+    },
+    {
+     "term": "et øl",
+     "tr": "пиво",
+     "pos": "noun",
+     "forms": "ølet, øl, ølene",
+     "ex": "Han bestiller et øl.",
+     "ex_tr": "Он заказывает пиво.",
+     "level": "A1",
+     "chk": 0
+    },
+    {
+     "term": "en yoghurt",
+     "tr": "йогурт",
+     "pos": "noun",
+     "forms": "yoghurten, yoghurter, yoghurtene",
+     "ex": "Hun spiser yoghurt.",
+     "ex_tr": "Она ест йогурт.",
+     "level": "A1",
+     "chk": 0
+    },
+    {
+     "term": "en kake",
+     "tr": "пирог, торт",
+     "pos": "noun",
+     "forms": "kaken, kaker, kakene",
+     "ex": "Vi har kake.",
+     "ex_tr": "У нас есть торт.",
+     "level": "A1",
+     "chk": 0
+    },
+    {
+     "term": "et smørbrød",
+     "tr": "бутерброд",
+     "pos": "noun",
+     "forms": "smørbrødet, smørbrød, smørbrødene",
+     "ex": "Jeg spiser et smørbrød.",
+     "ex_tr": "Я ем бутерброд.",
+     "level": "A1",
+     "chk": 0
+    },
+    {
+     "term": "å spise",
+     "tr": "есть",
+     "pos": "verb",
+     "forms": "spiser, spiste, har spist",
+     "ex": "Jeg liker å spise.",
+     "ex_tr": "Мне нравится есть.",
+     "level": "A1",
+     "chk": 0
+    },
+    {
+     "term": "å drikke",
+     "tr": "пить",
+     "pos": "verb",
+     "forms": "drikker, drakk, har drukket",
+     "ex": "Han vil drikke vann.",
+     "ex_tr": "Он хочет пить воду.",
+     "level": "A1",
+     "chk": 0
+    }
+   ],
+   "greetings": [
+    {
+     "term": "hei",
+     "tr": "привет",
+     "pos": "interjection",
+     "forms": "",
+     "ex": "Hei, hvordan har du det?",
+     "ex_tr": "Привет, как ты?",
+     "level": "A1",
+     "chk": 0
+    },
+    {
+     "term": "ha det",
+     "tr": "пока, до свидания",
+     "pos": "phrase",
+     "forms": "",
+     "ex": "Vi ses i morgen. Ha det!",
+     "ex_tr": "Увидимся завтра. Пока!",
+     "level": "A1",
+     "chk": 0
+    },
+    {
+     "term": "takk",
+     "tr": "спасибо",
+     "pos": "interjection",
+     "forms": "",
+     "ex": "Takk for hjelpen.",
+     "ex_tr": "Спасибо за помощь.",
+     "level": "A1",
+     "chk": 0
+    },
+    {
+     "term": "vær så snill",
+     "tr": "пожалуйста",
+     "pos": "phrase",
+     "forms": "",
+     "ex": "Kan du gi meg salt, vær så snill?",
+     "ex_tr": "Можно соль, пожалуйста?",
+     "level": "A1",
+     "chk": 0
+    },
+    {
+     "term": "unnskyld",
+     "tr": "извините, простите",
+     "pos": "interjection",
+     "forms": "",
+     "ex": "Unnskyld, jeg kom for sent.",
+     "ex_tr": "Извините, я опоздал.",
+     "level": "A1",
+     "chk": 0
+    },
+    {
+     "term": "en hilsen",
+     "tr": "приветствие, привет",
+     "pos": "noun",
+     "forms": "hilsenen, hilsener, hilsenene",
+     "ex": "Jeg sender en hilsen til deg.",
+     "ex_tr": "Я посылаю тебе приветствие.",
+     "level": "A1",
+     "chk": 0
+    },
+    {
+     "term": "et navn",
+     "tr": "имя",
+     "pos": "noun",
+     "forms": "navnet, navn, navnene",
+     "ex": "Hva er ditt navn?",
+     "ex_tr": "Как тебя зовут?",
+     "level": "A1",
+     "chk": 0
+    },
+    {
+     "term": "en unnskyldning",
+     "tr": "извинение, извинения",
+     "pos": "noun",
+     "forms": "unnskyldningen, unnskyldninger, unnskyldningene",
+     "ex": "Han ga en unnskyldning for feilen.",
+     "ex_tr": "Он извинился за ошибку.",
+     "level": "A1",
+     "chk": 0
+    }
+   ]
+  }
+ }
+}

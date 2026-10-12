@@ -63,8 +63,12 @@ src/               Cloudflare Worker — runs only for /api/*
   sync.js          device sync and one-time codes (the server only ever sees ciphertext)
   db.js            D1: the schema is created automatically on the first request
 scripts/build.mjs  writes public/js/build.js; wrangler runs it before every deploy and `wrangler dev`
-scripts/landing.mjs  plain pages about the site for search engines (public/<lang>/, 6 languages) and sitemap.xml;
-                   run `npm run landing` after changing their texts (a test checks they are up to date)
+scripts/landing.mjs  plain pages about the site for search engines (public/<lang>/, 6 languages)
+scripts/seo-pages.mjs  static Norwegian pages for search engines, in English, Russian, Ukrainian and Norwegian:
+                   29 topic word lists (/<ui>/<learn>/<topic>/), ~530 dictionary entries (/<ui>/ordbok/nb/<word>/),
+                   two hubs per language, the pages above and sitemap.xml. Content in data/seo/ (see its README);
+                   run `npm run seo` after changing it (a test checks the files are up to date)
+data/seo/          the words, translations and examples of those pages, official forms from Bokmålsordboka
 tests/             node:test suites (see below)
 wrangler.jsonc     Cloudflare configuration
 ```
@@ -121,8 +125,10 @@ npm test
 
 The suites cover FSRS scheduling, merging data between devices (edits, deletions, daily stats),
 sync encryption and recovery keys, QR codes (decoded by an independent reader), CSV import/export,
-completeness of the interface translations, the offline file list, and the Worker API end to end
-(shared decks, one-time link codes, versioned sync) in Wrangler’s local runtime. No AI calls are made.
+completeness of the interface translations, the offline file list, the Worker API end to end
+(shared decks, one-time link codes, versioned sync) in Wrangler’s local runtime, and the static pages for
+search engines: up to date, unique titles and canonicals, reciprocal hreflang, no broken links, every page in
+the sitemap, at least 150 words of its own on each. No AI calls are made.
 GitHub Actions runs them on every push and pull request.
 
 ## Deploy to Cloudflare with automatic updates from GitHub
