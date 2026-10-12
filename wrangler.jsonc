@@ -31,5 +31,20 @@
     "AI_PER_HOUR": "40",
     "AI_PER_DAY": "120",
     "AI_DAILY_BUDGET": "2500"
+  },
+
+  // Branch previews (npx wrangler preview) inherit nothing from the settings above.
+  // Their own empty database, so test branches never touch real users' data; cron stays production-only.
+  // The secret is set separately: npx wrangler preview secret put GROQ_API_KEY
+  "previews": {
+    "d1_databases": [
+      { "binding": "DB", "database_name": "ordkort-preview", "database_id": "38df7284-c34c-4985-8605-df7b51c622c1" }
+    ],
+    "vars": {
+      "AI_PER_HOUR": "40",
+      "AI_PER_DAY": "120",
+      "AI_DAILY_BUDGET": "2500"
+    },
+    "observability": { "enabled": false }
   }
 }
