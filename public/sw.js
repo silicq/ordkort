@@ -73,8 +73,11 @@ self.addEventListener('fetch', (e) => {
     return;
   }
 
-  // the app lives at "/" (routes are #hashes); other files opened directly keep their own entry
-  const key = req.mode === 'navigate' && (url.pathname === '/' || url.pathname === '/index.html') ? '/' : req;
+  // the app lives at "/" (routes are #hashes). Other pages — about the site, Norwegian topics and words,
+  // a few thousand of them — are plain HTML: the browser loads them as usual and they stay out of the cache
+  const app = url.pathname === '/' || url.pathname === '/index.html';
+  if (req.mode === 'navigate' && !app) return;
+  const key = req.mode === 'navigate' ? '/' : req;
   e.respondWith((async () => {
     const cached = await caches.match(key, { ignoreSearch: true });
     const network = fetch(req).then((res) => {
