@@ -15,9 +15,22 @@
     return 'en';
   }
 
+  // a link from the static pages may say what the visitor knows and learns, the topic and where to go after setup:
+  // #/dict/hus?from=ru&learn=nb or #/?from=uk&learn=nb&topic=food
+  function invited() {
+    const [path, qs] = location.hash.replace(/^#\/?/, '').split('?');
+    const q = new URLSearchParams(qs || '');
+    const lang = (k) => (A.langs.has(q.get(k)) ? q.get(k) : null);
+    const topic = A.topics.get(q.get('topic') || '') ? q.get('topic') : null;
+    return { native: lang('from'), target: lang('learn'), topic, after: /^dict\/[^/]+$/.test(path) ? '#/' + path : null };
+  }
+
   A.views.onboarding = {
     render(root) {
-      const st = { step: 0, native: guess(), target: null, level: 'A1', topics: new Set(['greetings', 'core', 'numbers']) };
+      const inv = invited();
+      const st = { step: 0, native: inv.native || guess(), target: null, level: 'A1', topics: new Set(['greetings', 'core', 'numbers']) };
+      if (inv.target && inv.target !== st.native) st.target = inv.target;
+      if (inv.topic) st.topics = new Set([inv.topic, 'greetings', 'core']);
       A.i18n.setRuntime(st.native);
       A.applyLang();
 
@@ -86,7 +99,7 @@
             h('li', null, icon('grammar'), h('span', null, t('onb.f3'))),
             h('li', null, icon('translate'), h('span', null, t('onb.f4')))),
           h('div', { class: 'row gap wrap' },
-            h('button', { class: 'btn btn-primary btn-lg', type: 'button', onclick: () => { st.step = 1; draw(); } }, t('onb.start'), icon('arrow', 18)),
+            h('button', { class: 'btn btn-primary btn-lg', type: 'button', onclick: () => { st.step = st.target ? 3 : 1; draw(); } }, t('onb.start'), icon('arrow', 18)),
             h('button', { class: 'btn btn-ghost btn-lg', type: 'button', onclick: () => A.devices.enterCode() }, icon('refresh', 18), t('onb.have_code'))),
           h('p', { class: 'muted small onb-note' }, t('onb.local'), ' ', h('a', { href: '#/about' }, t('foot.about')))),
 
@@ -142,7 +155,7 @@
           const tp = A.topics.get(id);
           ids.push(A.store.addDeck({ topic: id, emoji: tp.emoji, group: tp.group, level: st.level }).id);
         }
-        location.hash = '#/';
+        location.hash = inv.after || '#/';
         A.route();
         A.i18n.ensure();
         ids.forEach((id) => A.jobs.generate(id));

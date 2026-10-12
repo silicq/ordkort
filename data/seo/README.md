@@ -16,3 +16,8 @@ it says so and links to the entry.
 
 A page is published only when it has at least 150 words of its own (`MIN_WORDS`); the generator prints the pages it left
 out. To add a word, add a line to `nb-frequent.txt` and an entry to `dict/`, run `npm run seo:ordbok`, then `npm run seo`.
+
+The button on every page opens the app with the page's language pair: `/#/dict/hus?from=ru&learn=nb` on a word,
+`/#/?from=ru&learn=nb&topic=food` on a topic. A first-time visitor starts the setup with those languages (and that
+topic) already chosen and lands on the word afterwards (`public/js/views/onboarding.js`); for someone who already
+uses the app the parameters change nothing.

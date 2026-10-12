@@ -13,6 +13,15 @@ Ordkort offers ready word lists for 29 topics and CEFR levels A1–C1 (generated
 - [العربية](https://ordkort.com/ar/)
 - [中文](https://ordkort.com/zh/)
 
+## Norwegian words, readable without the app
+
+Plain HTML pages for learners of Norwegian (Bokmål), in four interface languages: 29 topic word lists with forms and example sentences, and about 530 of the most common words, each with translations, the full inflection from Bokmålsordboka (University of Bergen and the Language Council of Norway, CC BY 4.0), examples, useful phrases and a note on typical mistakes.
+
+- [English: Norwegian by topic](https://ordkort.com/en/norwegian/) · [Norwegian–English dictionary](https://ordkort.com/en/ordbok/nb/)
+- [Русский: норвежский по темам](https://ordkort.com/ru/norvezhskij/) · [Норвежско-русский словарь](https://ordkort.com/ru/ordbok/nb/)
+- [Українська: норвезька за темами](https://ordkort.com/uk/norvezka/) · [Норвезько-український словник](https://ordkort.com/uk/ordbok/nb/)
+- [Norsk: gloser etter tema](https://ordkort.com/nb/norsk/) · [De vanligste norske ordene](https://ordkort.com/nb/ordbok/nb/)
+
 ## More
 
 - [The app](https://ordkort.com/): needs JavaScript

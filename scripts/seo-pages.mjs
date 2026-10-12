@@ -55,10 +55,15 @@ function article(lemma, pos, gender) {
 }
 const get = (a, ...keys) => { for (const k of keys) if (a.forms[k]?.length) return a.forms[k].join(' / '); return ''; };
 const articleOf = (a) => a.g.map((g) => ART[g]).join('/');
+// words used in the plural (klær, penger): no article, no singular column
+const plural = (a, lemma) => a?.wc === 'NOUN' && !a.forms['Sing+Ind'] || (a?.forms['Plur+Ind']?.includes(lemma) && !a.forms['Sing+Ind']?.includes(lemma));
 
 function formsTable(ui, a, lemma) {
   if (!a) return null;
   const L = UI[ui].table;
+  if (a.wc === 'NOUN' && plural(a, lemma)) {
+    return { headers: ['', L.pl], rows: [[L.ind, get(a, 'Plur+Ind') || lemma], [L.def, get(a, 'Plur+Def')]].filter((r) => r[1]) };
+  }
   if (a.wc === 'NOUN') {
     return { headers: ['', L.sg, L.pl], rows: [[L.ind, `${articleOf(a)} ${get(a, 'Sing+Ind') || lemma}`.trim(), get(a, 'Plur+Ind')], [L.def, get(a, 'Sing+Def'), get(a, 'Plur+Def')]] };
   }
@@ -74,11 +79,11 @@ function formsTable(ui, a, lemma) {
 }
 
 // the few forms a flashcard shows: "huset, hus, husene", "er, var, har vært", "stort, store, større, størst"
-function keyForms(a) {
+function keyForms(a, lemma) {
   if (!a) return '';
   // of two correct forms, the one textbooks teach first: "husene" rather than "husa"
   const first = (...k) => { const v = get(a, ...k).split(' / '); return v.find((x) => /ene$/.test(x)) || v[0]; };
-  const list = a.wc === 'NOUN' ? [first('Sing+Def'), first('Plur+Ind'), first('Plur+Def')]
+  const list = a.wc === 'NOUN' ? (plural(a, lemma) ? [first('Plur+Def')] : [first('Sing+Def'), first('Plur+Ind'), first('Plur+Def')])
     : a.wc === 'VERB' ? [first('Pres'), first('Past'), first('<PerfPart>') && `har ${first('<PerfPart>')}`]
       : a.wc === 'ADJ' ? [first('Pos+Neuter+Ind+Sing', 'Pos+Neuter'), first('Pos+Plur'), first('Cmp'), first('Sup+Ind')]
         : [];
@@ -87,7 +92,7 @@ function keyForms(a) {
 
 // headword as a learner sees it: "et hus", "å være", "stor"
 function headword(lemma, pos, a) {
-  if (pos === 'noun' && a?.g.length) return `${articleOf(a)} ${lemma}`;
+  if (pos === 'noun' && a?.g.length && !plural(a, lemma)) return `${articleOf(a)} ${lemma}`;
   if (pos === 'verb') return `å ${lemma}`;
   return lemma;
 }
@@ -108,6 +113,8 @@ const topicPath = (ui, id) => `/${ui}/${UI[ui].learn}/${slug(translit(t(ui, 'top
 const dictHubPath = (ui) => `/${ui}/ordbok/${LEARN}/`;
 const wordPath = (ui, w) => `/${ui}/ordbok/${LEARN}/${slug(w)}/`;
 const abs = (p) => SITE + p;
+// into the app with the language pair of the page: the first-run setup starts from it (public/js/views/onboarding.js)
+const invite = (ui) => (ui === LEARN ? `learn=${LEARN}` : `from=${ui}&amp;learn=${LEARN}`);
 const lang = (ui) => Landing.PAGES[ui];
 
 // topic word lists: the hand-made seed first, then words of the shared word bank it does not have yet
@@ -234,7 +241,7 @@ function wordPage(ui, w, live) {
   const head = headword(w, f.pos, a);
   const posLabel = [U.pos[f.pos], ...(f.pos === 'noun' && a ? a.g.map((g) => U.gender[g]) : [])].join(', ');
   const tr = ui === 'nb' ? e.nb : e.tr[ui];
-  const forms = keyForms(a);
+  const forms = keyForms(a, w);
   const table = formsTable(ui, a, w);
   const nbA = lang(ui).rtl ? ' lang="nb" dir="ltr"' : ' lang="nb"';
   const exIdx = { en: 1, ru: 2, uk: 3 }[ui];
@@ -265,7 +272,7 @@ function wordPage(ui, w, live) {
         <h1${nbA}>${esc(head)}</h1>
         <p class="t pos">${esc(posLabel)}</p>
         <p class="tr">${esc(tr)}</p>
-        <a class="t btn" href="/#/dict/${encodeURIComponent(w)}">${esc(U.ctaWord(w))}</a>
+        <a class="t btn" href="/#/dict/${encodeURIComponent(w)}?${invite(ui)}">${esc(U.ctaWord(w))}</a>
 ${table ? `        <section>
           <h2 class="t">${esc(U.formsH)}</h2>
           <div class="scroll"><table class="forms">${table.headers ? `<thead class="t"><tr>${table.headers.map((h) => `<th scope="col">${esc(h)}</th>`).join('')}</tr></thead>` : ''}<tbody>${table.rows.map((r) => `<tr><th class="t" scope="row">${esc(r[0])}</th>${r.slice(1).map((c) => `<td${nbA}>${esc(c)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>
@@ -308,7 +315,7 @@ ${rel.length ? `      <nav class="related" aria-label="${esc(U.relatedH)}">
         <h2>${esc(U.inTopicsH)}</h2>
         <ul class="chips">${topics.map((id) => `<li><a href="${topicPath(ui, id)}">${esc(t(ui, 'topic.' + id))}</a></li>`).join('')}</ul>
       </nav>
-` : ''}      <nav class="t pager">${prev ? `<a rel="prev" href="${wordPath(ui, prev)}"><small>${esc(U.prev)}</small><span${nbA}>${esc(prev)}</span></a>` : '<span></span>'}${next ? `<a rel="next" href="${wordPath(ui, next)}"><small>${esc(U.next)}</small><span${nbA}>${esc(next)}</span></a>` : ''}</nav>`;
+` : ''}      <nav class="t pager">${prev ? `<a rel="prev" href="${wordPath(ui, prev)}"><small>${esc(U.prev)}</small><span${nbA}>${esc(prev)}</span></a>` : ''}${next ? `<a rel="next" href="${wordPath(ui, next)}"><small>${esc(U.next)}</small><span${nbA}>${esc(next)}</span></a>` : ''}</nav>`;
 
   const alternates = Object.fromEntries(UIS.filter((u) => live.words[u].has(w)).map((u) => [u, wordPath(u, w)]));
   const graph = [
@@ -338,11 +345,11 @@ function topicPage(ui, id, live) {
 
   const body = `      <h1>${esc(U.topicH1(name))}</h1>
       ${d.intro[ui].map((p) => `<p class="lede">${esc(p)}</p>`).join('\n      ')}
-      <a class="t btn" href="/#/">${esc(U.ctaTopic)}</a>
+      <a class="t btn" href="/#/?${invite(ui)}&amp;topic=${id}">${esc(U.ctaTopic)}</a>
       <section>
         <h2 class="t">${esc(U.words(words.length))}</h2>
         <ul class="words">${words.map((x) => {
-    const f = keyForms(x.a) || '';
+    const f = keyForms(x.a, x.lemma) || '';
     const link = live.words[ui].has(x.lemma) ? wordPath(ui, x.lemma) : '';
     const term = `<span${nbA}>${esc(x.term)}</span>`;
     return `

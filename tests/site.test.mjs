@@ -249,7 +249,15 @@ test('structured data: a DefinedTerm for each word, an ItemList for each topic, 
     }
     assert.doesNotMatch(html, /<script(?! type="application\/ld\+json")/, `${f}: no scripts`);
     assert.ok(html.includes('href="/#/'), `${f}: a way into the app`);
+    // the way into the app carries the page's language pair, so the first-run setup starts from it
+    const ui = f.split('/')[0];
+    const pair = ui === 'nb' ? 'learn=nb' : `from=${ui}&amp;learn=nb`;
+    if (/\/ordbok\/nb\/[^/]+\/index\.html$/.test(f)) assert.match(html, new RegExp(`class="t btn" href="/#/dict/[^"?]+\\?${pair}"`), `${f}: app link`);
+    else if (/<ul class="words">/.test(html)) assert.match(html, new RegExp(`class="t btn" href="/#/\\?${pair}&amp;topic=[a-z]+"`), `${f}: app link`);
   }
+  const onb = read('public/js/views/onboarding.js');
+  assert.match(onb, /lang\('from'\)/);
+  assert.match(onb, /location\.hash = inv\.after \|\| '#\/'/);
 });
 
 test('the static pages stay out of the offline cache, and the Worker still runs only for the API', () => {
@@ -260,6 +268,12 @@ test('the static pages stay out of the offline cache, and the Worker still runs 
   for (const [code, learn] of [['en', 'norwegian'], ['ru', 'norvezhskij'], ['uk', 'norvezka'], ['nb', 'norsk']]) {
     const html = read(`public/${code}/index.html`);
     assert.ok(html.includes(`href="/${code}/${learn}/"`) && html.includes(`href="/${code}/ordbok/nb/"`), `${code}: links to the hubs`);
+    // so does the app's own page (its text for crawlers) and llms.txt
+    for (const hub of [`/${code}/${learn}/`, `/${code}/ordbok/nb/`]) {
+      assert.ok(read('public/index.html').includes(`href="${hub}"`), `index.html → ${hub}`);
+      assert.ok(read('public/llms.txt').includes(`https://ordkort.com${hub}`), `llms.txt → ${hub}`);
+      assert.ok(built.pages.has(fileOf(hub)), `${hub} is a page`);
+    }
   }
 });
 
