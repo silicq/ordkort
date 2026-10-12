@@ -280,7 +280,7 @@ const LOGO = '<svg class="logo" viewBox="0 0 40 40" width="34" height="34" aria-
   + '<path d="M12 20.6l12.8-1.35M12.6 26.2l9-.95" stroke="var(--ink)" stroke-width="2.4" stroke-linecap="round" opacity=".28"/></svg>';
 
 /* The same card index as the app (css/style.css): warm paper, cards with a red rule and blue lines,
-   buttons with an edge, Geologica for the interface and Literata for the words being learnt. No scripts. */
+   buttons with an edge, Geologica for the interface, Literata for headings and the words being learnt. No scripts. */
 const STYLE = `
 :root{--paper:#f4efe6;--paper-2:#ebe4d6;--card:#fffdf8;--ink:#1d1a16;--ink-2:#5a5347;--ink-3:#8f877a;--line:#e4dccc;--line-2:#d2c7b2;
 --blue:#2f4bd9;--blue-ink:#2139b0;--blue-edge:#1d2f96;--red:#d9481f;--yellow-soft:#fbf0ce;--rule:rgba(47,75,217,.1);--red-line:rgba(217,72,31,.5);--noise:.05;
@@ -301,18 +301,19 @@ a{color:var(--blue-ink)}
 .langs a{display:block;padding:6px 13px;border-radius:999px;color:var(--ink-2);font:550 14px/1.2 var(--ui);text-decoration:none;transition:color .15s,background .15s}
 .langs a:hover{color:var(--ink)}
 .langs a[aria-current]{background:var(--card);color:var(--ink);box-shadow:0 1px 0 var(--line-2),0 3px 10px -5px rgba(0,0,0,.18)}
-h1{font:650 clamp(36px,5vw,58px)/1.08 var(--ui);letter-spacing:-.025em;margin:0 0 18px;text-wrap:balance}
-h2{font:650 clamp(24px,3vw,32px)/1.2 var(--ui);letter-spacing:-.015em;margin:0 0 22px}
-h3{font:650 17px/1.3 var(--ui);letter-spacing:-.01em;margin:0}
+h1{font:700 clamp(34px,5.2vw,56px)/1.08 var(--serif);margin:0 0 18px;letter-spacing:-.01em}
+h2{font:700 clamp(26px,3.4vw,34px)/1.2 var(--serif);margin:0 0 20px}
+h3{font-size:18px;margin:0}
 .hero{display:grid;grid-template-columns:1.1fr 1fr;gap:56px;align-items:center;padding:48px 0 80px}
 .lede{font-size:clamp(17px,1.8vw,19px);color:var(--ink-2);margin:0 0 30px;max-width:34em}
 .ctas{display:flex;flex-wrap:wrap;gap:12px}
-.btn{--bg:var(--card);--fg:var(--ink);--edge:var(--line-2);display:inline-flex;align-items:center;gap:8px;padding:15px 24px;border-radius:16px;border:1.5px solid var(--edge);background:var(--bg);color:var(--fg);
-font:600 16.5px/1.2 var(--ui);text-decoration:none;white-space:nowrap;box-shadow:0 3px 0 var(--edge);transition:transform .08s ease,box-shadow .08s ease,filter .15s,background .15s}
+.btn{--bg:var(--card);--fg:var(--ink);--edge:var(--line-2);display:inline-flex;align-items:center;gap:8px;padding:14px 28px;border-radius:14px;border:0;background:var(--bg);color:var(--fg);
+font:700 18px/1.2 var(--ui);text-decoration:none;white-space:nowrap;box-shadow:0 4px 0 var(--edge);transition:transform .08s ease,box-shadow .08s ease,filter .15s,background .15s}
 .btn:hover{filter:brightness(1.04)}
-.btn:active{transform:translateY(2px);box-shadow:0 1px 0 var(--edge)}
+.btn:active{transform:translateY(2px);box-shadow:0 2px 0 var(--edge)}
 .btn-primary{--bg:var(--blue);--fg:#fff;--edge:var(--blue-edge)}
-.btn-ghost{--bg:transparent}
+.btn-ghost{--bg:transparent;box-shadow:inset 0 0 0 1.5px var(--edge),0 4px 0 var(--edge)}
+.btn-ghost:active{box-shadow:inset 0 0 0 1.5px var(--edge),0 2px 0 var(--edge)}
 .btn-ghost:hover{--bg:var(--card)}
 .note{margin:18px 0 0;color:var(--ink-3);font-size:14.5px}
 /* a study session in miniature: the top card turns over, goes away, the next one comes up (paused under the pointer) */
@@ -353,19 +354,16 @@ section{padding:60px 0;border-top:1px solid var(--line)}
 .links{display:flex;gap:18px;flex-wrap:wrap;font-weight:600}
 .lang-list{display:flex;flex-wrap:wrap;gap:8px;margin:0;padding:0;list-style:none}
 .lang-list li{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:4px 12px;font-size:15px}
-details{background:var(--card);border:1.5px solid var(--line);border-radius:16px;padding:0 20px;margin-bottom:10px}
-summary{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:16px 0;cursor:pointer;font-weight:600;list-style:none}
-summary::-webkit-details-marker{display:none}
-summary::after{content:'+';flex-shrink:0;font:400 24px/1 var(--ui);color:var(--ink-3);transition:transform .2s}
-details[open] summary::after{transform:rotate(45deg)}
-details p{margin:0 0 18px;color:var(--ink-2)}
+details{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 18px;margin-bottom:10px}
+summary{cursor:pointer;font-weight:600}
+details p{margin:10px 0 2px;color:var(--ink-2)}
 .end{text-align:center}
-.end p{color:var(--ink-2);margin:0 auto 26px;max-width:34em}
+.end p{color:var(--ink-2);margin:0 auto 24px;max-width:34em}
 footer{border-top:1px solid var(--line);padding:26px 0 40px;color:var(--ink-3);font-size:14px;display:flex;gap:18px;flex-wrap:wrap}
 footer a{color:var(--ink-2)}
 @media (max-width:820px){.hero{grid-template-columns:1fr;gap:44px;padding:24px 0 64px}.demo{height:240px}}
 @media (prefers-reduced-motion:reduce){.fc,.fc-in{animation:none}}
-:lang(ar){line-height:1.8}
+:lang(ar){line-height:1.8}:lang(ar) h1,:lang(ar) h2{font-family:'Noto Naskh Arabic',var(--serif)}
 `;
 
 function jsonLd(code, p) {
