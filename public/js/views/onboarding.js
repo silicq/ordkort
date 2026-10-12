@@ -54,12 +54,30 @@
         return [q, grid];
       };
 
+      // three cards to try before choosing anything: a tap turns one over to its translation and an example
+      const SAMPLES = [
+        ['nb', 'et hus', 'Vi bor i et rødt hus.'],
+        ['es', 'la mariposa', 'La mariposa vuela.'],
+        ['zh', '朋友', '他是我的好朋友。'],
+      ];
+      const miniCard = ([lang, word, example], i) => {
+        const card = h('button', {
+          class: `mini-card c${i + 1}`, type: 'button', 'aria-pressed': 'false',
+          onclick: () => card.setAttribute('aria-pressed', String(card.classList.toggle('flipped'))),
+        },
+          h('span', { class: 'mini-in' },
+            h('span', { class: 'mini-face' },
+              h('span', { class: 'serif', lang }, word),
+              h('small', { lang }, A.langs.name(lang))),
+            h('span', { class: 'mini-face mini-back' },
+              h('span', { class: 'serif' }, t(`onb.c${i + 1}`)),
+              h('small', { class: 'mini-ex', lang }, example))));
+        return card;
+      };
+
       const steps = [
         () => h('section', { class: 'onb-hero' },
-          h('div', { class: 'onb-cards', 'aria-hidden': 'true' },
-            h('div', { class: 'mini-card c1' }, h('span', { class: 'serif' }, 'et hus'), h('small', null, 'hus · house')),
-            h('div', { class: 'mini-card c2' }, h('span', { class: 'serif' }, 'la mariposa'), h('small', null, 'butterfly')),
-            h('div', { class: 'mini-card c3' }, h('span', { class: 'serif', lang: 'zh' }, '朋友'), h('small', null, 'péngyou · friend'))),
+          h('div', { class: 'onb-cards' }, SAMPLES.map(miniCard), h('p', { class: 'onb-tap' }, t('onb.tap'))),
           A.rich(t('onb.title'), 'h1'),
           h('p', { class: 'lede' }, t('onb.lede')),
           h('ul', { class: 'onb-feats' },
