@@ -81,8 +81,10 @@
         if (!r) return;
         const toks = Array.isArray(r.tokens) ? r.tokens.filter((x) => x && x.t && !/^[\p{P}\p{S}\s]+$/u.test(x.t)) : [];
         const analyzedIsSource = r.analyzed === 'source';
-        const srcLang = r.source_lang || (st.from !== 'auto' ? st.from : '');
-        const dstLang = r.target_lang || st.to;
+        // the AI names Norwegian by its ISO 639-1 code "no"; the site knows Bokmål and Nynorsk
+        const code = (c) => (c === 'no' ? (s.target === 'nn' || s.native === 'nn' ? 'nn' : 'nb') : c);
+        const srcLang = code(r.source_lang) || (st.from !== 'auto' ? st.from : '');
+        const dstLang = code(r.target_lang) || st.to;
         const aLang = analyzedIsSource ? srcLang : dstLang;
         const oLang = analyzedIsSource ? dstLang : srcLang;
 
