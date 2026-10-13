@@ -180,23 +180,29 @@
     window.scrollTo(0, y);
   }
 
-  /* ---------- background word generation (one job at a time, to stay within the limits) ---------- */
+  /* ---------- background word generation (one job at a time, to stay within the limits) ----------
+     When the AI is busy or the connection drops, a job waits in the queue and tries again a few times,
+     so a deck made during a rush is not left empty; the error is shown only when the last try fails. */
   const jobs = new Map();
   const queue = [];
+  const RETRY = [20e3, 60e3, 180e3];
+  const PASSING = ['busy', 'rate', 'network'];
   let busy = false;
 
   function generate(deckId, n) {
     if (jobs.has(deckId)) return;
     jobs.set(deckId, { label: t('gen.queued') });
-    queue.push({ deckId, n: n || A.store.settings.batch });
+    queue.push({ deckId, n: n || A.store.settings.batch, tries: 0 });
     refresh();
     pump();
   }
   async function pump() {
     if (busy || !queue.length) return;
     busy = true;
-    const { deckId, n } = queue.shift();
+    const job = queue.shift();
+    const { deckId, n } = job;
     const d = A.store.deck(deckId);
+    let again = false;
     try {
       if (!d) return;
       jobs.set(deckId, { label: t('gen.working') });
@@ -208,15 +214,28 @@
         n,
       });
       const added = A.store.addCards(deckId, words.map((w) => ({ ...w, src: 'bank' })));
+      if (d.topic && !d.filled) A.store.updateDeck(deckId, { filled: 1 });
       checker.run(); // words the server had no time to check
       A.toast(added ? A.tn('gen.added', added, { deck: A.deckTitle(d) }) : t('gen.none'), added ? 'ok' : '');
     } catch (e) {
-      A.toast(A.ai.errorText(e), 'error');
+      again = PASSING.includes(e?.kind) && job.tries < RETRY.length;
+      if (again) {
+        jobs.set(deckId, { label: t('gen.queued') });
+        setTimeout(() => { queue.push({ ...job, tries: job.tries + 1 }); pump(); }, RETRY[job.tries]);
+      } else A.toast(A.ai.errorText(e), 'error');
     } finally {
-      jobs.delete(deckId);
+      if (!again) jobs.delete(deckId);
       busy = false;
       refresh();
       pump();
+    }
+  }
+  /* a topic deck that never got its words (the tab was closed, or every try failed) gets them on the next visit */
+  function refill() {
+    if (!A.store.ready) return;
+    const week = 7 * 864e5;
+    for (const d of A.store.decks()) {
+      if (d.topic && !d.filled && Date.now() - d.created < week && !A.store.cards(d.id).length) generate(d.id);
     }
   }
   A.jobs = { generate, state: (id) => jobs.get(id) || null };
@@ -352,6 +371,7 @@
     prefersDark.addEventListener?.('change', () => { applyTheme(); if (A.store.settings?.theme === 'auto') route(); });
     A.sync.start();
     route();
+    refill();
     updater.check().then((stale) => stale && updater.apply()); // opened with an old copy: load the new one now
     A.i18n.ensure();
     // offline mode: the site itself is cached by a service worker; AI features need the network.
