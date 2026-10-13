@@ -15,7 +15,8 @@
     "seo:bank": "node scripts/export-bank.mjs",
     "seo:ordbok": "node scripts/fetch-ordbok.mjs",
     "deploy": "wrangler deploy",
-    "warm": "node scripts/warm.mjs"
+    "warm": "node scripts/warm.mjs",
+    "indexnow": "node scripts/indexnow.mjs"
   },
   "devDependencies": {
     "jsqr": "^1.4.0",
