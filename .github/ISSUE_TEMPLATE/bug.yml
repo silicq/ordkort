@@ -1,0 +1,24 @@
+name: Something is broken
+description: A screen that does not work, an error, lost cards, a layout problem
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you did, what you expected and what you saw instead. A screenshot helps a lot.
+    validations:
+      required: true
+  - type: input
+    id: device
+    attributes:
+      label: Device and browser
+      placeholder: iPhone 13, Safari, added to Home Screen
+    validations:
+      required: true
+  - type: input
+    id: langs
+    attributes:
+      label: Languages
+      description: The language you learn and the language of the interface
+      placeholder: learning Norwegian, interface in English

@@ -1,6 +1,34 @@
-# Ordkort — flashcards, dictionary and grammar for any language
+<div align="center">
 
-**[ordkort.com](https://ordkort.com)** · free · no sign-up · no ads · no tracking
+<a href="https://ordkort.com"><img src="public/icons/icon-192.png" width="72" height="72" alt=""></a>
+
+# Ordkort
+
+**Flashcards, a real dictionary and grammar for 60 languages.**<br>
+Free · no sign-up · no ads · no tracking · works offline
+
+[**Open ordkort.com →**](https://ordkort.com) &nbsp;·&nbsp; [About](https://ordkort.com/en/) &nbsp;·&nbsp; [Contributing](CONTRIBUTING.md) &nbsp;·&nbsp; [Report a problem](https://github.com/silicq/ordkort/issues/new/choose)
+
+[![Tests](https://github.com/silicq/ordkort/actions/workflows/test.yml/badge.svg)](https://github.com/silicq/ordkort/actions/workflows/test.yml)
+[![License: AGPL-3.0](https://img.shields.io/badge/license-AGPL--3.0-blue)](LICENSE)
+[![Languages](https://img.shields.io/badge/languages-60-orange)](https://ordkort.com)
+
+<img src="docs/demo.gif" width="300" alt="A study session: a Norwegian card turns over to its translation and an example, then the next card comes in">
+
+</div>
+
+## Why
+
+Anki is powerful but starts empty, and you build every deck yourself. Most other apps want an account, a
+subscription or your data. Ordkort gives you **ready word lists for 29 topics and levels A1–C1** with the same
+**FSRS** scheduler that Anki offers, plus a dictionary, a grammar book and a translator that explains every
+word. AI writes the cards, and they are **checked against real dictionaries**: the official Norwegian
+dictionaries at ordbokene.no, and Wiktionary for other languages. Everything stays in your browser; devices
+sync without an account, end-to-end encrypted.
+
+<p align="center"><img src="docs/screens.png" alt="Four screens: a flashcard, a dictionary entry with an inflection table, the translator explaining each word, and the daily session"></p>
+
+## Features
 
 Ordkort is a lightweight site for learning almost any language from almost any other one:
 
@@ -168,6 +196,16 @@ npm run deploy
   by a daily scheduled task.
 - Cloudflare’s network absorbs volumetric attacks. On a custom domain you can additionally enable
   a WAF rate-limiting rule for `/api/*` and Bot Fight Mode.
+
+## Contributing
+
+The easiest ways to help, no code needed: **translate the interface** into your language (one file, about
+550 short strings), **report a wrong word** with the button on any card or dictionary entry, or
+[open an issue](https://github.com/silicq/ordkort/issues/new/choose) about anything that confused you.
+Code is welcome too; see [CONTRIBUTING.md](CONTRIBUTING.md). Questions and ideas go to
+[Discussions](https://github.com/silicq/ordkort/discussions).
+
+If Ordkort helps you learn, a ⭐ on GitHub helps other learners find it.
 
 ## License
 

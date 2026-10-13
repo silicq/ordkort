@@ -1,0 +1,21 @@
+name: Translate the interface
+description: Offer or send a hand translation of the interface into your language
+labels: [translation, good first issue]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you! The steps are in [CONTRIBUTING.md](https://github.com/silicq/ordkort/blob/main/CONTRIBUTING.md#translate-the-interface).
+        You can send a pull request, or attach the translated copy of `public/js/i18n/en.js` here.
+  - type: input
+    id: lang
+    attributes:
+      label: Language
+      placeholder: German (de)
+    validations:
+      required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: The file or notes
+      description: Attach the file, or say that you are working on it so nobody does it twice.

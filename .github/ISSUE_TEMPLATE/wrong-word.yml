@@ -1,0 +1,25 @@
+name: A wrong word, form or translation
+description: An article, inflection, translation or example that is wrong, and keeps coming back after "Report a mistake"
+labels: [content]
+body:
+  - type: input
+    id: word
+    attributes:
+      label: The word
+      placeholder: et hus
+    validations:
+      required: true
+  - type: input
+    id: langs
+    attributes:
+      label: Language pair
+      placeholder: Norwegian → English
+    validations:
+      required: true
+  - type: textarea
+    id: wrong
+    attributes:
+      label: What is wrong and what is right
+      description: A link to a dictionary that shows the right form is the best proof.
+    validations:
+      required: true
