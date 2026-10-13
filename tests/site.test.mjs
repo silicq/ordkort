@@ -233,6 +233,20 @@ test('no thin pages: each has 150 words of its own, and no paragraph is repeated
   assert.equal(S.contentWords(html), 5);
 });
 
+test('the page for teachers gives every topic a link into the app, and the pages about the site link to it', async () => {
+  const { TEACH } = await import('../scripts/teachers-text.mjs');
+  const topics = (await import('../public/js/topics.js'), globalThis.App.topics.list);
+  for (const [ui, T] of Object.entries(TEACH)) {
+    const html = built.pages.get(fileOf(T.path));
+    assert.ok(html, `${T.path} is built`);
+    for (const x of topics) {
+      const href = `/#/?${T.from ? `from=${ui}&amp;` : ''}learn=nb&amp;topic=${x.id}`;
+      assert.ok(html.includes(`href="${href}"`), `${T.path}: ${x.id}`);
+    }
+    assert.ok(read(`public/${ui}/index.html`).includes(`href="${T.path}"`), `/${ui}/ links to ${T.path}`);
+  }
+});
+
 test('structured data: a DefinedTerm for each word, an ItemList for each topic, breadcrumbs everywhere', () => {
   for (const [f, html] of seoPages) {
     const ld = JSON.parse(one(html, /<script type="application\/ld\+json">([\s\S]*?)<\/script>/));

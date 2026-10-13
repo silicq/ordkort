@@ -22,6 +22,12 @@ Plain HTML pages for learners of Norwegian (Bokmål), in four interface language
 - [Українська: норвезька за темами](https://ordkort.com/uk/norvezka/) · [Норвезько-український словник](https://ordkort.com/uk/ordbok/nb/)
 - [Norsk: gloser etter tema](https://ordkort.com/nb/norsk/) · [De vanligste norske ordene](https://ordkort.com/nb/ordbok/nb/)
 
+## For teachers of Norwegian
+
+How to give a class a topic with one link (each learner picks the language of the translations), how to share a word list by link or QR code, and what Ordkort keeps private.
+
+- [Norsk: Ordkort i norskopplæringen](https://ordkort.com/nb/laerer/) · [English: Ordkort in a Norwegian class](https://ordkort.com/en/teachers/) · [Українська](https://ordkort.com/uk/vykladacham/) · [Русский](https://ordkort.com/ru/prepodavatelyam/)
+
 ## More
 
 - [The app](https://ordkort.com/): needs JavaScript

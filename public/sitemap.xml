@@ -18013,4 +18013,36 @@
     <xhtml:link rel="alternate" hreflang="nb" href="https://ordkort.com/nb/ordbok/nb/regne/"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://ordkort.com/en/ordbok/nb/regne/"/>
   </url>
+  <url>
+    <loc>https://ordkort.com/en/teachers/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://ordkort.com/en/teachers/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://ordkort.com/ru/prepodavatelyam/"/>
+    <xhtml:link rel="alternate" hreflang="uk" href="https://ordkort.com/uk/vykladacham/"/>
+    <xhtml:link rel="alternate" hreflang="nb" href="https://ordkort.com/nb/laerer/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://ordkort.com/en/teachers/"/>
+  </url>
+  <url>
+    <loc>https://ordkort.com/ru/prepodavatelyam/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://ordkort.com/en/teachers/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://ordkort.com/ru/prepodavatelyam/"/>
+    <xhtml:link rel="alternate" hreflang="uk" href="https://ordkort.com/uk/vykladacham/"/>
+    <xhtml:link rel="alternate" hreflang="nb" href="https://ordkort.com/nb/laerer/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://ordkort.com/en/teachers/"/>
+  </url>
+  <url>
+    <loc>https://ordkort.com/uk/vykladacham/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://ordkort.com/en/teachers/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://ordkort.com/ru/prepodavatelyam/"/>
+    <xhtml:link rel="alternate" hreflang="uk" href="https://ordkort.com/uk/vykladacham/"/>
+    <xhtml:link rel="alternate" hreflang="nb" href="https://ordkort.com/nb/laerer/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://ordkort.com/en/teachers/"/>
+  </url>
+  <url>
+    <loc>https://ordkort.com/nb/laerer/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://ordkort.com/en/teachers/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://ordkort.com/ru/prepodavatelyam/"/>
+    <xhtml:link rel="alternate" hreflang="uk" href="https://ordkort.com/uk/vykladacham/"/>
+    <xhtml:link rel="alternate" hreflang="nb" href="https://ordkort.com/nb/laerer/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://ordkort.com/en/teachers/"/>
+  </url>
 </urlset>

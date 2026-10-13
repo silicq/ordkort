@@ -5,6 +5,7 @@
 // and commit the result (a test checks that the files are up to date).
 import '../public/js/langs.js';
 import { UI as SEO, LEARN } from './seo-text.mjs';
+import { TEACH } from './teachers-text.mjs';
 
 const SITE = 'https://ordkort.com';
 const REPO = 'https://github.com/silicq/ordkort';
@@ -453,7 +454,7 @@ ${ogAlt}
 ${SEO[code] ? `      <section>
         <h2>${esc(SEO[code].hubsH)}</h2>
         <p>${esc(SEO[code].hubsP)}</p>
-        <p class="links"><a href="/${code}/${SEO[code].learn}/">${esc(SEO[code].alsoTopics)}</a><a href="/${code}/ordbok/${LEARN}/">${esc(SEO[code].alsoDict)}</a></p>
+        <p class="links"><a href="/${code}/${SEO[code].learn}/">${esc(SEO[code].alsoTopics)}</a><a href="/${code}/ordbok/${LEARN}/">${esc(SEO[code].alsoDict)}</a>${TEACH[code] ? `<a href="${TEACH[code].path}">${esc(TEACH[code].nav)}</a>` : ''}</p>
       </section>
 ` : ''}      <section>
         <h2>${esc(p.languagesH)}</h2>

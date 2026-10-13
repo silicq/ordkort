@@ -10,6 +10,7 @@ import { readFileSync, writeFileSync, mkdirSync, rmSync, existsSync, readdirSync
 import { fileURLToPath } from 'node:url';
 import * as Landing from './landing.mjs';
 import { UI, UIS, LEARN, slug, translit } from './seo-text.mjs';
+import { TEACH } from './teachers-text.mjs';
 import '../public/js/topics.js';
 import '../public/js/i18n/en.js';
 import '../public/js/i18n/ru.js';
@@ -409,6 +410,48 @@ ${App.topics.groups.map((g) => {
   return { path, title, desc, alternates, body, graph, crumbs: [[U.home, `/${ui}/`], [U.topicsHub, path]] };
 }
 
+/* ---------- for teachers ---------- */
+
+function teachersPage(ui) {
+  const T = TEACH[ui], U = UI[ui], path = T.path;
+  // the learners choose their own language, unless the page is for a class that shares the teacher's
+  const into = (id) => `/#/?${T.from ? `from=${ui}&amp;` : ''}learn=${LEARN}&amp;topic=${id}`;
+  const body = `      <h1>${esc(T.h1)}</h1>
+      ${T.lede.map((p) => `<p class="lede">${esc(p)}</p>`).join('\n      ')}
+      <p><a class="t btn" href="/#/?${T.from ? `from=${ui}&amp;` : ''}learn=${LEARN}">${esc(T.cta)}</a></p>
+      <section>
+        <h2 class="t">${esc(T.getH)}</h2>
+        <ul>${T.get.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>
+      </section>
+      <section>
+        <h2 class="t">${esc(T.topicH)}</h2>
+        <p>${esc(T.topicP)}</p>
+        <ul class="topics">${App.topics.list.map((x) => `
+          <li><a href="${into(x.id)}"><span class="t emoji" aria-hidden="true">${x.emoji}</span><b>${esc(t(ui, 'topic.' + x.id))}</b></a></li>`).join('')}
+        </ul>
+        <p class="note">${esc(T.topicNote)}</p>
+      </section>
+      <section>
+        <h2 class="t">${esc(T.ownH)}</h2>
+        <ol>${T.own.map((x) => `<li>${esc(x)}</li>`).join('')}</ol>
+        <p>${esc(T.ownNote)}</p>
+      </section>
+      <section>
+        <h2 class="t">${esc(T.privacyH)}</h2>
+        ${T.privacy.map((p) => `<p>${esc(p)}</p>`).join('\n        ')}
+      </section>
+      <section>
+        <h2 class="t">${esc(T.limitsH)}</h2>
+        ${T.limits.map((p) => `<p>${esc(p)}</p>`).join('\n        ')}
+      </section>
+      <p class="t links"><a href="${topicsHubPath(ui)}">${esc(U.alsoTopics)}</a><a href="${dictHubPath(ui)}">${esc(U.alsoDict)}</a></p>`;
+  const alternates = Object.fromEntries(UIS.filter((u) => TEACH[u]).map((u) => [u, TEACH[u].path]));
+  const graph = [
+    { '@type': 'WebPage', '@id': abs(path), url: abs(path), name: T.title, description: T.desc, inLanguage: lang(ui).hreflang, isPartOf: { '@id': `${SITE}/#site` }, breadcrumb: { '@id': abs(path) + '#crumbs' }, audience: { '@type': 'EducationalAudience', educationalRole: 'teacher' }, about: { '@id': `${SITE}/#app` } },
+  ];
+  return { path, title: T.title, desc: T.desc, alternates, body, graph, crumbs: [[U.home, `/${ui}/`], [T.nav, path]] };
+}
+
 const letterOf = (w) => w[0].toUpperCase();
 const letterId = (l) => 'l-' + slug(l);
 
@@ -481,6 +524,7 @@ export function build() {
     if (live.words[ui].size) add(ui, dictHub(ui, live));
     for (const f of FREQ) if (live.words[ui].has(f.w)) add(ui, wordPage(ui, f.w, live));
   }
+  for (const ui of UIS) if (TEACH[ui]) add(ui, teachersPage(ui));
   return { pages, sitemaps: sitemaps(entries), thin: [...thin].map(([k, n]) => `${k} (${n})`), live };
 }
 

@@ -94,7 +94,8 @@ scripts/build.mjs  writes public/js/build.js; wrangler runs it before every depl
 scripts/landing.mjs  plain pages about the site for search engines (public/<lang>/, 6 languages)
 scripts/seo-pages.mjs  static Norwegian pages for search engines, in English, Russian, Ukrainian and Norwegian:
                    29 topic word lists (/<ui>/<learn>/<topic>/), ~530 dictionary entries (/<ui>/ordbok/nb/<word>/),
-                   two hubs per language, the pages above and sitemap.xml. Content in data/seo/ (see its README);
+                   two hubs and a page for teachers per language (texts in scripts/teachers-text.mjs),
+                   the pages above and sitemap.xml. Content in data/seo/ (see its README);
                    run `npm run seo` after changing it (a test checks the files are up to date)
 data/seo/          the words, translations and examples of those pages, official forms from Bokmålsordboka
 tests/             node:test suites (see below)
