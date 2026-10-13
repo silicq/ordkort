@@ -14,7 +14,8 @@
     "landing": "node scripts/seo-pages.mjs",
     "seo:bank": "node scripts/export-bank.mjs",
     "seo:ordbok": "node scripts/fetch-ordbok.mjs",
-    "deploy": "wrangler deploy"
+    "deploy": "wrangler deploy",
+    "warm": "node scripts/warm.mjs"
   },
   "devDependencies": {
     "jsqr": "^1.4.0",
