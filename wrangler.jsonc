@@ -19,8 +19,9 @@
     { "binding": "DB", "database_name": "ordkort" }
   ],
 
-  // Once a day: delete expired limit counters, link codes and abandoned sync copies
-  "triggers": { "crons": ["17 3 * * *"] },
+  // Once a day: delete expired limit counters, link codes and abandoned sync copies.
+  // Every 15 minutes: fill one more group of the shared word bank while the site is quiet (src/warm.js)
+  "triggers": { "crons": ["17 3 * * *", "*/15 * * * *"] },
 
   // Request logs are off: the site keeps nothing unnecessary about its visitors
   "observability": { "enabled": false },
@@ -30,7 +31,10 @@
   "vars": {
     "AI_PER_HOUR": "40",
     "AI_PER_DAY": "120",
-    "AI_DAILY_BUDGET": "2500"
+    "AI_DAILY_BUDGET": "2500",
+    // How many lists of words the cron may generate a day for the bank of ready decks (src/warm.js).
+    // Groq's free plan gives each model 200,000 tokens a day, about 100–150 answers for the whole site: keep this small
+    "WARM_PER_DAY": "24"
   },
 
   // Branch previews (npx wrangler preview) inherit nothing from the settings above.

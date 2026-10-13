@@ -1,8 +1,11 @@
 /* Fills the shared word bank ahead of time, so that new visitors get their first decks from the bank
-   without waiting for the AI and without using the site's daily AI budget (useful before a launch).
+   without waiting for the AI and without using the site's daily AI budget. The Worker's cron does this on its own,
+   slowly and only while the site is quiet (src/warm.js); this script is a quicker push by hand, before a launch.
    It asks the live API exactly as the app does, so it is held to the same limits as one person:
-   40 generations an hour, 120 a day. Run it again on another day to go on; groups already in the bank
-   cost nothing.
+   40 generations an hour, 120 a day. It stops after --max generations (25 by default): Groq's free plan gives
+   each model 200,000 tokens in any 24 hours, about 100–150 AI answers a day for the whole site, and a list of
+   words takes 5,000–7,000, so a long run leaves visitors with "the AI is overloaded" for the rest of the day.
+   Run it again on another day to go on; groups already in the bank cost nothing.
 
      npm run warm                         the default plan (first decks for popular pairs, then all topics)
      npm run warm -- --pairs nb:en,nb:uk --topics greetings,core --levels A1,A2
@@ -18,6 +21,7 @@ const arg = (name, def) => {
 const list = (s) => String(s).split(',').map((x) => x.trim()).filter(Boolean);
 const BASE = arg('base', 'https://ordkort.com');
 const N = 30; // the most one request may ask for; one generation then fills a group for 30 words
+const MAX = Number(arg('max', 25)); // AI generations in one run (the bank ones are free)
 const ALL = App.topics.list.map((t) => t.id);
 const FIRST = ['greetings', 'core', 'numbers']; // what the setup picks for a newcomer
 
@@ -83,6 +87,7 @@ for (const [i, p] of plan.entries()) {
   if (r.status !== 200) { done.failed++; console.log(`${tag}: HTTP ${r.status} ${r.data.error || ''}`); continue; }
   const src = r.data.source;
   done[src === 'bank' ? 'bank' : 'ai']++;
+  if (done.ai >= MAX) { console.log(`${tag}: ${MAX} generations, the most for one run (--max)`); break; }
   console.log(`${tag}: ${r.data.words?.length ?? 0} words from the ${src === 'bank' ? 'bank' : 'AI'}`);
   if (src !== 'bank') await sleep(8e3); // keep well inside the AI's per-minute limit, which the site shares
 }

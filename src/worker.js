@@ -6,6 +6,9 @@ import { clientKey, burst } from './limits.js';
 import { HttpError, errorResponse } from './util.js';
 import * as api from './api.js';
 import * as sync from './sync.js';
+import { warmOne } from './warm.js';
+
+const DAILY = '17 3 * * *'; // the daily cron in wrangler.jsonc; the other one fills the word bank
 
 const POST = {
   words: api.words,
@@ -62,8 +65,10 @@ export default {
     }
   },
 
-  // once a day: delete expired counters and codes, and long-abandoned copies
+  // once a day: delete expired counters and codes, and long-abandoned copies;
+  // every 15 minutes: one more group of ready words for the shared bank, while the site is quiet (src/warm.js)
   async scheduled(event, env, ctx) {
-    ctx.waitUntil(initDB(env.DB).then(() => cleanup(env.DB)));
+    if (event.cron === DAILY) ctx.waitUntil(initDB(env.DB).then(() => cleanup(env.DB)));
+    else ctx.waitUntil(initDB(env.DB).then(() => warmOne(env)).then((r) => console.log('warm:', r), (e) => console.log('warm failed:', e.message)));
   },
 };

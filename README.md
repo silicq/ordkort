@@ -89,6 +89,8 @@ src/               Cloudflare Worker — runs only for /api/*
   wiktionary.js    Wiktionary for other languages: checks cards, and the entry shown in the dictionary
   groq.js          Groq client with model fallback
   limits.js        burst, hourly, daily and site-wide limits
+  warm.js          a base of ready decks: every 15 minutes, while the site is quiet, the cron fills one more
+                   group of the shared word bank, from the decks used most to the rarer ones
   sync.js          device sync and one-time codes (the server only ever sees ciphertext)
   db.js            D1: the schema is created automatically on the first request
 scripts/build.mjs  writes public/js/bundle.js (the scripts listed in scripts/bundle.mjs, minified by esbuild)
@@ -116,6 +118,12 @@ so the API can’t be used as someone else’s free chatbot.
 `AI_PER_HOUR` = 40 and `AI_PER_DAY` = 120 per person, `AI_DAILY_BUDGET` = 2500 for the whole site.
 A person is identified by a hash of the IP address with a salt that changes every day;
 the IP itself is never stored.
+
+**What the AI can carry.** Groq's free plan gives each of the three models 200,000 tokens in any 24 hours.
+A list of words takes 5,000–7,000 tokens, a dictionary entry or a translation a few thousand, so the whole site
+gets about 100–150 new AI answers a day; everything already generated (the shared cache and word bank) costs
+nothing. That is why the bank of ready decks matters: the cron fills it slowly (`WARM_PER_DAY`, 24 lists a day,
+about a fifth of the capacity), and `npm run warm` stops after 25 lists. A paid Groq plan lifts the limit.
 
 **Sync without accounts.** A random 32-byte secret exists only on the user’s devices. It derives the
 copy’s id, a write token and an AES-256-GCM key. The server stores ciphertext and a hash of the token.
