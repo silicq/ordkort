@@ -29,6 +29,7 @@ export async function groq(env, { system, user, max = 2500, temperature = 0.35, 
   if (!env.GROQ_API_KEY) throw new HttpError(503, 'not_configured');
   const models = (env.GROQ_MODELS ? String(env.GROQ_MODELS).split(',').map((s) => s.trim()) : DEFAULT_MODELS).filter(Boolean);
   let waited = 0;
+  let room = max; // the answer's token limit; lowered when the plan's per-minute limit cannot fit the request
 
   for (let attempt = 0; attempt < 8; attempt++) {
     const now = Date.now();
@@ -41,7 +42,7 @@ export async function groq(env, { system, user, max = 2500, temperature = 0.35, 
       continue;
     }
     const body = {
-      model, temperature, max_completion_tokens: max,
+      model, temperature, max_completion_tokens: room,
       response_format: { type: 'json_object' },
       messages: [{ role: 'system', content: system }, { role: 'user', content: user }],
     };
@@ -67,6 +68,10 @@ export async function groq(env, { system, user, max = 2500, temperature = 0.35, 
     const code = data?.error?.code || '';
     const msg = data?.error?.message || '';
     if (res.status === 401) { console.error('groq: invalid key'); throw new HttpError(503, 'not_configured'); }
+    // "Request too large … tokens per minute (TPM): Limit 8000, Requested 8526": the prompt and the answer's limit
+    // together do not fit the plan's per-minute budget; a smaller limit for the answer usually still holds it
+    const tpm = res.status === 413 && /Limit (\d+), Requested (\d+)/.exec(msg);
+    if (tpm && room - (tpm[2] - tpm[1]) - 200 >= 1500) { room -= tpm[2] - tpm[1] + 200; continue; }
     if (res.status === 413 || code === 'context_length_exceeded') throw new HttpError(413, 'too_long');
     if (res.status === 429) { blockedUntil.set(model, Date.now() + retryDelay(res, data)); continue; }
     if (code === 'json_validate_failed') {
