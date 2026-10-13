@@ -3,6 +3,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, readdirSync } from 'node:fs';
+import vm from 'node:vm';
 import { ROOT, read } from './helpers.mjs';
 import { str, int, norm, isCode, randomCode, safeEqual } from '../src/util.js';
 import { cleanGloss, cleanWord } from '../src/prompts.js';
@@ -57,9 +58,28 @@ test('the service worker caches every script and stylesheet of the page, and all
   const sw = read('public/sw.js');
   const core = [...sw.match(/const CORE = \[([\s\S]*?)\];/)[1].matchAll(/'([^']+)'/g)].map((m) => m[1]);
   const used = [...html.matchAll(/(?:src|href)="\/?((?:js|css)\/[^"?]+)"/g)].map((m) => '/' + m[1]);
-  assert.ok(used.length > 20);
+  assert.ok(used.length >= 5);
   for (const p of used) assert.ok(core.includes(p), `sw.js CORE lacks ${p}`);
   for (const p of core) if (p !== '/') assert.ok(existsSync(new URL('public' + p, ROOT)), `${p} does not exist`);
+});
+
+test('the page loads the app as one bundle of every script, in order, and the bundle is up to date', async () => {
+  const B = await import('../scripts/bundle.mjs');
+  const html = read('public/index.html');
+  const scripts = [...html.matchAll(/<script src="([^"]+)"/g)].map((m) => m[1]);
+  assert.deepEqual(scripts, ['js/boot.js', 'js/build.js', 'js/bundle.js']);
+  // every script in public/js/ is in the bundle, except the three the page loads itself
+  const all = [];
+  (function walk(dir) {
+    for (const f of readdirSync(new URL('public/' + dir, ROOT), { withFileTypes: true })) {
+      if (f.isDirectory()) walk(dir + f.name + '/'); else if (f.name.endsWith('.js')) all.push(dir + f.name);
+    }
+  })('js/');
+  const own = ['js/boot.js', 'js/build.js', 'js/bundle.js'];
+  assert.deepEqual(all.filter((f) => !own.includes(f)).sort(), [...B.APP_SCRIPTS].sort());
+  assert.ok(B.APP_SCRIPTS.indexOf('js/config.js') === 0 && B.APP_SCRIPTS.at(-1) === 'js/app.js', 'config first, app last');
+  new vm.Script(B.joined(), { filename: 'bundle-src.js' }); // joined as one script, the files still parse
+  assert.equal(read('public/js/bundle.js'), (await B.bundle()).code, 'public/js/bundle.js is out of date: run node scripts/build.mjs');
 });
 
 test('every deploy has a version the app can compare with the server', () => {
@@ -70,7 +90,7 @@ test('every deploy has a version the app can compare with the server', () => {
   assert.match(read('wrangler.jsonc'), /"command": "node scripts\/build\.mjs"/, 'wrangler writes it before every deploy');
   assert.match(read('public/sw.js'), /importScripts\('\/js\/build\.js'\)/, 'a new version updates the service worker');
   const html = read('public/index.html');
-  assert.ok(html.indexOf('js/build.js') < html.indexOf('js/app.js'));
+  assert.ok(html.indexOf('js/build.js') < html.indexOf('js/bundle.js'));
 });
 
 /* ---------- pages for search engines ---------- */

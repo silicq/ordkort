@@ -80,6 +80,7 @@ public/            the site: HTML, CSS, JS, fonts — served by Cloudflare as st
   _headers         security headers (CSP etc.)
   sw.js            service worker for offline use
   js/build.js      the version of the site, written at every deploy (not in git)
+  js/bundle.js     all the scripts of the app in one minified file, written at every deploy (not in git)
 src/               Cloudflare Worker — runs only for /api/*
   worker.js        routing and same-origin check
   api.js           AI requests: shared cache → word bank → limits → Groq
@@ -90,7 +91,8 @@ src/               Cloudflare Worker — runs only for /api/*
   limits.js        burst, hourly, daily and site-wide limits
   sync.js          device sync and one-time codes (the server only ever sees ciphertext)
   db.js            D1: the schema is created automatically on the first request
-scripts/build.mjs  writes public/js/build.js; wrangler runs it before every deploy and `wrangler dev`
+scripts/build.mjs  writes public/js/bundle.js (the scripts listed in scripts/bundle.mjs, minified by esbuild)
+                   and public/js/build.js; wrangler runs it before every deploy and `wrangler dev`
 scripts/landing.mjs  plain pages about the site for search engines (public/<lang>/, 6 languages)
 scripts/seo-pages.mjs  static Norwegian pages for search engines, in English, Russian, Ukrainian and Norwegian:
                    29 topic word lists (/<ui>/<learn>/<topic>/), ~530 dictionary entries (/<ui>/ordbok/nb/<word>/),

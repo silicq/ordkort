@@ -19,6 +19,7 @@
     "indexnow": "node scripts/indexnow.mjs"
   },
   "devDependencies": {
+    "esbuild": "0.28.1",
     "jsqr": "^1.4.0",
     "wrangler": "^4.45.0"
   },
