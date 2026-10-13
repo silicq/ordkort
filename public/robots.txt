@@ -1,4 +1,7 @@
+# Content-Signal (https://contentsignals.org): search engines and AI answers that link to the page are welcome;
+# the texts of this site may not be used to train AI models.
 User-agent: *
+Content-Signal: search=yes, ai-input=yes, ai-train=no
 Allow: /
 Disallow: /api/
 
