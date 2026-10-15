@@ -228,8 +228,9 @@
       deck ? h('span', { class: 'flash-deck' }, `${deck.emoji || ''} ${A.deckTitle(deck)}`) : null);
 
     let frontBody;
+    // a picture shows on the front only where it does not give the answer away: typing the word, or from your language
     if (S.mode === 'type') {
-      frontBody = [h('div', { class: 'flash-ask' }, t('study.ask_type')), A.lt(c.tr, N, 'flash-word serif' + sizeOf(c.tr), 'div'),
+      frontBody = [A.media.el(c, 'flash-img'), h('div', { class: 'flash-ask' }, t('study.ask_type')), A.lt(c.tr, N, 'flash-word serif' + sizeOf(c.tr), 'div'),
         gram ? h('div', { class: 'flash-pron' }, gram) : c.pos ? h('div', { class: 'flash-pron' }, t('pos.' + c.pos)) : null];
     } else if (S.mode === 'listen') {
       frontBody = [h('div', { class: 'flash-ask' }, t('study.ask_listen')),
@@ -244,7 +245,7 @@
       frontBody = [A.lt(c.term, T, 'flash-word serif' + sizeOf(c.term), 'div'),
         pron ? (peek ? peekBtn(pron) : h('div', { class: 'flash-pron' }, pron)) : null, A.speakBtn(c.term, T, 'lg')];
     } else {
-      frontBody = [A.lt(c.tr, N, 'flash-word serif' + sizeOf(c.tr), 'div'), c.pos ? h('div', { class: 'flash-pron' }, t('pos.' + c.pos)) : null];
+      frontBody = [A.media.el(c, 'flash-img'), A.lt(c.tr, N, 'flash-word serif' + sizeOf(c.tr), 'div'), c.pos ? h('div', { class: 'flash-pron' }, t('pos.' + c.pos)) : null];
     }
 
     const front = h('div', { class: 'face front' },
@@ -255,6 +256,7 @@
     const back = h('div', { class: 'face back' },
       tag,
       h('div', { class: 'face-body' },
+        A.media.el(c, 'flash-img'),
         A.lt(fwd ? c.term : c.tr, fwd ? T : N, 'flash-small', 'div'),
         A.lt(fwd ? c.tr : c.term, fwd ? N : T, 'flash-word serif' + sizeOf(fwd ? c.tr : c.term), 'div'),
         S.mode !== 'flip' || !fwd || peek ? h('div', { class: 'row gap center' }, pron ? h('span', { class: 'flash-pron' }, pron) : null, A.speakBtn(c.term, T)) : null,

@@ -12,7 +12,7 @@ AI helps, real dictionaries check it. Everything has to work well on a phone.
 |---|---|---|
 | 1 | **Remembering better.** Four answers (Again / Hard / Good / Easy) as an option next to the simple two; your own target retention; a history of every answer kept on the device; words you keep forgetting ("leeches") set aside instead of coming back forever. | done |
 | 2 | **What goes wrong.** A page that reads your answers: words you confuse with each other, articles and forms you get wrong, the modes and directions that are hard for you, too many new words for your retention. Each finding comes with one thing to do about it. | done |
-| 3 | **Pictures on cards.** Your own photo, a pasted image, or a free picture found by the word (Openverse). Kept on the device. | planned |
+| 3 | **Pictures on cards.** Your own photo, a pasted image, or a free picture found by the word (Openverse). Kept on the device. | done |
 | 4 | **Anki both ways.** Import an `.apkg` (notes, scheduling, pictures and sound), export your decks as an `.apkg` Anki opens, with progress. | planned |
 | 5 | **Your own look.** A card template in HTML and CSS with fields such as `{{term}}` and `{{image}}`, and your own CSS for the whole site. No scripts: they never run. | planned |
 | 6 | **Your own AI, through MCP.** Connect Claude, ChatGPT or any MCP client to `ordkort.com/mcp`: it can look words up, build a deck with pictures and a design, and give you a link that adds it to your cards. | planned |

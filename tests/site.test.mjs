@@ -347,4 +347,11 @@ test('AI answers keep only the expected fields', () => {
   const w = cleanWord({ term: ' et hus ', tr: 'house', pos: 'noun', html: '<b>' });
   assert.equal(w.term, 'et hus');
   assert.equal(w.html, undefined);
+  assert.equal(w.img_url, undefined, 'no picture, no field');
+  const p = cleanWord({ term: 'et hus', tr: 'house', img_url: 'https://example.org/hus.jpg', img_by: 'Kari, CC BY 4.0' });
+  assert.equal(p.img_url, 'https://example.org/hus.jpg');
+  assert.equal(p.img_by, 'Kari, CC BY 4.0');
+  for (const bad of ['http://example.org/a.jpg', 'javascript:alert(1)', 'data:image/png;base64,AAAA', 'https://a b.jpg']) {
+    assert.equal(cleanWord({ term: 'x', tr: 'y', img_url: bad, img_by: 'z' }).img_url, undefined, bad);
+  }
 });

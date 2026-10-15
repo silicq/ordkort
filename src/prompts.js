@@ -228,10 +228,18 @@ const table = (t) => (t && typeof t === 'object' ? {
 const example = (x) => ({ text: S(x?.text, 400), tr: S(x?.tr, 400), note: S(x?.note, 300) });
 
 export function cleanWord(w) {
-  return {
+  const out = {
     term: S(w?.term, 80), tr: S(w?.tr, 160), pos: S(w?.pos, 20).toLowerCase(), gram: S(w?.gram, 120),
     forms: S(w?.forms, 200), pron: S(w?.pron, 100), ex: S(w?.ex, 300), ex_tr: S(w?.ex_tr, 300),
   };
+  // a picture by its web address (https only) and whom to credit; the browser fetches it through /api/img
+  const img = S(w?.img_url, 600);
+  if (/^https:\/\/[^\s]+$/.test(img)) {
+    out.img_url = img;
+    const by = S(w?.img_by, 200);
+    if (by) out.img_by = by;
+  }
+  return out;
 }
 
 /* A card written by the AI: cleaned, without a note in brackets after the word ("привет (м.)"),

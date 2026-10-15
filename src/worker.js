@@ -6,6 +6,7 @@ import { clientKey, burst } from './limits.js';
 import { HttpError, errorResponse } from './util.js';
 import * as api from './api.js';
 import * as sync from './sync.js';
+import * as images from './images.js';
 import { warmOne } from './warm.js';
 
 const DAILY = '17 3 * * *'; // the daily cron in wrangler.jsonc; the other one fills the word bank
@@ -22,6 +23,7 @@ const POST = {
   gloss: api.gloss,
   check: api.check,
   wikt: api.wikt,
+  images: images.search,
 };
 
 export default {
@@ -45,6 +47,7 @@ export default {
 
       if (m === 'POST' && POST[name] && !id) return await POST[name](request, env, key);
       if (m === 'GET' && name === 'limits') return await api.limits(request, env, key);
+      if (m === 'GET' && name === 'img' && !id) return await images.proxy(request, env, key);
 
       if (name === 'share') {
         if (m === 'POST' && !id) return await api.shareCreate(request, env, key);

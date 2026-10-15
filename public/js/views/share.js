@@ -88,7 +88,8 @@
       const id = await A.ai.shareDeck({
         title: A.deckTitle(d), emoji: d.emoji, level: d.level, topic: d.topic, group: d.group,
         target: s.target, native: s.native,
-        words: cards.map((c) => ({ term: c.term, tr: c.tr, pos: c.pos, gram: c.gram, forms: c.forms, pron: c.pron, ex: c.ex, ex_tr: c.exTr })),
+        // a picture goes with the deck only by its web address: a photo of your own stays on your device
+        words: cards.map((c) => ({ term: c.term, tr: c.tr, pos: c.pos, gram: c.gram, forms: c.forms, pron: c.pron, ex: c.ex, ex_tr: c.exTr, img_url: c.imgUrl || undefined, img_by: c.imgUrl ? c.imgBy : undefined })),
       });
       const url = `${location.origin}/#/s/${id}`;
       const copy = h('button', { class: 'btn btn-primary btn-sm', type: 'button' }, icon('copy', 16), t('sync.copy'));

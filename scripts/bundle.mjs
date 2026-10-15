@@ -17,6 +17,7 @@ export const APP_SCRIPTS = [
   'js/i18n.js',
   'js/topics.js',
   'js/idb.js',
+  'js/media.js',
   'js/store.js',
   'js/ai.js',
   'js/ordbok.js',

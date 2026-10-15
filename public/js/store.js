@@ -212,6 +212,11 @@
       if (w.src) c.src = w.src; // where the card came from: bank (AI words for a topic), user, dict, read, tr, csv, share
       if (w.chk) c.chk = 1; // already checked against a dictionary (ordbokene.no, Wiktionary)
       if (GENDERS.includes(w.g)) c.g = w.g; // a noun's gender the dictionary confirmed
+      // a picture (js/media.js): its name on the device, where it came from, whom to credit
+      if (typeof w.img === 'string' && w.img) c.img = w.img;
+      const iu = w.imgUrl || w.img_url;
+      if (typeof iu === 'string' && /^https:\/\//.test(iu)) c.imgUrl = iu.slice(0, 600);
+      if (w.imgBy || w.img_by) c.imgBy = String(w.imgBy || w.img_by).slice(0, 200);
       p.cards[c.id] = c;
       added++;
     }

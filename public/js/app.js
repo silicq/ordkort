@@ -374,6 +374,11 @@
     refill();
     updater.check().then((stale) => stale && updater.apply()); // opened with an old copy: load the new one now
     A.i18n.ensure();
+    // pictures no card uses any more: once a day, a while after opening
+    try {
+      const day = new Date().toISOString().slice(0, 10);
+      if (localStorage.getItem('ordkort.tidy') !== day) { localStorage.setItem('ordkort.tidy', day); setTimeout(() => A.media.tidy(), 15000); }
+    } catch { /* no storage: nothing to tidy */ }
     // offline mode: the site itself is cached by a service worker; AI features need the network.
     // updateViaCache 'none': the browser checks the worker (and the build file it imports) on the server every time
     if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {

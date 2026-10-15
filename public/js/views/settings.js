@@ -24,6 +24,23 @@
     return box;
   }
 
+  /* The backup file: everything in localStorage, plus pictures of your own (those found on the web are fetched
+     again from where they came from), as data URLs */
+  async function backup() {
+    const data = JSON.parse(A.store.exportData());
+    const media = {};
+    for (const p of Object.values(data.pairs || {})) {
+      for (const c of Object.values(p.cards || {})) {
+        if (!c.img || c.imgUrl || media[c.img]) continue;
+        const blob = await A.idb.mediaGet(c.img);
+        if (blob) media[c.img] = await new Promise((resolve) => { const r = new FileReader(); r.onload = () => resolve(r.result); r.onerror = () => resolve(null); r.readAsDataURL(blob); });
+      }
+    }
+    for (const k of Object.keys(media)) if (!media[k]) delete media[k];
+    if (Object.keys(media).length) data.media = media;
+    A.download(`ordkort-${new Date().toISOString().slice(0, 10)}.json`, JSON.stringify(data));
+  }
+
   A.views.settings = {
     render(root) {
       const s = A.store.settings;
@@ -65,6 +82,14 @@
           const data = JSON.parse(await f.text());
           if (!(await A.confirm(t('set.import_q'), { ok: t('set.import') }))) return;
           A.store.importData(data);
+          // pictures of your own that came with the backup (the others are fetched again from where they came from)
+          for (const [k, url] of Object.entries(data.media || {})) {
+            const m = /^data:(image\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/=]+)$/.exec(url);
+            if (!/^p[0-9a-f]{24}$/.test(k) || !m) continue;
+            const bin = atob(m[2]), bytes = new Uint8Array(bin.length);
+            for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+            await A.idb.mediaPut(k, new Blob([bytes], { type: m[1] })).catch(() => {});
+          }
           A.applyTheme();
           A.toast(t('set.imported'), 'ok');
           A.go('#/');
@@ -129,7 +154,7 @@
             h('p', { class: 'muted small' }, t('set.data_hint', { kb: A.store.usage(), n: counts })),
             protection(),
             h('div', { class: 'row gap wrap' },
-              h('button', { class: 'btn btn-ghost btn-sm', type: 'button', onclick: () => A.download(`ordkort-${new Date().toISOString().slice(0, 10)}.json`, A.store.exportData()) }, icon('download', 16), t('set.export')),
+              h('button', { class: 'btn btn-ghost btn-sm', type: 'button', onclick: backup }, icon('download', 16), t('set.export')),
               h('button', { class: 'btn btn-ghost btn-sm', type: 'button', onclick: () => file.click() }, icon('upload', 16), t('set.import')),
               file,
               h('button', {

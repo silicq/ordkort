@@ -119,6 +119,15 @@ test('Wiktionary entries: not for Norwegian (it has the official dictionary), no
   assert.equal(r.status, 400);
 });
 
+test('pictures: the proxy takes only https addresses, the search needs a word', async () => {
+  for (const u of ['', 'not a url', 'http://example.com/a.jpg', 'javascript:alert(1)', 'https://user:pw@example.com/a.jpg']) {
+    const r = await call('img?u=' + encodeURIComponent(u));
+    assert.equal(r.status, 400, u);
+  }
+  const r = await call('images', { method: 'POST', body: { q: '  ' } });
+  assert.equal(r.status, 400);
+});
+
 test('limits endpoint reports the daily allowance', async () => {
   const r = await call('limits');
   const q = await r.json();

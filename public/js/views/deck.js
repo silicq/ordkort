@@ -110,6 +110,7 @@
     const ex = A.store.example(c);
     const { gram, pron, forms } = A.store.shown(c);
     const detail = h('div', { class: 'wdetail' },
+      c.img ? A.media.el(c, 'wrow-img') : null,
       gram || c.pos ? h('p', null, h('span', { class: 'k' }, t('card.gram')), [c.pos ? t('pos.' + c.pos) : '', gram].filter(Boolean).join(' · ')) : null,
       forms ? h('p', null, h('span', { class: 'k' }, t('card.forms')), A.lt(forms, s.target, 'serif')) : null,
       ex.text ? h('p', null, h('span', { class: 'k' }, t('card.example')), A.lt(ex.text, s.target, 'serif'), A.speakBtn(ex.text, s.target, 'sm'), ex.tr ? h('span', { class: 'muted d-block' }, ex.tr) : null) : null,
@@ -168,10 +169,14 @@
       fillBtn.lastChild.textContent = t('card.autofill');
     });
 
+    const pic = { img: card?.img || '', imgUrl: card?.imgUrl || '', imgBy: card?.imgBy || '' };
+    const picture = pictureField(pic, () => f.term.value.trim(), () => f.tr.value.trim());
+
     const body = h('div', { class: 'form-grid' },
       field('term', `${t('card.term')} · ${T}`, s.target, { ph: t('card.term_ph') }),
       field('tr', `${t('card.translation')} · ${N}`, s.native),
       h('div', { class: 'fill-row' }, fillBtn, h('small', { class: 'muted' }, t('card.autofill_hint'))),
+      picture.el,
       field('pron', t('card.pron'), s.target, { half: true }),
       field('gram', t('card.gram'), s.native, { half: true }),
       field('forms', t('card.forms'), s.target),
@@ -183,6 +188,7 @@
       for (const k of ['term', 'tr', 'pron', 'gram', 'forms', 'ex', 'exTr']) data[k] = f[k].value.trim();
       if (!data.term || !data.tr) { A.toast(t('card.need_both'), 'error'); return; }
       if (typeof f.pos === 'string') data.pos = f.pos;
+      Object.assign(data, { img: pic.img, imgUrl: pic.imgUrl, imgBy: pic.imgBy });
       if (card) A.store.updateCard(card.id, data);
       else {
         const n = A.store.addCards(deckId, [{ ...data, src: 'user' }]);
@@ -196,6 +202,7 @@
       title: card ? t('card.edit_title') : t('card.add_title'),
       body,
       wide: true,
+      onClose: picture.stop,
       actions: [
         h('button', { class: 'btn btn-ghost', type: 'button', onclick: () => m.close() }, t('common.cancel')),
         h('button', { class: 'btn btn-primary', type: 'button', onclick: save }, t('common.save')),
@@ -204,4 +211,78 @@
     setTimeout(() => f.term.focus(), 30);
   }
   A.editCard = editCard;
+
+  /* The picture of a card: a free one found by the word, one of your own (a file or the camera), or pasted.
+     pic is changed in place: { img, imgUrl, imgBy }. */
+  function pictureField(pic, term, tr) {
+    const s = A.store.settings;
+    const preview = h('div', { class: 'pic-preview' });
+    const credit = h('small', { class: 'pic-credit muted' });
+    const results = h('div', { class: 'pic-results' });
+    const status = h('p', { class: 'muted small', hidden: true });
+    const file = h('input', { type: 'file', accept: 'image/*', hidden: true });
+    const bare = (x) => x.replace(/^(en|ei|et|ein|eit|der|die|das|le|la|les|el|los|las|il|lo|gli|the|an?|to|å)\s+/i, '');
+    const q = h('input', { class: 'input', type: 'search', placeholder: t('card.pic_search_ph') });
+    const panel = h('div', { class: 'pic-search', hidden: true },
+      h('form', { class: 'row gap', onsubmit: (e) => { e.preventDefault(); find(); } }, q, h('button', { class: 'btn btn-soft btn-sm', type: 'submit', 'aria-label': t('card.pic_find') }, icon('search', 16))),
+      h('small', { class: 'muted' }, t('card.pic_hint')), status, results);
+
+    const remove = h('button', { class: 'btn btn-ghost btn-sm', type: 'button', onclick: () => set('') }, icon('trash', 16), t('card.pic_remove'));
+    const paint = () => {
+      preview.replaceChildren();
+      credit.textContent = pic.imgBy ? t('card.pic_by', { by: pic.imgBy }) : '';
+      remove.hidden = !pic.img;
+      const im = pic.img ? A.media.el(pic, 'pic-img') : null;
+      preview.append(im || h('span', { class: 'pic-empty' }, icon('image', 28)));
+    };
+    const set = (img, imgUrl = '', imgBy = '') => { Object.assign(pic, { img, imgUrl, imgBy }); paint(); };
+    const say = (text) => { status.hidden = !text; status.textContent = text || ''; };
+
+    async function find() {
+      const query = q.value.trim();
+      if (!query) { q.focus(); return; }
+      say(t('card.pic_searching'));
+      results.replaceChildren();
+      try {
+        const list = await A.media.search(query);
+        say(list.length ? '' : t('card.pic_none'));
+        results.replaceChildren(...list.map((r) => h('button', {
+          class: 'pic-thumb', type: 'button', title: `${r.by} · ${r.license}`,
+          onclick: async (e) => {
+            const b = e.currentTarget;
+            b.classList.add('loading');
+            try { set(await A.media.addUrl(r.thumb), r.thumb, `${r.by} · ${r.license}`); panel.hidden = true; } catch { A.toast(t('card.pic_failed'), 'error'); }
+            b.classList.remove('loading');
+          },
+        }, h('img', { src: '/api/img?u=' + encodeURIComponent(r.thumb), alt: r.by, loading: 'lazy' }))));
+      } catch (e) { say(A.ai.errorText(e)); }
+    }
+    async function own(blob) {
+      try { set(await A.media.add(blob)); panel.hidden = true; } catch { A.toast(t('card.pic_failed'), 'error'); }
+    }
+    file.addEventListener('change', () => { const b = file.files?.[0]; if (b) own(b); file.value = ''; });
+    const onPaste = (e) => {
+      const it = [...(e.clipboardData?.items || [])].find((x) => x.type.startsWith('image/'));
+      if (it) { e.preventDefault(); own(it.getAsFile()); }
+    };
+    document.addEventListener('paste', onPaste);
+
+    const el = h('div', { class: 'field pic-field' },
+      h('span', null, t('card.picture')),
+      h('div', { class: 'pic-row' }, preview,
+        h('div', { class: 'pic-actions' },
+          h('button', {
+            class: 'btn btn-soft btn-sm', type: 'button',
+            onclick: () => {
+              panel.hidden = !panel.hidden;
+              if (!panel.hidden && !q.value) { q.value = s.native === 'en' ? tr() : bare(term()) || tr(); if (q.value) find(); }
+            },
+          }, icon('search', 16), t('card.pic_find')),
+          h('button', { class: 'btn btn-ghost btn-sm', type: 'button', onclick: () => file.click() }, icon('upload', 16), t('card.pic_upload')),
+          remove,
+          h('small', { class: 'muted' }, t('card.pic_paste')))),
+      credit, panel, file);
+    paint();
+    return { el, stop: () => document.removeEventListener('paste', onPaste) };
+  }
 })();

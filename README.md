@@ -204,6 +204,8 @@ npm run deploy
 - The CSP forbids third-party scripts and framing; fonts are self-hosted. The only third-party
   request from the browser is the open ordbokene.no API for Norwegian. The server looks words up in
   Wiktionary (only the word, with a User-Agent as Wikimedia asks) and caches the answers for 30 days.
+  Pictures for cards are searched (Openverse) and fetched by the server too, so the visitor’s IP never reaches
+  other sites: https only, raster images of at most 5 MB, under an hourly limit per person.
 - Worker request logs are off. Limit counters, link codes and abandoned sync copies are deleted
   by a daily scheduled task.
 - Cloudflare’s network absorbs volumetric attacks. On a custom domain you can additionally enable
