@@ -702,4 +702,6 @@ globalThis.App.i18nData.zh = {
   'anki.target': "单词的语言",
   'anki.target_d': "根据单词本身判断；卡组会放到这种语言下",
   'anki.other_tr': "这里的翻译看起来是{lang}，而不是{native}。可以保留，也可以选择其他字段。",
+  'look.try': "在整个网站上试用",
+  'look.try_off': "取消试用",
 };

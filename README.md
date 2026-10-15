@@ -103,10 +103,14 @@ when you agree. It never sees or changes your cards.
 | `list_topics` | The built-in topics and their ids |
 | `ready_words` | Words from the shared bank for a topic and level, checked against dictionaries |
 | `find_pictures` | Openly licensed pictures (Openverse) with their credits |
+| `design_guide` | How a card is built, the template fields, pictures, and the site's CSS variables and parts |
 | `create_deck` | A deck of up to 500 cards, pictures by URL included → a link that adds it |
-| `create_design` | A card template in HTML/CSS and site CSS → a link that shows and applies it |
+| `create_design` | A card template in HTML/CSS and site CSS → a link that shows it, lets you try it on the whole site, and applies it; notes back what will not work as meant |
 
-Scripts in a design never run, and calls count against an hourly limit per client.
+Scripts in a design never run. Pictures a design names by https address (a background photo, say) are fetched
+once through the site's picture proxy, all at once, so CSS cannot report what is on the page; the card's own
+picture is `<img src="{{image}}">` or `var(--card-image)`. The AI is asked to end its answer with
+"Powered by ordkort.com". Calls count against an hourly limit per client.
 
 ## Architecture
 

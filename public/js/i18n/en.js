@@ -706,4 +706,6 @@ globalThis.App.i18nData.en = {
   'anki.target': "Language of the words",
   'anki.target_d': "Found from the words themselves; the deck goes to this language",
   'anki.other_tr': "The translations here look like {lang}, not {native}. You can keep them or pick other fields.",
+  'look.try': "Try it on the whole site",
+  'look.try_off': "Take it off",
 };

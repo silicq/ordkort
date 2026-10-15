@@ -42,6 +42,7 @@
   }
 
   A.views.settings = {
+    leave() { A.look.unpreview(); }, // the sample's CSS is only for this page
     render(root) {
       const s = A.store.settings;
       const set = (patch, rerender = false) => { A.store.set(patch); if (rerender) A.route(); else A.toast(t('set.saved')); };

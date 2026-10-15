@@ -3,7 +3,9 @@
    {{forms}}, {{example}}, {{example_translation}}, {{image}}, {{audio}}, {{deck}}; {{#example}}…{{/example}}
    shows its inside only when the card has an example (any field works). Field values are always escaped.
    The template is cleaned before it is used: no scripts, frames, objects, forms, event handlers or javascript:
-   addresses. The page's CSP would stop a script anyway; cleaning keeps a shared design from even trying. */
+   addresses. The page's CSP would stop a script anyway; cleaning keeps a shared design from even trying.
+   The card's own picture: {{image}} alone, <img src="{{image}}">, or var(--card-image) in CSS.
+   Pictures from the web (https addresses in the CSS or in the template) are fetched once, see `pics` below. */
 (() => {
   const A = window.App;
   const FIELDS = ['term', 'translation', 'pronunciation', 'grammar', 'forms', 'example', 'example_translation', 'image', 'audio', 'deck'];
@@ -35,8 +37,40 @@
   };
 
   /* ---------- cleaning ---------- */
+  /* ---------- pictures from the web ----------
+     The site may only show pictures of its own (CSP img-src 'self' data: blob:), so the pictures a look names by an
+     https address are fetched through the site's picture proxy (src/images.js) and used as blob: URLs. All of them
+     are fetched at once, whatever the page shows, so CSS cannot tell anyone what is on the page ("load this picture
+     if an attribute starts with a"); and a template's addresses are taken before any field is filled in, so a word
+     can never become part of an address. */
+  const MAX_PICS = 8;
+  const pics = new Map(); // https address → blob: URL ('' while it loads or when it could not be had)
+  const URL_RE = /url\(\s*(['"]?)\s*(https:\/\/[^'")\s]+)\s*\1\s*\)/gi;
+  const SRC_RE = /\ssrc\s*=\s*(['"]?)(https:\/\/[^'"\s>]+)\1/gi;
+  function addresses(look) {
+    const out = new Set();
+    for (const text of [look?.css, look?.site, look?.front, look?.back]) for (const m of String(text || '').matchAll(URL_RE)) out.add(m[2]);
+    for (const text of [look?.front, look?.back]) for (const m of String(text || '').matchAll(SRC_RE)) out.add(m[2]);
+    return [...out].filter((u) => !u.includes('{{')).slice(0, MAX_PICS);
+  }
+  const arrived = new Set(); // what to redo when pictures come
+  function fetchPics(look) {
+    const todo = addresses(look).filter((u) => !pics.has(u));
+    if (!todo.length || typeof fetch !== 'function') return;
+    todo.forEach((u) => pics.set(u, ''));
+    Promise.all(todo.map((u) => fetch('/api/img?u=' + encodeURIComponent(u))
+      .then((r) => (r.ok ? r.blob() : null))
+      .then((b) => { if (b && /^image\//.test(b.type)) pics.set(u, URL.createObjectURL(b)); })
+      .catch(() => {})))
+      .then(() => {
+        arrived.forEach((fn) => fn());
+        document.querySelectorAll('img[data-pic]').forEach((img) => { const b = pics.get(img.dataset.pic); if (b) { img.src = b; img.removeAttribute('data-pic'); } });
+      });
+  }
+
   const DROP = 'script, iframe, frame, frameset, object, embed, applet, link, meta, base, form, input, button, textarea, select, style, noscript, template';
-  function clean(html) {
+  // `allowed`: the https pictures this look may show (they come from the template itself, see above)
+  function clean(html, allowed = new Set()) {
     const t = document.createElement('template');
     t.innerHTML = String(html || '').slice(0, MAX);
     t.content.querySelectorAll(DROP).forEach((n) => n.remove());
@@ -44,12 +78,27 @@
       for (const a of [...el.attributes]) {
         const v = a.value.trim().toLowerCase().replace(/\s+/g, '');
         if (/^on/i.test(a.name) || /^(javascript|vbscript|data):/.test(v) && a.name !== 'class' || a.name === 'srcdoc' || a.name === 'formaction') el.removeAttribute(a.name);
+        else if (a.name === 'style') el.setAttribute('style', cleanCss(a.value));
+        else if (a.name === 'srcset') el.removeAttribute(a.name);
+      }
+      // a picture from the web waits for its blob: URL; one from anywhere else is not shown
+      const src = el.getAttribute('src');
+      if (src && /^(https?:)?\/\//i.test(src.trim())) {
+        el.removeAttribute('src');
+        if (el.localName === 'img' && allowed.has(src.trim())) {
+          const b = pics.get(src.trim());
+          if (b) el.setAttribute('src', b); else el.setAttribute('data-pic', src.trim());
+        } else if (el.localName === 'img') el.remove();
       }
     }
     return t.innerHTML;
   }
-  // CSS for the page: whatever ends a <style> or reaches outside is cut
-  const cleanCss = (css) => String(css || '').slice(0, MAX).replace(/<\/?style/gi, '').replace(/@import[^;]*;?/gi, '').replace(/url\(\s*['"]?\s*(javascript|https?):[^)]*\)/gi, 'none');
+  // CSS for the page: whatever ends a <style> or reaches outside is cut; a picture from the web becomes its blob: URL
+  const cleanCss = (css) => String(css || '').slice(0, MAX).replace(/<\/?style/gi, '').replace(/@import[^;]*;?/gi, '')
+    .replace(/url\(\s*(['"]?)\s*([^'")]*?)\s*\1\s*\)/gi, (m, q, u) => {
+      if (/^https:\/\//i.test(u)) { const b = pics.get(u); return b ? `url("${b}")` : 'none'; }
+      return /^(javascript|vbscript|https?):|^\/\//i.test(u) ? 'none' : m;
+    });
 
   /* ---------- filling a template ---------- */
   const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -64,7 +113,10 @@
   }
   // the template → HTML: sections, then fields; {{image}} and {{audio}} become placeholders filled after
   function fill(tpl, v) {
-    let out = String(tpl || '');
+    let out = String(tpl || '')
+      // the card's picture where an address goes: <img src="{{image}}">, url({{image}})
+      .replace(/\ssrc\s*=\s*(['"]?)\{\{\s*image\s*\}\}\1/g, ' data-card-image')
+      .replace(/url\(\s*(['"]?)\{\{\s*image\s*\}\}\1\s*\)/g, 'var(--card-image)');
     out = out.replace(/\{\{#(\w+)\}\}([\s\S]*?)\{\{\/\1\}\}/g, (m, k, inner) => (v[k] ? inner : ''));
     out = out.replace(/\{\{\^(\w+)\}\}([\s\S]*?)\{\{\/\1\}\}/g, (m, k, inner) => (v[k] ? '' : inner));
     return out.replace(/\{\{\s*(\w+)\s*\}\}/g, (m, k) => {
@@ -79,8 +131,17 @@
     if (!tpl || !tpl.trim()) return null;
     const box = document.createElement('div');
     box.className = 'tpl tpl-' + side;
-    box.innerHTML = clean(fill(tpl, values(c)));
+    fetchPics(look);
+    box.innerHTML = clean(fill(tpl, values(c)), new Set(addresses(look)));
     box.querySelectorAll('[data-slot="image"]').forEach((s) => s.replaceWith(A.media.el(c, 'flash-img') || ''));
+    // the card's picture: <img src="{{image}}"> and var(--card-image)
+    const imgs = [...box.querySelectorAll('img[data-card-image]')];
+    if (!c.img) imgs.forEach((i) => i.remove());
+    else A.media.url(c).then((u) => {
+      if (!u) return;
+      box.style.setProperty('--card-image', `url("${u}")`);
+      imgs.forEach((i) => { i.src = u; i.removeAttribute('data-card-image'); });
+    });
     box.querySelectorAll('[data-slot="audio"]').forEach((s) => s.replaceWith(A.speakBtn(c.term, A.store.settings?.target || 'nb')));
     return box;
   }
@@ -93,6 +154,7 @@
     const waiting = later();
     if (waiting && A.store.ready) { A.store.set({ look: waiting }); try { localStorage.removeItem(LATER); } catch {} }
     const look = A.store.settings?.look || waiting || {};
+    fetchPics(look);
     const css = [look.site || '', look.css ? `.flash .face-body .tpl { display: contents; }\n${look.css}` : ''].map(cleanCss).join('\n').trim();
     let el = document.getElementById('user-look');
     if (!css) { el?.remove(); return; }
@@ -106,6 +168,19 @@
     || { id: 'sample', term: 'et hus', tr: 'house', pos: 'noun', forms: 'huset, hus, husa', pron: '/hʉːs/', ex: 'Vi bor i et rødt hus.', exTr: '' };
   // fills `box` with the two sides; the look's CSS applies to them at once, before anything is saved
   const size = (x) => (String(x || '').length > 30 ? ' xl' : String(x || '').length > 14 ? ' l' : ''); // as in a session
+  // the sample is drawn at a real card's size and scaled down to the space it has, so a design looks as it will
+  const W = 480, H = 430;
+  let shown = null;
+  const previewCss = () => {
+    let st = document.getElementById('user-look-preview');
+    if (!shown) { st?.remove(); return; }
+    if (!st) { st = document.createElement('style'); st.id = 'user-look-preview'; document.head.append(st); }
+    st.textContent = shown.css ? `.look-preview .face-body .tpl { display: contents; }\n${cleanCss(shown.css)}` : '';
+  };
+  arrived.add(() => { apply(); previewCss(); });
+  const scaler = typeof ResizeObserver === 'function' ? new ResizeObserver((all) => {
+    for (const e of all) e.target.style.setProperty('--z', String(e.contentRect.width / W));
+  }) : null;
   function preview(box, look, sample = sampleCard()) {
     const { h, t } = A;
     const s = A.store.settings || { target: 'nb', native: 'en' };
@@ -115,15 +190,18 @@
       const body = own || (name === 'front'
         ? [A.lt(sample.term, s.target, 'flash-word serif' + size(sample.term), 'div'), A.speakBtn(sample.term, s.target, 'lg')]
         : [sample.img ? A.media.el(sample, 'flash-img') : null, A.lt(sample.term, s.target, 'flash-small', 'div'), A.lt(sample.tr, s.native, 'flash-word serif' + size(sample.tr), 'div'), ex ? A.lt(ex, s.target, 'flash-ex serif', 'p') : null]);
-      return h('div', { class: 'flash look-flash in' }, h('div', { class: 'face' + (name === 'back' ? ' look-back' : '') },
-        h('div', { class: 'flash-tag' }, h('span', { class: 'badge new' }, t('study.new'))),
-        h('div', { class: 'face-body' }, body)));
+      const el = h('div', { class: 'look-side', style: `--w: ${W}px; --h: ${H}px` },
+        h('div', { class: 'flash look-flash in' }, h('div', { class: 'face' + (own ? ' own' : '') + (name === 'back' ? ' look-back' : '') },
+          h('div', { class: 'flash-tag' }, h('span', { class: 'badge new' }, t('study.new'))),
+          h('div', { class: 'face-body' }, body))));
+      scaler?.observe(el);
+      return el;
     };
-    let st = document.getElementById('user-look-preview');
-    if (!st) { st = document.createElement('style'); st.id = 'user-look-preview'; document.head.append(st); }
-    st.textContent = look.css ? `.look-preview .face-body .tpl { display: contents; }\n${cleanCss(look.css)}` : '';
+    shown = look;
+    previewCss();
     box.replaceChildren(side('front'), side('back'));
   }
+  const unpreview = () => { shown = null; previewCss(); };
 
   /* ---------- Settings → Your own look ---------- */
   // `title` and `before` (rows such as the theme) let Settings make this its whole "Appearance" card
@@ -209,16 +287,23 @@
         if (!d || d.kind !== 'look') { location.replace('#/s/' + id); return; }
         const look = { front: String(d.front || ''), back: String(d.back || ''), css: String(d.css || ''), site: String(d.site || '') };
         const box = h('div', { class: 'look-preview' });
+        // the site's CSS, worn for a moment before saying yes
+        trying = null;
+        const tryBtn = h('button', {
+          class: 'btn btn-ghost btn-sm', type: 'button',
+          onclick: () => { trying = trying ? null : look; tryOn(); tryBtn.lastChild.textContent = t(trying ? 'look.try_off' : 'look.try'); },
+        }, icon('palette', 16), h('span', null, t('look.try')));
         A.put(page.firstChild,
           h('div', { class: 'link-ico' }, icon('palette', 30)),
           h('h1', { class: 'display sm' }, d.name || t('look.title')),
           h('p', { class: 'muted' }, t('look.shared_d')),
           box,
-          look.site ? h('p', { class: 'muted small' }, icon('info', 14), ' ', t('look.shared_site')) : null,
+          look.site ? h('p', { class: 'muted small row gap center wrap' }, h('span', null, icon('info', 14), ' ', t('look.shared_site')), tryBtn) : null,
           h('div', { class: 'row gap center wrap' },
             h('button', {
               class: 'btn btn-primary btn-lg', type: 'button',
               onclick: () => {
+                trying = null; tryOn();
                 if (A.store.ready) A.store.set({ look });
                 else try { localStorage.setItem(LATER, JSON.stringify(look)); } catch {}
                 apply(); A.toast(t('look.applied'), 'ok'); A.go(A.store.ready ? '#/settings' : '#/');
@@ -230,8 +315,17 @@
         page.firstChild.replaceChildren(h('h1', { class: 'display sm' }, e.kind === 'gone' ? t('share.gone') : A.ai.errorText(e)), h('a', { class: 'btn btn-ghost', href: '#/' }, t('study.back')));
       });
     },
-    leave() { document.getElementById('user-look-preview')?.remove(); },
+    leave() { unpreview(); trying = null; tryOn(); },
   };
+  let trying = null;
+  function tryOn() {
+    let st = document.getElementById('user-look-try');
+    if (!trying) { st?.remove(); return; }
+    fetchPics(trying);
+    if (!st) { st = document.createElement('style'); st.id = 'user-look-try'; document.head.append(st); }
+    st.textContent = cleanCss(trying.site);
+  }
+  arrived.add(tryOn);
 
-  A.look = { PRESETS, SITE, FIELDS, render, apply, clean, cleanCss, fill, card, preview, MAX };
+  A.look = { PRESETS, SITE, FIELDS, render, apply, clean, cleanCss, fill, card, preview, unpreview, addresses, MAX };
 })();

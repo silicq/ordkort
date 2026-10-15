@@ -34,3 +34,21 @@ test('the presets use only known fields', () => {
     }
   }
 });
+
+test('the card picture works where an address goes, and pictures from the web come only from the design itself', () => {
+  const v = { term: 'x', image: '1' };
+  assert.equal(L.fill('<img src="{{image}}" alt="">', v), '<img data-card-image alt="">');
+  assert.equal(L.fill('<div style="background: url({{image}})"></div>', v), '<div style="background: var(--card-image)"></div>');
+  const look = {
+    css: '.a { background: url("https://pics.example/a.jpg") } .b { background: url(https://pics.example/b.png) }',
+    front: '<img src="https://pics.example/c.jpg"><img src="https://pics.example/{{term}}.jpg">',
+    site: 'body { background: url(\'https://pics.example/a.jpg\') }',
+  };
+  assert.equal(L.addresses(look).join(' '), 'https://pics.example/a.jpg https://pics.example/b.png https://pics.example/c.jpg',
+    'once each, and never an address a word could become part of');
+  // until a picture has come, it is not there at all; pictures of the page itself and data: stay
+  const css = L.cleanCss('.a{background:url(https://pics.example/a.jpg)} .b{background:url(//evil.example/x)} .c{background:url(/icons/x.svg)} .d{background:url(data:image/png;base64,AAAA)}');
+  assert.doesNotMatch(css, /pics\.example|evil\.example/);
+  assert.match(css, /url\(\/icons\/x\.svg\)/);
+  assert.match(css, /url\(data:image\/png;base64,AAAA\)/);
+});

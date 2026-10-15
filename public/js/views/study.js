@@ -250,13 +250,13 @@
       frontBody = [A.media.el(c, 'flash-img'), A.lt(c.tr, N, 'flash-word serif' + sizeOf(c.tr), 'div'), c.pos ? h('div', { class: 'flash-pron' }, t('pos.' + c.pos)) : null];
     }
 
-    const front = h('div', { class: 'face front' },
+    const front = h('div', { class: 'face front' + (frontBody[0]?.classList?.contains('tpl') ? ' own' : '') },
       tag.cloneNode(true),
       h('div', { class: 'face-body' }, frontBody),
       S.mode === 'flip' ? h('div', { class: 'face-hint' }, icon('flip', 15), t('study.tap')) : null);
 
     const ownBack = S.mode === 'flip' && fwd && A.look.render('back', c);
-    const back = h('div', { class: 'face back' },
+    const back = h('div', { class: 'face back' + (ownBack ? ' own' : '') },
       tag,
       ownBack ? h('div', { class: 'face-body' }, ownBack) : h('div', { class: 'face-body' },
         A.media.el(c, 'flash-img'),

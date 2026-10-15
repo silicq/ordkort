@@ -706,4 +706,6 @@ globalThis.App.i18nData.nb = {
   'anki.target': "Språket til ordene",
   'anki.target_d': "Funnet ut fra ordene selv; kortstokken havner i dette språket",
   'anki.other_tr': "Oversettelsene her ser ut til å være på {lang}, ikke {native}. Du kan beholde dem eller velge andre felt.",
+  'look.try': "Prøv på hele nettstedet",
+  'look.try_off': "Ta det av",
 };

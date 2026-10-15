@@ -142,7 +142,7 @@ test('MCP: handshake, tools, and a version the client asked for', async () => {
   r = await rpc({ jsonrpc: '2.0', method: 'notifications/initialized' });
   assert.equal(r.status, 202, 'a notification gets no answer');
   r = await rpc({ jsonrpc: '2.0', id: 2, method: 'tools/list' });
-  assert.deepEqual(r.body.result.tools.map((x) => x.name), ['list_languages', 'list_topics', 'ready_words', 'find_pictures', 'create_deck', 'create_design']);
+  assert.deepEqual(r.body.result.tools.map((x) => x.name), ['list_languages', 'list_topics', 'ready_words', 'find_pictures', 'design_guide', 'create_deck', 'create_design']);
   for (const tool of r.body.result.tools) assert.equal(tool.inputSchema.type, 'object', tool.name);
   r = await rpc({ jsonrpc: '2.0', id: 3, method: 'tools/call', params: { name: 'list_languages', arguments: {} } });
   assert.ok(r.body.result.structuredContent.languages.some((l) => l.code === 'nb'));
@@ -174,6 +174,8 @@ test('MCP: a deck with pictures and a look become links that open them', async (
 
   r = await rpc({ jsonrpc: '2.0', id: 2, method: 'tools/call', params: { name: 'create_design', arguments: { name: 'Calm', front_html: '<b>{{term}}</b>', card_css: '.tpl b { color: teal; }' } } });
   const look = r.body.result.structuredContent.url;
+  assert.match(r.body.result.content[0].text, /Powered by ordkort\.com/, 'the AI is asked to name the site');
+  assert.equal(r.body.result.structuredContent.notes.length, 0, 'a tidy design has nothing to note');
   assert.match(look, /#\/look\/[A-Za-z0-9]{8}$/);
   s = await call('share/' + look.slice(-8));
   const d = (await s.json()).deck;
@@ -182,6 +184,10 @@ test('MCP: a deck with pictures and a look become links that open them', async (
 
   r = await rpc({ jsonrpc: '2.0', id: 3, method: 'tools/call', params: { name: 'create_deck', arguments: { title: 'x', target: 'xx', native: 'en', cards: [{ term: 'a', translation: 'b' }] } } });
   assert.equal(r.body.result.isError, true, 'an unknown language is an error the AI can read');
+  r = await rpc({ jsonrpc: '2.0', id: 6, method: 'tools/call', params: { name: 'create_design', arguments: { name: 'Loud', site_css: 'button, a { color: red !important; }' } } });
+  assert.equal(r.body.result.structuredContent.notes.length, 1, 'wide selectors with !important are pointed out');
+  r = await rpc({ jsonrpc: '2.0', id: 7, method: 'tools/call', params: { name: 'design_guide' } });
+  assert.match(r.body.result.content[0].text, /var\(--card-image\)/);
   r = await rpc({ jsonrpc: '2.0', id: 4, method: 'tools/call', params: { name: 'create_design', arguments: { name: 'Empty' } } });
   assert.equal(r.body.result.isError, true);
   r = await rpc({ jsonrpc: '2.0', id: 5, method: 'tools/call', params: { name: 'ready_words', arguments: { target: 'nb', native: 'en', topic: 'greetings' } } });
