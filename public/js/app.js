@@ -24,6 +24,7 @@
     return th === 'dark' || (th === 'auto' && prefersDark.matches);
   };
   function applyTheme() {
+    A.look?.apply();
     const th = A.store.settings?.theme || 'auto';
     const root = document.documentElement;
     if (th === 'auto') root.removeAttribute('data-theme'); else root.dataset.theme = th;

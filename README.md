@@ -68,6 +68,8 @@ Ordkort is a lightweight site for learning almost any language from almost any o
   pictures. CSV in and out, and sharing a deck by link or QR code — only the words, never your progress.
 - **Pictures on cards**: a free, openly licensed picture found by the word (Openverse), one of your own, or a
   pasted one; kept on the device.
+- **Your own look**: a card template in HTML and CSS (`{{term}}`, `{{image}}`, `{{#example}}…{{/example}}`…) with
+  ready ones to start from and a live preview, and CSS for the whole site. Scripts never run.
 - **Remembering better**: two answers or four (Again / Hard / Good / Easy), your own target retention, words
   you keep forgetting set aside, and *What goes wrong*: your answers read back as findings, each with one
   thing to do.

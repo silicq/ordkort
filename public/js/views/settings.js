@@ -145,6 +145,7 @@
               { value: 'light', label: t('set.theme_light') },
               { value: 'dark', label: t('set.theme_dark') },
             ], s.theme, (v) => { A.store.set({ theme: v }); A.applyTheme(); A.route(); }))),
+          A.look.card(),
           A.devices.card(),
           card(t('set.ai'),
             h('p', { class: 'muted small' }, t('set.ai_hint')),

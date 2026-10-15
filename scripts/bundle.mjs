@@ -26,6 +26,7 @@ export const APP_SCRIPTS = [
   'js/sync.js',
   'js/apkg.js',
   'js/anki.js', // after ui.js: it takes h, icon and t from it when it loads
+  'js/look.js',
   'js/views/home.js',
   'js/views/deck.js',
   'js/views/study.js',
