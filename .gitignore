@@ -12,3 +12,5 @@ public/js/build.js
 # written by scripts/build.mjs: the app's scripts in one file
 public/js/bundle.js
 public/js/bundle.js.map
+# copied from node_modules by scripts/build.mjs: SQLite and zstd for Anki packages
+public/vendor/

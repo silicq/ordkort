@@ -24,6 +24,8 @@ export const APP_SCRIPTS = [
   'js/ui.js',
   'js/qr.js',
   'js/sync.js',
+  'js/apkg.js',
+  'js/anki.js', // after ui.js: it takes h, icon and t from it when it loads
   'js/views/home.js',
   'js/views/deck.js',
   'js/views/study.js',

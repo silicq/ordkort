@@ -3,7 +3,7 @@
 // Wrangler runs this before every `wrangler deploy` and `wrangler dev` ("build" in wrangler.jsonc), npm before the tests.
 // The app compares its own version with the server's to notice a new deploy; the service worker names its cache after it.
 import { createHash } from 'node:crypto';
-import { readdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { copyFileSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { bundle } from './bundle.mjs';
@@ -12,6 +12,16 @@ const root = fileURLToPath(new URL('../public/', import.meta.url));
 const out = join(root, 'js', 'build.js');
 const bundleFile = join(root, 'js', 'bundle.js');
 const mapFile = bundleFile + '.map';
+
+// SQLite and the zstd decoder for Anki packages (js/anki.js loads them only when needed), from node_modules
+const vendor = join(root, 'vendor');
+const nm = fileURLToPath(new URL('../node_modules/', import.meta.url));
+mkdirSync(join(vendor, 'sql'), { recursive: true });
+for (const [from, to] of [
+  ['sql.js/dist/sql-wasm-browser.js', 'sql/sql-wasm-browser.js'],
+  ['sql.js/dist/sql-wasm-browser.wasm', 'sql/sql-wasm-browser.wasm'],
+  ['fzstd/umd/index.js', 'fzstd.js'],
+]) copyFileSync(join(nm, from), join(vendor, to));
 
 const b = await bundle();
 writeFileSync(bundleFile, b.code);

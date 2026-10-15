@@ -227,6 +227,12 @@
     const c = card(id);
     if (c) { Object.assign(c, patch, { u: now() }); save(); }
   }
+  // many edits at once, saved once (an import of thousands of cards): [{ id, ...patch }]
+  function updateCards(list) {
+    const t = now();
+    for (const { id, ...patch } of list || []) { const c = card(id); if (c) Object.assign(c, patch, { u: t }); }
+    if (list?.length) save();
+  }
   function deleteCard(id) {
     const p = pair();
     delete p.cards[id];
@@ -567,10 +573,10 @@
     get settings() { return state.settings; },
     get ready() { return !!state.settings; },
     decks, deck, addDeck, updateDeck, deleteDeck, mineDeck,
-    cards, card, addCards, updateCard, deleteCard, resetCard, hasTerm, norm, fromBank, applyChecks,
+    cards, card, addCards, updateCard, updateCards, deleteCard, resetCard, hasTerm, norm, fromBank, applyChecks,
     sentences, sentenceWith, example, shown,
     overview, streak, week, today, newToday,
-    buildSession, cramQueue, answer, stage, MAX_BOX, schedule, preview, suspend, LEECH, dayKey, pairKey: () => pairKey(),
+    buildSession, cramQueue, answer, stage, MAX_BOX, schedule, preview, suspend, LEECH, boxFromS, dayKey, pairKey: () => pairKey(),
     get days() { return state.days; },
     addRecent, recent,
     cacheGet, cacheSet, cacheHas, cacheClear, cacheDel,

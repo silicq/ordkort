@@ -156,6 +156,8 @@
             h('div', { class: 'row gap wrap' },
               h('button', { class: 'btn btn-ghost btn-sm', type: 'button', onclick: backup }, icon('download', 16), t('set.export')),
               h('button', { class: 'btn btn-ghost btn-sm', type: 'button', onclick: () => file.click() }, icon('upload', 16), t('set.import')),
+              h('button', { class: 'btn btn-ghost btn-sm', type: 'button', onclick: () => A.anki.pick() }, icon('anki', 16), t('anki.import')),
+              h('button', { class: 'btn btn-ghost btn-sm', type: 'button', onclick: () => A.anki.exportAll() }, icon('anki', 16), t('anki.export_all')),
               file,
               h('button', {
                 class: 'btn btn-ghost btn-sm', type: 'button',

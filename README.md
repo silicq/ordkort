@@ -63,8 +63,14 @@ Ordkort is a lightweight site for learning almost any language from almost any o
   meaning in that context and add it to your cards.
 - **Statistics and a daily goal**: streak, reviews over 30 days, a 14-day forecast, words by stage,
   the words you forget most.
-- **Your own words in and out**: CSV export and import (including Anki “Notes in plain text”),
-  and sharing a deck by link or QR code — only the words, never your progress.
+- **Anki both ways**: import an `.apkg` from any Anki (the current format too) with its pictures and, if you want,
+  its progress; export your decks as an `.apkg` Anki opens, with progress (FSRS memory state included) and
+  pictures. CSV in and out, and sharing a deck by link or QR code — only the words, never your progress.
+- **Pictures on cards**: a free, openly licensed picture found by the word (Openverse), one of your own, or a
+  pasted one; kept on the device.
+- **Remembering better**: two answers or four (Again / Hard / Good / Easy), your own target retention, words
+  you keep forgetting set aside, and *What goes wrong*: your answers read back as findings, each with one
+  thing to do.
 - **Works offline**: a service worker keeps the site, so cards open without a connection.
   After a deploy the app notices the new version by itself — also when it is installed on a phone
   and only woken up — and loads it at the next move to another screen.
@@ -201,7 +207,9 @@ npm run deploy
   for shape and size before it enters the shared base.
 - Cross-site requests are rejected (`Origin` check); the API accepts JSON only.
 - Bursts are cut in memory, generations are counted in D1, plus a site-wide daily budget.
-- The CSP forbids third-party scripts and framing; fonts are self-hosted. The only third-party
+- The CSP forbids third-party scripts and framing; fonts are self-hosted. WebAssembly is allowed
+  ('wasm-unsafe-eval') only for SQLite, which reads and writes Anki packages and loads from the site itself
+  the first time someone imports or exports. The only third-party
   request from the browser is the open ordbokene.no API for Norwegian. The server looks words up in
   Wiktionary (only the word, with a User-Agent as Wikimedia asks) and caches the answers for 30 days.
   Pictures for cards are searched (Openverse) and fetched by the server too, so the visitor’s IP never reaches
@@ -231,4 +239,6 @@ version as a public service, you must publish your changes under the same licens
 Official Norwegian dictionary data: [ordbokene.no](https://ordbokene.no) (Språkrådet and the
 University of Bergen). AI: [Groq](https://groq.com). Fonts: Geologica, Literata, Readex Pro,
 Noto Naskh Arabic — SIL Open Font License 1.1. QR codes: a port of Project Nayuki’s QR Code generator
-(MIT License).
+(MIT License). Anki packages: [sql.js](https://github.com/sql-js/sql.js) (SQLite in WebAssembly, MIT) and
+[fzstd](https://github.com/101arrowz/fzstd) (MIT). Pictures: [Openverse](https://openverse.org), each with its
+own licence and credit.

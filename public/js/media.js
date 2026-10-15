@@ -62,6 +62,14 @@
     return u;
   }
 
+  // the bytes of a card's picture (for an export), fetched again if this device does not have them
+  async function blob(c) {
+    if (!c?.img) return null;
+    const have = await A.idb.mediaGet(c.img).catch(() => null);
+    if (have) return have;
+    return (await url(c)) ? A.idb.mediaGet(c.img).catch(() => null) : null;
+  }
+
   // an <img> that fills in when the picture is ready, or nothing if the card has none
   function el(c, cls = 'card-img') {
     if (!c?.img) return null;
@@ -88,5 +96,5 @@
     } catch { /* next time */ }
   }
 
-  A.media = { add, addUrl, url, el, search, tidy, _test: { shrink } };
+  A.media = { add, addUrl, url, blob, el, search, tidy, _test: { shrink } };
 })();

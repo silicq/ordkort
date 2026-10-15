@@ -114,7 +114,8 @@
       body: h('div', { class: 'mode-list' },
         row('share', t('share.title'), t('share.row'), () => { m.close(); shareLink(d); }),
         row('download', t('csv.export'), t('csv.export_d'), () => { m.close(); exportCSV(d); }),
-        row('upload', t('csv.import'), t('csv.import_d'), () => { m.close(); importCSV(d); })),
+        row('upload', t('csv.import'), t('csv.import_d'), () => { m.close(); importCSV(d); }),
+        row('anki', t('anki.export'), t('anki.export_d'), () => { m.close(); A.anki.exportDeck(d); })),
     });
   }
   const row = (ic, title, desc, onclick) => h('button', { class: 'mode-row', type: 'button', onclick },

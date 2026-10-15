@@ -1,0 +1,183 @@
+/* Anki in and out (the formats themselves are in js/apkg.js). SQLite (sql.js) and the zstd decoder (fzstd) are big,
+   so they load the first time someone imports or exports, from /vendor (copied there by scripts/build.mjs). */
+(() => {
+  const A = window.App;
+  const { h, icon, t } = A;
+  let deps = null;
+
+  const script = (src) => new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = src;
+    s.onload = resolve;
+    s.onerror = () => reject(new Error('could not load ' + src));
+    document.head.append(s);
+  });
+  async function load() {
+    if (deps) return deps;
+    await Promise.all([window.initSqlJs ? null : script('/vendor/sql/sql-wasm-browser.js'), window.fzstd ? null : script('/vendor/fzstd.js')]);
+    const SQL = await window.initSqlJs({ locateFile: (f) => '/vendor/sql/' + f });
+    deps = { SQL, zstd: (b) => window.fzstd.decompress(b) };
+    return deps;
+  }
+
+  const TYPES = { jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', gif: 'image/gif', webp: 'image/webp', avif: 'image/avif', svg: '' };
+  const typeOf = (name) => TYPES[String(name).split('.').pop().toLowerCase()];
+
+  /* ---------- import ---------- */
+  function pick() {
+    const input = h('input', { type: 'file', accept: '.apkg,.colpkg', hidden: true });
+    input.addEventListener('change', () => { const f = input.files?.[0]; if (f) open(f); input.remove(); });
+    document.body.append(input);
+    input.click();
+  }
+
+  async function open(file) {
+    const s = A.store.settings;
+    const box = h('div', { class: 'anki-box' }, A.loading(t('anki.reading')));
+    const m = A.modal({ title: t('anki.import_title'), body: box, wide: true });
+    let pkg;
+    try {
+      pkg = await A.apkg.read(new Uint8Array(await file.arrayBuffer()), await load());
+    } catch (e) {
+      console.error(e);
+      box.replaceChildren(h('p', { class: 'error-text' }, t('anki.bad_file')));
+      return;
+    }
+    if (!pkg.notes.length) { box.replaceChildren(h('p', { class: 'muted' }, t('anki.empty'))); return; }
+
+    // one choice of fields per note type in use
+    const used = new Map();
+    for (const n of pkg.notes) used.set(n.mid, (used.get(n.mid) || 0) + 1);
+    const maps = {};
+    const T = A.langs.name(s.target), N = A.langs.name(s.native);
+    const ROLES = [['term', t('anki.role_term', { lang: T })], ['tr', t('anki.role_tr', { lang: N })], ['ex', t('anki.role_ex')], ['exTr', t('anki.role_extr')], ['pron', t('anki.role_pron')]];
+    const keep = h('input', { type: 'checkbox', class: 'switch', role: 'switch', checked: true });
+    const swap = h('input', { type: 'checkbox', class: 'switch', role: 'switch' });
+    const preview = h('ul', { class: 'share-preview' });
+    const go = h('button', { class: 'btn btn-primary', type: 'button' });
+
+    const sample = () => {
+      const groups = A.apkg.words(pkg, maps, { withSchedule: false });
+      const all = groups.flatMap((g) => g.words);
+      const sw = swap.checked;
+      preview.replaceChildren(...all.slice(0, 6).map((w) => h('li', null, A.lt(sw ? w.tr : w.term, s.target, 'serif'), ' — ', sw ? w.term : w.tr, w.ex ? h('small', { class: 'muted d-block' }, w.ex) : null)));
+      go.textContent = t('anki.go', { n: all.length });
+      go.disabled = !all.length;
+    };
+
+    const types = [...used].map(([mid, count]) => {
+      const type = pkg.types[mid] || { name: '?', fields: [] };
+      maps[mid] = A.apkg.guess(type.fields);
+      return h('fieldset', { class: 'anki-type' },
+        h('legend', null, t('anki.type', { name: type.name, n: count })),
+        h('div', { class: 'anki-roles' }, ROLES.map(([role, label]) => {
+          const sel = h('select', { class: 'select' },
+            h('option', { value: -1 }, '—'),
+            type.fields.map((f, i) => h('option', { value: i }, f)));
+          sel.value = String(maps[mid][role]);
+          sel.addEventListener('change', () => { maps[mid][role] = +sel.value; sample(); });
+          return h('label', { class: 'field' }, h('span', null, label), sel);
+        })));
+    });
+    swap.addEventListener('change', sample);
+
+    const decks = new Set(pkg.cards.map((c) => c.did)).size;
+    A.put(box,
+      h('p', { class: 'muted' }, t('anki.summary', { notes: pkg.notes.length, decks, pics: pkg.media.size })),
+      h('p', { class: 'callout' }, icon('info', 18), h('span', null, t('anki.into', { target: T, native: N }))),
+      types,
+      h('label', { class: 'set-row' }, h('span', { class: 'set-label' }, h('b', null, t('anki.swap', { lang: N }))), swap),
+      h('label', { class: 'set-row' }, h('span', { class: 'set-label' }, h('b', null, t('anki.keep')), h('small', null, t('anki.keep_d'))), keep),
+      h('h3', null, t('anki.preview')), preview,
+      h('div', { class: 'row gap' }, go));
+    sample();
+
+    go.addEventListener('click', async () => {
+      go.disabled = true;
+      go.textContent = t('anki.importing');
+      try {
+        const res = await add(pkg, maps, { keep: keep.checked, swap: swap.checked, name: file.name.replace(/\.(apkg|colpkg)$/i, '') });
+        m.close();
+        A.toast(res.added ? t('anki.imported', { n: res.added, decks: res.decks }) : t('anki.nothing'), res.added ? 'ok' : '');
+        A.go('#/');
+        A.route();
+      } catch (e) {
+        console.error(e);
+        A.toast(t('anki.bad_file'), 'error');
+        go.disabled = false;
+        sample();
+      }
+    });
+  }
+
+  // the words of a package into decks of the language in use, with their pictures and (if asked) their progress
+  async function add(pkg, maps, { keep, swap, name }) {
+    const groups = A.apkg.words(pkg, maps, { withSchedule: keep });
+    let added = 0, decks = 0;
+    for (const g of groups) {
+      const leaf = g.path[g.path.length - 1];
+      const title = (leaf === 'Default' ? name : leaf) || name || 'Anki';
+      const words = [];
+      for (const w of g.words) {
+        const word = swap ? { ...w, term: w.tr, tr: w.term } : { ...w };
+        const bytes = w.imgName && pkg.media.get(w.imgName);
+        const type = bytes && typeOf(w.imgName);
+        if (type) { try { word.img = await A.media.add(new Blob([bytes], { type })); } catch { /* a picture the browser cannot read */ } }
+        words.push(word);
+      }
+      const deck = A.store.addDeck({ title: title.slice(0, 80), emoji: '📥', group: 'custom', manual: true });
+      const before = new Set(A.store.cards(deck.id).map((c) => c.id));
+      const n = A.store.addCards(deck.id, words.map((w) => ({ term: w.term, tr: w.tr, ex: w.ex, ex_tr: w.ex_tr, pron: w.pron, img: w.img, src: 'anki' })));
+      if (!n) { A.store.deleteDeck(deck.id); continue; }
+      added += n;
+      decks++;
+      // progress: the new cards of this deck, found by their word
+      const byTerm = new Map(words.map((w) => [A.store.norm(w.term), w]));
+      const patches = [];
+      for (const c of A.store.cards(deck.id)) {
+        if (before.has(c.id)) continue;
+        const w = byTerm.get(A.store.norm(c.term));
+        if (!w) continue;
+        const p = {};
+        if (w.sched) Object.assign(p, { s: Math.round(w.sched.s * 1000) / 1000, d: Math.round(w.sched.d * 1000) / 1000, due: w.sched.due, last: w.sched.last, reps: w.sched.reps, lapses: w.sched.lapses, box: A.store.boxFromS(w.sched.s) });
+        if (w.sus) p.sus = 1;
+        if (Object.keys(p).length) patches.push({ id: c.id, ...p });
+      }
+      A.store.updateCards(patches);
+    }
+    return { added, decks };
+  }
+
+  /* ---------- export ---------- */
+  async function exportDecks(decks, file) {
+    const s = A.store.settings;
+    A.toast(t('anki.exporting'));
+    try {
+      const d = await load();
+      const media = new Map();
+      const groups = [];
+      let n = 0;
+      for (const dk of decks) {
+        const cards = A.store.cards(dk.id).sort((a, b) => a.created - b.created);
+        for (const c of cards) {
+          if (!c.img || media.has(c.img)) continue;
+          const blob = await A.media.blob(c);
+          if (blob) media.set(c.img, new Uint8Array(await blob.arrayBuffer()));
+        }
+        n += cards.length;
+        groups.push({ name: ['Ordkort', A.langs.name(s.target), A.deckTitle(dk)].map((x) => String(x).replace(/::/g, ':')).join('::'), cards });
+      }
+      const bytes = await A.apkg.write(groups, media, { SQL: d.SQL });
+      A.download(file + '.apkg', bytes, 'application/octet-stream');
+      A.toast(t('anki.exported', { n }), 'ok');
+    } catch (e) {
+      console.error(e);
+      A.toast(t('anki.export_failed'), 'error');
+    }
+  }
+  const slug = (x) => String(x).toLowerCase().replace(/[^\p{L}\p{N}]+/gu, '-').replace(/^-|-$/g, '') || 'deck';
+  const exportDeck = (d) => exportDecks([d], 'ordkort-' + slug(A.deckTitle(d)));
+  const exportAll = () => exportDecks(A.store.decks(), `ordkort-${A.store.settings.target}-${new Date().toISOString().slice(0, 10)}`);
+
+  A.anki = { pick, open, exportDeck, exportAll, _test: { add } };
+})();

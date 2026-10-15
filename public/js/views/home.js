@@ -148,7 +148,8 @@
             const d = A.store.addDeck({ title: name, emoji: '📝', group: 'custom', manual: true });
             A.go('#/deck/' + d.id);
           },
-        }, icon('plus', 16), t('cat.empty'))));
+        }, icon('plus', 16), t('cat.empty')),
+        h('button', { class: 'link-btn', type: 'button', onclick: () => A.anki.pick() }, icon('anki', 16), t('anki.import'))));
   }
 
   function openTopic(tp) {

@@ -20,7 +20,9 @@
   },
   "devDependencies": {
     "esbuild": "0.28.1",
+    "fzstd": "0.1.1",
     "jsqr": "^1.4.0",
+    "sql.js": "1.15.0",
     "wrangler": "^4.45.0"
   },
   "engines": {
