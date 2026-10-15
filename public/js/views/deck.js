@@ -117,17 +117,23 @@
         h('button', { class: 'btn btn-ghost btn-sm', type: 'button', onclick: () => editCard(c, c.deck) }, icon('edit', 16), t('common.edit')),
         h('a', { class: 'btn btn-ghost btn-sm', href: '#/dict/' + encodeURIComponent(c.term.replace(/^(en|ei|et|å|der|die|das|la|le|el|the|to)\s+/i, '')) }, icon('book', 16), t('card.in_dict')),
         c.box ? h('button', { class: 'btn btn-ghost btn-sm', type: 'button', onclick: () => { A.store.resetCard(c.id); A.refresh(); } }, icon('refresh', 16), t('card.reset')) : null,
+        h('button', {
+          class: 'btn btn-ghost btn-sm', type: 'button', title: t(c.sus ? 'card.unsuspend_d' : 'card.suspend_d'),
+          onclick: () => { A.store.suspend(c.id, !c.sus); A.toast(t(c.sus ? 'card.suspended' : 'card.unsuspended')); A.refresh(); },
+        }, icon(c.sus ? 'play' : 'pause', 16), t(c.sus ? 'card.unsuspend' : 'card.suspend')),
         wordReport(c),
         h('span', { class: 'grow' }),
         h('button', {
           class: 'btn btn-ghost btn-sm danger', type: 'button',
           onclick: () => { A.store.deleteCard(c.id); A.toast(t('card.deleted')); A.refresh(); },
         }, icon('trash', 16), t('common.delete'))));
-    const el = h('details', { class: 'wrow' },
+    const el = h('details', { class: 'wrow' + (c.sus ? ' sus' : '') },
       h('summary', null,
         A.speakBtn(c.term, s.target),
         h('span', { class: 'w-term' }, A.lt(c.term, s.target, 'serif'), pron ? h('small', null, pron) : null),
         A.lt(c.tr, s.native, 'w-tr'),
+        c.sus ? h('span', { class: 'pill muted-pill', title: t('card.suspend_d') }, icon('pause', 12), t('card.set_aside'))
+          : c.leech ? h('span', { class: 'pill leech-pill', title: t('card.leech_d') }, t('card.leech')) : null,
         pips(c.box),
         h('span', { class: 'w-caret' }, icon('chevron', 18))),
       detail);

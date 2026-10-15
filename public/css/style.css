@@ -919,6 +919,16 @@ dialog.modal::backdrop { background: rgba(20, 16, 10, 0.45); backdrop-filter: bl
 .btn-yes { --bg: var(--green); --fg: #fff; --edge: var(--green-edge); }
 .btn-no { --bg: var(--red); --fg: #fff; --edge: var(--red-edge); }
 .btn-flip { width: 58px; height: 58px; padding: 0; justify-content: center; border-radius: 50%; }
+/* four answers: Again / Hard / Good / Easy, each with when the card comes back */
+.answer-row.grades { grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.btn.grade { flex-direction: column; justify-content: center; gap: 2px; padding: 11px 6px; border-radius: 16px; line-height: 1.15; }
+.btn.grade b { font-size: 16px; }
+.btn.grade small { font-size: 12.5px; font-weight: 500; opacity: 0.85; }
+.btn-hard { --bg: var(--yellow); --fg: #2a2006; --edge: color-mix(in srgb, var(--yellow) 60%, #000); }
+.btn-easy { --bg: var(--blue); --fg: #fff; --edge: var(--blue-edge); }
+.btn-show { grid-column: 1 / -1; justify-content: center; padding: 16px 12px; border-radius: 18px; font-size: 17px; }
+.flash.out-left { transform: translateX(-115%) rotate(-14deg) !important; opacity: 0; transition: transform 0.28s ease-in, opacity 0.28s ease-in; }
+@media (max-width: 420px) { .answer-row.grades { grid-template-columns: 1fr 1fr; } }
 .again-note { grid-column: 1 / 3; display: flex; align-items: center; gap: 8px; margin: 0; color: var(--red); font-weight: 550; font-size: 14.5px; }
 .btn-next { grid-column: 3; justify-content: center; padding: 16px 12px; border-radius: 18px; font-size: 17px; }
 .keys-hint { margin: 16px 0 0; text-align: center; font-size: 12.5px; color: var(--ink-3); }
@@ -1817,3 +1827,30 @@ dialog.modal::backdrop { background: rgba(20, 16, 10, 0.45); backdrop-filter: bl
   .tab { font-size: 10.5px; }
   .tab .ico { padding: 4px 12px; }
 }
+
+/* ---------- what goes wrong (views/insights.js) ---------- */
+.ins-link { display: flex; align-items: center; gap: 14px; margin-top: 16px; padding: 16px 20px; border-radius: 20px; border: 1.5px solid var(--line); background: var(--card); color: var(--ink); text-decoration: none; }
+.ins-link:hover { border-color: var(--line-2); }
+.ins-link > span:nth-child(2) { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.ins-link small { color: var(--ink-2); }
+.ins-link-ico { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 14px; background: var(--red-soft); color: var(--red); flex-shrink: 0; }
+.insights { display: grid; gap: 14px; }
+.ins-card { padding: 20px 22px; border-radius: 20px; border: 1.5px solid var(--line); background: var(--card); display: grid; gap: 10px; }
+.ins-card h2 { margin: 0; font: 650 18px/1.3 var(--font-ui); }
+.ins-card > p { margin: 0; color: var(--ink-2); max-width: 62ch; }
+.ins-retention_low, .ins-leeches, .ins-backlog { border-inline-start: 5px solid var(--red); }
+.ins-confused, .ins-articles, .ins-forms { border-inline-start: 5px solid var(--yellow); }
+.ins-retention_high { border-inline-start: 5px solid var(--green); }
+.ins-pairs, .ins-examples, .ins-leech-list { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.ins-pairs li, .ins-examples li, .ins-leech-list li { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; padding: 7px 0; border-top: 1px dashed var(--line); }
+.ins-pairs li:first-child, .ins-examples li:first-child, .ins-leech-list li:first-child { border-top: 0; }
+.ins-word { display: inline-flex; align-items: baseline; gap: 6px; }
+.ins-word .serif { font-size: 17px; font-weight: 600; }
+.ins-word small { color: var(--ink-3); }
+.ins-vs { color: var(--ink-3); }
+.ins-examples s { color: var(--red); text-decoration-thickness: 1.5px; }
+.ins-list { color: var(--ink-2); }
+.ins-list .serif { color: var(--ink); }
+.pill.muted-pill { gap: 4px; }
+.pill.leech-pill { background: var(--red-soft); color: var(--red); }
+.wrow.sus summary { opacity: 0.6; }

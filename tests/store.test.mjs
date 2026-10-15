@@ -97,6 +97,46 @@ test('a half-right answer (the word in a wrong form) is not a lapse, but comes b
   assert.ok(b.d > a.d, 'and the word counts as harder');
 });
 
+test('four answers: again < hard < good < easy, and the preview does not touch the card', () => {
+  const S = device();
+  const c = { ...fresh(), box: 4, s: 10, d: 5, last: T0 - 10 * DAY, due: T0 };
+  const before = JSON.stringify(c);
+  const p = S.preview(c, T0);
+  assert.equal(JSON.stringify(c), before);
+  assert.equal(p[1], 10 * MIN, 'again: back in ten minutes');
+  assert.ok(p[1] < p[2] && p[2] < p[3] && p[3] < p[4], JSON.stringify(Object.values(p).map(days)));
+  const g = { ...c };
+  assert.equal(S.schedule(g, true, T0, false, 2), 2);
+  assert.equal(g.due - T0, p[2]);
+  assert.equal(g.lapses, 0, 'hard is remembered, not a lapse');
+});
+
+test('a higher target retention brings words back sooner', () => {
+  const S = device();
+  const at = (r) => { S.set({ retention: r }); const c = { ...fresh(), box: 4, s: 20, d: 5, last: T0 - 20 * DAY }; S.schedule(c, true, T0); return days(c.due - T0); };
+  const low = at(0.8), mid = at(0.9), high = at(0.95);
+  assert.ok(low > mid && mid > high, `${low} > ${mid} > ${high}`);
+});
+
+test('a word forgotten six times is a leech, and a word set aside stays out of sessions', () => {
+  const S = device();
+  const deck = S.addDeck({ title: 'T', emoji: '🗂️', group: 'custom' });
+  S.addCards(deck.id, [{ term: 'en gaffel', tr: 'fork' }, { term: 'en kniv', tr: 'knife' }]);
+  const [a, b] = S.cards(deck.id);
+  const c = S.card(a.id);
+  let now = T0;
+  S.schedule(c, true, now);
+  for (let i = 0; i < 6; i++) { now += 30 * DAY; c.last = now - DAY; S.schedule(c, false, now); }
+  assert.equal(c.lapses, 6);
+  assert.equal(c.leech, 1);
+  S.suspend(b.id);
+  assert.ok(!S.buildSession(deck.id).includes(b.id));
+  assert.ok(!S.cramQueue(deck.id).includes(b.id));
+  S.suspend(b.id, false);
+  assert.ok(S.buildSession(deck.id).includes(b.id));
+  assert.deepEqual(S.cramQueue(deck.id, [a.id, 'gone']), [a.id], 'a chosen list keeps only existing cards');
+});
+
 test('answer() updates reps, today stats and the card', () => {
   const S = device();
   const deck = S.addDeck({ title: 'T', emoji: '🗂️', group: 'custom' });

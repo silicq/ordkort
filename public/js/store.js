@@ -22,6 +22,8 @@
     native: 'en', target: 'nb', ui: '', theme: 'auto', direction: 'forward',
     newPerDay: 15, sessionSize: 20, batch: 20, level: 'A1',
     autoSpeak: false, studyMode: 'flip', goal: 20,
+    grading: 'two', // 'two': know / don't know; 'four': Again / Hard / Good / Easy after turning the card over
+    retention: 0.9, // the chance of still remembering a word when it comes back; higher means more reviews
   });
   const DEVICE_ONLY = ['theme']; // not synced: a phone may use the dark theme while a laptop uses the light one
   const blank = () => ({ v: 1, settings: null, pairs: {}, days: {}, recent: [] });
@@ -290,7 +292,7 @@
     for (const c of cards(deckId)) {
       o.total++;
       if (c.box === 0) { o.fresh++; continue; }
-      if (c.due <= now) o.due++;
+      if (c.due <= now && !c.sus) o.due++;
       if (c.box >= KNOWN_BOX) o.known++; else o.learning++;
     }
     o.newLeft = Math.max(0, state.settings.newPerDay - newToday());
@@ -302,8 +304,8 @@
     const now = Date.now();
     const s = state.settings;
     const all = cards(deckId);
-    const due = all.filter((c) => c.box > 0 && c.due <= now).sort((a, b) => a.due - b.due);
-    const fresh = all.filter((c) => c.box === 0).sort((a, b) => a.created - b.created);
+    const due = all.filter((c) => c.box > 0 && c.due <= now && !c.sus).sort((a, b) => a.due - b.due);
+    const fresh = all.filter((c) => c.box === 0 && !c.sus).sort((a, b) => a.created - b.created);
     const size = Math.max(s.sessionSize, extraNew);
     const dueTake = due.slice(0, size);
     const newLimit = extraNew || Math.max(0, s.newPerDay - newToday());
@@ -317,8 +319,9 @@
     }
     return q;
   }
-  function cramQueue(deckId) {
-    const ids = cards(deckId).filter((c) => c.box > 0).map((c) => c.id);
+  // a quick run through words already met; `only` — a chosen list (the words of a finding in "What goes wrong")
+  function cramQueue(deckId, only = null) {
+    const ids = only ? only.filter((id) => card(id)) : cards(deckId).filter((c) => c.box > 0 && !c.sus).map((c) => c.id);
     for (let i = ids.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [ids[i], ids[j]] = [ids[j], ids[i]];
@@ -329,12 +332,13 @@
      Each card keeps stability s (days until recall drops to 90%) and difficulty d (1–10).
      `box` is still derived from s so that stages and progress bars keep working. */
   const FW = [0.4872, 1.4003, 3.7145, 13.8206, 5.1618, 1.2298, 0.8975, 0.031, 1.6474, 0.1367, 1.0461, 2.1072, 0.0793, 0.3246, 1.587, 0.2272, 2.8755];
-  const DECAY = -0.5, FACTOR = 19 / 81, RETENTION = 0.9;
+  const DECAY = -0.5, FACTOR = 19 / 81;
+  const retention = () => Math.min(0.97, Math.max(0.7, state.settings?.retention || 0.9));
   const clampD = (d) => Math.min(10, Math.max(1, d));
   const initD = (g) => clampD(FW[4] - (g - 3) * FW[5]);
   const initS = (g) => Math.max(0.1, FW[g - 1]);
   const recall = (days, s) => Math.pow(1 + (FACTOR * days) / s, DECAY);
-  const intervalDays = (s) => (s / FACTOR) * (Math.pow(RETENTION, 1 / DECAY) - 1);
+  const intervalDays = (s) => (s / FACTOR) * (Math.pow(retention(), 1 / DECAY) - 1);
   const nextD = (d, g) => clampD(FW[7] * initD(4) + (1 - FW[7]) * (d - FW[6] * (g - 3)));
   const sAfterRecall = (d, s, r, g) =>
     s * (Math.exp(FW[8]) * (11 - d) * Math.pow(s, -FW[9]) * (Math.exp(FW[10] * (1 - r)) - 1) * (g === 2 ? FW[15] : 1) * (g === 4 ? FW[16] : 1) + 1);
@@ -342,12 +346,15 @@
   const LEGACY_S = [0, 0.5, 1, 3, 7, 16, 35, 90];
   const boxFromS = (s) => (s < 1 ? 1 : s < 3 ? 2 : s < 7 ? 3 : s < 16 ? 4 : s < 35 ? 5 : s < 90 ? 6 : 7);
 
-  function schedule(c, ok, now, hard = false) {
+  // a word forgotten this many times is a "leech": it is marked, and "What goes wrong" offers to set it aside
+  const LEECH = 6;
+  /* grade: 1 = again, 2 = hard (also the right word in a wrong form: remembered, but due sooner),
+     3 = good, 4 = easy. With two answers it follows from ok/hard: a brand-new word someone already knows is easy. */
+  function schedule(c, ok, now, hard = false, grade = 0) {
     const wasNew = c.box === 0 && !c.s;
     if (!c.s && c.box > 0) { c.s = LEGACY_S[c.box]; c.d = 5; } // cards from the old Leitner scheduler
-    // grades: 1 = again, 2 = hard (the right word in a wrong form: remembered, but due sooner),
-    // 3 = good, 4 = easy ("I already know this" on a brand-new card)
-    const g = !ok ? 1 : hard ? 2 : wasNew ? 4 : 3;
+    const g = grade >= 1 && grade <= 4 ? grade : !ok ? 1 : hard ? 2 : wasNew ? 4 : 3;
+    ok = g > 1;
     if (wasNew) {
       c.d = initD(g);
       c.s = initS(g);
@@ -363,25 +370,45 @@
       c.box = boxFromS(c.s);
     } else {
       if (!wasNew) c.lapses++;
+      if (c.lapses >= LEECH) c.leech = 1;
       c.due = now + 10 * MIN; // relearn: comes back in the session and again soon
       c.box = 1;
     }
+    return g;
+  }
+  // when each of the four answers would bring the card back (ms from now), without touching the card
+  function preview(c, now = Date.now()) {
+    const out = {};
+    for (const g of [1, 2, 3, 4]) { const x = { ...c }; schedule(x, g > 1, now, false, g); out[g] = x.due - now; }
+    return out;
   }
 
-  function answer(id, ok, cram, hard = false) {
+  /* meta: { grade, mode, dir, result, given, picked } — the grade chosen with four answers, and for the history:
+     the study mode, the direction, how a typed answer was judged, what was typed or which other card was picked */
+  function answer(id, ok, cram, hard = false, meta = {}) {
     const c = card(id);
     if (!c) return;
     const wasNew = c.box === 0;
+    const now = Date.now();
+    let g = meta.grade || (!ok ? 1 : hard ? 2 : 3);
     if (!cram) {
-      const now = Date.now();
-      schedule(c, ok, now, hard);
+      g = schedule(c, ok, now, hard, meta.grade);
       c.reps++;
       c.last = now;
       c.u = now;
     }
+    ok = g > 1;
     bump(ok, wasNew && !cram);
     save();
+    const e = { t: now, p: pairKey(), c: id, g, n: wasNew ? 1 : 0, m: meta.mode || 'flip', d: meta.dir === 'reverse' ? 'r' : 'f', pos: c.pos || '' };
+    if (cram) e.cram = 1;
+    if (meta.result) e.r = meta.result;
+    if (meta.given) e.x = String(meta.given).slice(0, 80);
+    if (meta.picked) e.k = meta.picked;
+    A.idb?.logAdd(e);
   }
+  // set a card aside (it stops coming in sessions) or take it back
+  function suspend(id, on = true) { updateCard(id, { sus: on ? 1 : 0, leech: on ? card(id)?.leech || 0 : 0 }); }
   const stage = (box) => (box === 0 ? 'new' : box < KNOWN_BOX ? 'learning' : box < MAX_BOX ? 'known' : 'mastered');
 
   /* ---------- dictionary search history ---------- */
@@ -538,7 +565,7 @@
     cards, card, addCards, updateCard, deleteCard, resetCard, hasTerm, norm, fromBank, applyChecks,
     sentences, sentenceWith, example, shown,
     overview, streak, week, today, newToday,
-    buildSession, cramQueue, answer, stage, MAX_BOX, schedule, dayKey,
+    buildSession, cramQueue, answer, stage, MAX_BOX, schedule, preview, suspend, LEECH, dayKey, pairKey: () => pairKey(),
     get days() { return state.days; },
     addRecent, recent,
     cacheGet, cacheSet, cacheHas, cacheClear, cacheDel,

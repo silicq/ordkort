@@ -106,7 +106,8 @@ tests/             node:test suites (see below)
 wrangler.jsonc     Cloudflare configuration
 ```
 
-**User data** — cards, progress, settings — lives in the browser’s localStorage. Only AI requests
+**User data** — cards, progress, settings — lives in the browser’s localStorage; the history of every answer
+(what “What goes wrong” reads) and pictures for cards live in its IndexedDB, on that device only, never synced. Only AI requests
 (a word, a topic or a text plus the language pair) reach the server, plus decks you choose to share
 by link (kept for a year) and anonymous mistake reports (kept for 30 days). Answers are stored in a shared
 base, so the next person gets them instantly and without using their limit.

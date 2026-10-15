@@ -5,7 +5,9 @@
    listen — hear the word, pick its translation
    cloze  — type the missing word into the example sentence
    mix    — a different mode for every card
-   Keys: Space — flip / next, ← or 1 — don't know, → or 2 — know, 1–4 — options, S — listen. */
+   With four answers (Settings) a flip card is turned over first, then graded Again / Hard / Good / Easy,
+   each button showing when the card comes back.
+   Keys: Space — flip / next, ← or 1 — don't know, → or 2 — know (with four answers: 1–4), 1–4 — options, S — listen. */
 (() => {
   const A = window.App;
   const { h, icon, t } = A;
@@ -27,9 +29,11 @@
 
   A.views.study = {
     render(root, [deckId], query) {
-      const cram = query.has('cram');
+      // ?only=id,id — a practice run over chosen words (from "What goes wrong"); like cram, it leaves the schedule alone
+      const only = (query.get('only') || '').split(',').filter(Boolean);
+      const cram = query.has('cram') || only.length > 0;
       const extra = parseInt(query.get('extra'), 10) || 0;
-      const ids = cram ? A.store.cramQueue(deckId) : A.store.buildSession(deckId, extra);
+      const ids = cram ? A.store.cramQueue(deckId, only.length ? only : null) : A.store.buildSession(deckId, extra);
       S = {
         deckId, cram, queue: ids, i: 0, total: ids.length,
         first: {}, fails: {}, flipped: false, answered: false, dir: 'forward', busy: false, mode: 'flip',
@@ -56,7 +60,7 @@
         cram ? h('p', { class: 'cram-note' }, icon('info', 16), t('study.cram_note')) : null,
         S.stage = h('div', { class: 'stage' }),
         S.actions = h('div', { class: 'answer-row' }),
-        h('p', { class: 'keys-hint' }, t('study.keys')));
+        h('p', { class: 'keys-hint' }, t(four() ? 'study.keys_four' : 'study.keys')));
       paintModeBtn();
 
       onKey = (e) => {
@@ -67,6 +71,8 @@
         if (k === ' ' || k === 'Enter') {
           e.preventDefault();
           if (S.answered) next(); else if (S.mode === 'flip') flip();
+        } else if (four() && S.mode === 'flip' && !S.answered) {
+          if (S.flipped && /^[1-4]$/.test(k)) grade(+k);
         } else if (S.mode === 'flip' && !S.answered && (k === 'ArrowRight' || k === '2')) record(true);
         else if (S.mode === 'flip' && !S.answered && (k === 'ArrowLeft' || k === '1')) record(false);
         else if ((S.mode === 'choice' || S.mode === 'listen') && !S.answered && /^[1-4]$/.test(k)) S.actions.querySelectorAll('.opt')[+k - 1]?.click();
@@ -85,6 +91,7 @@
   };
 
   const cur = () => A.store.card(S.queue[S.i]);
+  const four = () => A.store.settings.grading === 'four' && !S.cram;
 
   function empty() {
     const o = A.store.overview(S.deckId);
@@ -269,7 +276,7 @@
     S.stage.replaceChildren(h('div', { class: 'stack' }, h('div', { class: 'stack-bg b2' }), h('div', { class: 'stack-bg b1' }), card));
     requestAnimationFrame(() => card.classList.add('in'));
 
-    if (S.mode === 'flip') flipButtons(isNew);
+    if (S.mode === 'flip') (four() ? showButton() : flipButtons(isNew));
     else if (S.mode === 'choice' || S.mode === 'listen') choiceButtons(c);
     else typeBox(c);
 
@@ -304,7 +311,7 @@
         const ok = x.id === c.id;
         S.actions.querySelectorAll('.opt').forEach((b, j) => { if (opts[j].id === c.id) b.classList.add('right'); b.disabled = true; });
         if (!ok) e.currentTarget.classList.add('wrong');
-        settle(ok);
+        settle(ok, { meta: { result: ok ? 'right' : 'wrong', picked: ok ? undefined : x.id } });
       },
     }, h('span', { class: 'opt-n' }, i + 1), h('span', null, x.tr))));
   }
@@ -333,7 +340,7 @@
       const v = input.value.trim();
       if (!v && !gaveUp) { input.focus(); return; }
       const res = gaveUp ? 'wrong' : compare(v, expected, c);
-      const ok = res !== 'wrong', hard = res === 'form';
+      const ok = res !== 'wrong', hard = res === 'form' || res === 'article';
       input.disabled = true;
       check.textContent = t('study.next');
       giveUp.hidden = true;
@@ -344,7 +351,8 @@
         icon(hard ? 'refresh' : ok ? 'check' : 'x', 16),
         h('span', null, t(FEEDBACK[res])),
         res !== 'right' ? A.lt(expected, T, 'serif fb-word') : null);
-      settle(ok, { auto: res === 'right', hard }); // give time to read the correct spelling or form
+      // give time to read the correct spelling or form
+      settle(ok, { auto: res === 'right', hard, meta: { result: gaveUp ? 'gave_up' : res, given: res === 'right' ? undefined : v } });
     };
     input.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); submit(false); } });
     check.addEventListener('click', () => submit(false));
@@ -361,9 +369,16 @@
      almost — one typo (a wrong, missing, extra or two swapped letters) in a word of 5+ letters
      form   — the same word in another form, e.g. "tallerken" where the gap needs "tallerkenen":
               half-right — not a mistake, but graded "hard" and asked again in this session
+     article — the right word with another article, "en hus" for "et hus": half-right like a form, since the
+              article (the gender) is what is being learnt; leaving the article out is still right
      roman  — the romanization of a word in another script, e.g. pinyin "qing" for 请
      wrong  — anything else. Everything but "wrong" counts as remembered. */
-  const FEEDBACK = { right: 'study.right', almost: 'study.almost', form: 'study.other_form', roman: 'study.roman', wrong: 'study.correct_is' };
+  const FEEDBACK = { right: 'study.right', almost: 'study.almost', form: 'study.other_form', article: 'study.article', roman: 'study.roman', wrong: 'study.correct_is' };
+  // the article in front of a word as typed: "et hus" → "et", "hus" → ""
+  const lead = (x) => {
+    const s = String(x || '').trim().toLowerCase(), b = A.store.norm(s);
+    return b && s !== b && s.endsWith(b) ? s.slice(0, s.length - b.length).trim() : '';
+  };
   function compare(value, expected, c) {
     const n = (x) => A.store.norm(x).replace(/\s+/g, ' ');
     const variants = (x) => {
@@ -376,7 +391,7 @@
       return [...out];
     };
     const a = n(value), exp = variants(expected);
-    if (exp.includes(a)) return 'right';
+    if (exp.includes(a)) { const la = lead(value), le = lead(expected); return la && le && la !== le ? 'article' : 'right'; }
     if (c && variants([c.term, c.forms].filter(Boolean).join(', ')).includes(a)) return 'form';
     if (exp.some((b) => b.length >= 5 && dist(a, b) <= 1)) return 'almost';
     if (!c) return 'wrong';
@@ -413,13 +428,43 @@
     if (S.mode !== 'flip' && !S.answered) return; // the back would reveal the answer
     S.flipped = force === true ? true : !S.flipped;
     S.card.classList.toggle('flipped', S.flipped);
+    if (four() && S.mode === 'flip' && !S.answered && S.flipped) gradeButtons();
+  }
+
+  /* ---------- four answers ---------- */
+  function showButton() {
+    S.actions.className = 'answer-row';
+    S.actions.replaceChildren(h('button', { class: 'btn btn-primary btn-show', type: 'button', onclick: () => flip(true) }, icon('flip', 20), t('study.show')));
+  }
+  // "10 min", "3 d", "2 mo" in the language of the interface
+  function span(ms) {
+    const lang = A.i18n.lang();
+    const [n, unit] = ms < 3600e3 ? [Math.round(ms / 6e4), 'minute'] : ms < 864e5 ? [Math.round(ms / 3600e3), 'hour']
+      : ms < 60 * 864e5 ? [Math.round(ms / 864e5), 'day'] : ms < 365 * 864e5 ? [Math.round(ms / (30 * 864e5)), 'month'] : [Math.round(ms / (365 * 864e5) * 10) / 10, 'year'];
+    try { return new Intl.NumberFormat(lang, { style: 'unit', unit, unitDisplay: 'short' }).format(n); } catch { return `${n} ${unit[0]}`; }
+  }
+  function gradeButtons() {
+    const c = cur();
+    if (!c || S.actions.classList.contains('grades')) return;
+    const p = A.store.preview(c);
+    S.actions.className = 'answer-row grades';
+    S.actions.replaceChildren(...[[1, 'again', 'btn-no'], [2, 'hard', 'btn-hard'], [3, 'good', 'btn-yes'], [4, 'easy', 'btn-easy']].map(([g, k, cls]) =>
+      h('button', { class: 'btn grade ' + cls, type: 'button', onclick: () => grade(g) },
+        h('b', null, t('study.' + k)), h('small', null, span(p[g])))));
+  }
+  function grade(g) {
+    if (S.answered || S.busy) return;
+    store(g > 1, false, { grade: g });
+    S.busy = true;
+    S.card.classList.add(g > 1 ? 'out-right' : 'out-left');
+    setTimeout(() => { S.busy = false; next(); }, 260);
   }
 
   // hard: half-right (the right word in a wrong form) — not a mistake, but the card comes back like one
-  function store(ok, hard = false) {
+  function store(ok, hard = false, meta = {}) {
     const id = S.queue[S.i];
     if (!(id in S.first)) S.first[id] = ok;
-    A.store.answer(id, ok, S.cram, hard);
+    A.store.answer(id, ok, S.cram, hard, { mode: S.mode, dir: S.dir, ...meta });
     if (!ok || hard) {
       const n = (S.fails[id] = (S.fails[id] || 0) + 1);
       if (n <= 3) S.queue.splice(Math.min(S.i + 4, S.queue.length), 0, id);
@@ -447,8 +492,8 @@
   }
 
   // other modes: show the answer on the back, move on by itself after a correct answer
-  function settle(ok, { auto = ok, hard = false } = {}) {
-    store(ok, hard);
+  function settle(ok, { auto = ok, hard = false, meta = {} } = {}) {
+    store(ok, hard, meta);
     S.answered = true;
     if (!ok || hard) S.card.classList.add(hard ? 'partial' : 'failed');
     flip(true);
@@ -477,7 +522,7 @@
     });
     card.addEventListener('pointermove', (e) => {
       if (x0 === null) return;
-      dx = S.mode === 'flip' && !S.answered ? e.clientX - x0 : 0;
+      dx = S.mode === 'flip' && !S.answered && (!four() || S.flipped) ? e.clientX - x0 : 0;
       card.style.transform = `translateX(${dx}px) rotate(${dx / 22}deg)`;
       card.style.setProperty('--ok', Math.max(0, Math.min(1, dx / 110)));
       card.style.setProperty('--no', Math.max(0, Math.min(1, -dx / 110)));
@@ -490,7 +535,7 @@
       card.style.setProperty('--no', 0);
       const d = dx;
       x0 = null;
-      if (Math.abs(d) > 100 && !S.answered) record(d > 0);
+      if (Math.abs(d) > 100 && !S.answered) (four() ? grade(d > 0 ? 3 : 1) : record(d > 0));
       else if (Math.abs(d) < 6) flip();
     };
     card.addEventListener('pointerup', end);

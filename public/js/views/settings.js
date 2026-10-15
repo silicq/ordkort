@@ -99,6 +99,16 @@
               { value: 'reverse', label: `${s.native.toUpperCase()} → ${s.target.toUpperCase()}` },
               { value: 'mixed', label: t('set.mixed') },
             ], s.direction, (v) => set({ direction: v }))),
+            row(t('set.grading'), t('set.grading_hint'), A.segmented([
+              { value: 'two', label: t('set.grading_two') },
+              { value: 'four', label: t('set.grading_four') },
+            ], s.grading || 'two', (v) => set({ grading: v }))),
+            row(t('set.retention'), t('set.retention_hint'), (() => {
+              const sel = h('select', { class: 'select narrow' }, [0.8, 0.85, 0.9, 0.95].map((v) => h('option', { value: v }, Math.round(v * 100) + '%')));
+              sel.value = String(s.retention || 0.9);
+              sel.addEventListener('change', () => set({ retention: +sel.value }));
+              return sel;
+            })()),
             row(t('set.new_per_day'), t('set.new_per_day_hint'), numSel([5, 10, 15, 20, 30, 50], s.newPerDay, (v) => set({ newPerDay: v }))),
             row(t('set.session'), null, numSel([10, 15, 20, 30, 50, 100], s.sessionSize, (v) => set({ sessionSize: v }))),
             row(t('set.goal'), t('set.goal_hint'), numSel([10, 20, 30, 50, 100, 200], s.goal || 20, (v) => set({ goal: v }))),

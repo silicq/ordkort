@@ -71,6 +71,16 @@ test('typing: one typo, including two swapped letters, is "almost"', () => {
   assert.equal(compare('hus', 'hun', card({ term: 'hun' })), 'wrong', 'short words must be exact');
 });
 
+test('typing: the right noun with another article is half-right, without one it is right', () => {
+  const hus = card({ term: 'et hus', pos: 'noun' });
+  assert.equal(compare('en hus', 'et hus', hus), 'article');
+  assert.equal(compare('et hus', 'et hus', hus), 'right');
+  assert.equal(compare('hus', 'et hus', hus), 'right', 'leaving the article out is not a mistake');
+  assert.equal(compare('en bil', 'et hus', hus), 'wrong');
+  const hund = card({ term: 'der Hund', pos: 'noun' });
+  assert.equal(compare('die Hund', 'der Hund', hund), 'article');
+});
+
 test('typing: notes in brackets are optional', () => {
   const privet = card({ term: 'привет (м.)', tr: 'привіт' });
   assert.equal(compare('привет', 'привет (м.)', privet), 'right');

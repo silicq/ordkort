@@ -11,7 +11,7 @@
     { id: 'grammar', href: '#/grammar', icon: 'grammar', label: 'nav.grammar' },
     { id: 'translate', href: '#/translate', icon: 'translate', label: 'nav.translate' },
   ];
-  const SECTION = { home: 'home', deck: 'home', study: 'home', dict: 'dict', grammar: 'grammar', translate: 'translate', settings: 'settings', about: 'settings', read: 'read', stats: 'home', s: 'home' };
+  const SECTION = { home: 'home', deck: 'home', study: 'home', dict: 'dict', grammar: 'grammar', translate: 'translate', settings: 'settings', about: 'settings', read: 'read', stats: 'home', insights: 'home', s: 'home' };
   const OPEN_BEFORE_SETUP = ['link', 'about', 's']; // available before the first-run setup
 
   let current = null;
