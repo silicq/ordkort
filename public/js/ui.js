@@ -209,6 +209,8 @@
   }
   function speak(text, lang) {
     if (!synth || !text) return false;
+    // a word in another alphabet than its deck's (a Russian word in a Norwegian deck) is read in its own language
+    if (!A.langs.fits(text, lang)) lang = A.langs.guess(text, [A.store?.settings?.native, A.store?.settings?.target]) || lang;
     const v = voiceFor(lang);
     if (!v) { toast(A.t('tts.none', { lang: A.langs.name(lang) })); return false; }
     const u = new SpeechSynthesisUtterance(String(text).replace(/[*_]/g, ''));

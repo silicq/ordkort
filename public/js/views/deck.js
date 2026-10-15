@@ -86,7 +86,7 @@
         h('div', { class: 'list-head' },
           h('h2', null, t('deck.words')),
           h('div', { class: 'legend' },
-            ['new', 'learning', 'known', 'mastered'].map((st) => h('span', { class: 'lg st-' + st }, h('i'), t('stage.' + st)))),
+            ['new', 'learning', 'known', 'mastered'].map((st) => h('span', { class: 'lgd st-' + st }, h('i'), t('stage.' + st)))),
           search),
         list);
     },

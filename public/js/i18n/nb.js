@@ -665,7 +665,6 @@ globalThis.App.i18nData.nb = {
   'anki.role_ex': "Eksempel",
   'anki.role_extr': "Oversatt eksempel",
   'anki.role_pron': "Uttale",
-  'anki.swap': "Forsiden av disse kortene er på {lang}",
   'anki.keep': "Behold fremgangen fra Anki",
   'anki.keep_d': "Ord du har lært der, kommer tilbake når de skal repeteres, ikke som nye",
   'anki.preview': "Slik blir de første ordene",
@@ -704,4 +703,7 @@ globalThis.App.i18nData.nb = {
   'look.shared_site': "Det endrer også stilen for hele nettstedet.",
   'look.use': "Bruk dette utseendet",
   'look.applied': "Utseendet er på. Du kan endre det i innstillingene.",
+  'anki.target': "Språket til ordene",
+  'anki.target_d': "Funnet ut fra ordene selv; kortstokken havner i dette språket",
+  'anki.other_tr': "Oversettelsene her ser ut til å være på {lang}, ikke {native}. Du kan beholde dem eller velge andre felt.",
 };

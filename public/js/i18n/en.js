@@ -665,7 +665,6 @@ globalThis.App.i18nData.en = {
   'anki.role_ex': "Example",
   'anki.role_extr': "Example translation",
   'anki.role_pron': "Pronunciation",
-  'anki.swap': "The front of these cards is in {lang}",
   'anki.keep': "Keep the progress from Anki",
   'anki.keep_d': "Words you have learnt there come back when they are due, not as new ones",
   'anki.preview': "How the first words will look",
@@ -704,4 +703,7 @@ globalThis.App.i18nData.en = {
   'look.shared_site': "It also changes the style of the whole site.",
   'look.use': "Use this look",
   'look.applied': "The look is on. You can change it in Settings.",
+  'anki.target': "Language of the words",
+  'anki.target_d': "Found from the words themselves; the deck goes to this language",
+  'anki.other_tr': "The translations here look like {lang}, not {native}. You can keep them or pick other fields.",
 };

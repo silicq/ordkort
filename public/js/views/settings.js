@@ -50,6 +50,9 @@
         h('div', { class: 'set-label' }, h('b', null, label), hint ? h('small', null, hint) : null),
         h('div', { class: 'set-ctl' }, control));
       const card = (title, ...rows) => h('section', { class: 'set-card' }, h('h2', null, title), rows);
+      // two columns that fill on their own; in one column (a phone) `--o` puts the cards in the order of use
+      const col = (...cards) => h('div', { class: 'set-col' }, cards);
+      const at = (n, el) => { el.style.setProperty('--o', n); return el; };
 
       const uiSel = h('select', { class: 'select' },
         h('option', { value: '' }, t('set.ui_same')),
@@ -103,8 +106,8 @@
         h('section', { class: 'page-head' },
           A.rich(t('set.title'), 'h1'),
           h('p', { class: 'lede' }, t('set.lede'))),
-        h('div', { class: 'set-grid' },
-          card(t('set.languages'),
+        h('div', { class: 'set-grid' }, col(
+          at(1, card(t('set.languages'),
             row(t('set.native'), t('set.native_hint'), A.langSelect(s.native, {
               onChange: async (v) => {
                 if (v === s.target) { A.toast(t('set.same_lang'), 'error'); A.route(); return; }
@@ -117,8 +120,21 @@
               exclude: [s.native],
               onChange: (v) => { A.store.set({ target: v }); A.route(); },
             })),
-            row(t('set.ui'), null, uiSel)),
-          card(t('set.study'),
+            row(t('set.ui'), null, uiSel))),
+          at(4, A.devices.card()),
+          at(6, card(t('set.ai'),
+            h('p', { class: 'muted small' }, t('set.ai_hint')),
+            row(t('set.quota'), t('set.quota_hint'), quotaEl),
+            h('a', { class: 'link-btn small', href: '#/about' }, icon('info', 14), t('sync.how')))),
+          at(7, card(t('set.about'),
+            h('p', { class: 'muted small' }, t('set.about_text')),
+            h('ul', { class: 'about-links' },
+              h('li', null, h('a', { href: 'https://ordbokene.no', target: '_blank', rel: 'noopener' }, 'ordbokene.no'), ' — ', t('set.src_ob')),
+              h('li', null, h('a', { href: 'https://lexin.oslomet.no', target: '_blank', rel: 'noopener' }, 'Lexin'), ' — ', t('set.src_lexin')),
+              h('li', null, h('a', { href: 'https://en.wiktionary.org', target: '_blank', rel: 'noopener' }, 'Wiktionary'), ' — ', t('set.src_wikt')),
+              h('li', null, h('a', { href: 'https://groq.com', target: '_blank', rel: 'noopener' }, 'Groq'), ' — ', t('set.src_groq')))))),
+        col(
+          at(2, card(t('set.study'),
             row(t('set.direction'), null, A.segmented([
               { value: 'forward', label: `${s.target.toUpperCase()} → ${s.native.toUpperCase()}` },
               { value: 'reverse', label: `${s.native.toUpperCase()} → ${s.target.toUpperCase()}` },
@@ -138,20 +154,8 @@
             row(t('set.session'), null, numSel([10, 15, 20, 30, 50, 100], s.sessionSize, (v) => set({ sessionSize: v }))),
             row(t('set.goal'), t('set.goal_hint'), numSel([10, 20, 30, 50, 100, 200], s.goal || 20, (v) => set({ goal: v }))),
             row(t('set.batch'), t('set.batch_hint'), numSel([10, 20, 30], s.batch, (v) => set({ batch: v }))),
-            row(t('set.autospeak'), t('set.autospeak_hint'), toggle(s.autoSpeak, (v) => set({ autoSpeak: v })))),
-          card(t('set.look'),
-            row(t('set.theme'), null, A.segmented([
-              { value: 'auto', label: t('set.theme_auto') },
-              { value: 'light', label: t('set.theme_light') },
-              { value: 'dark', label: t('set.theme_dark') },
-            ], s.theme, (v) => { A.store.set({ theme: v }); A.applyTheme(); A.route(); }))),
-          A.look.card(),
-          A.devices.card(),
-          card(t('set.ai'),
-            h('p', { class: 'muted small' }, t('set.ai_hint')),
-            row(t('set.quota'), t('set.quota_hint'), quotaEl),
-            h('a', { class: 'link-btn small', href: '#/about' }, icon('info', 14), t('sync.how'))),
-          card(t('set.data'),
+            row(t('set.autospeak'), t('set.autospeak_hint'), toggle(s.autoSpeak, (v) => set({ autoSpeak: v }))))),
+          at(5, card(t('set.data'),
             h('p', { class: 'muted small' }, t('set.data_hint', { kb: A.store.usage(), n: counts })),
             protection(),
             h('div', { class: 'row gap wrap' },
@@ -169,14 +173,16 @@
                 onclick: async () => {
                   if (await A.confirm(t('set.reset_q'), { ok: t('set.reset'), danger: true })) { await A.sync.disable().catch(() => {}); A.store.resetAll(); A.go('#/'); }
                 },
-              }, icon('trash', 16), t('set.reset')))),
-          card(t('set.about'),
-            h('p', { class: 'muted small' }, t('set.about_text')),
-            h('ul', { class: 'about-links' },
-              h('li', null, h('a', { href: 'https://ordbokene.no', target: '_blank', rel: 'noopener' }, 'ordbokene.no'), ' — ', t('set.src_ob')),
-              h('li', null, h('a', { href: 'https://lexin.oslomet.no', target: '_blank', rel: 'noopener' }, 'Lexin'), ' — ', t('set.src_lexin')),
-              h('li', null, h('a', { href: 'https://en.wiktionary.org', target: '_blank', rel: 'noopener' }, 'Wiktionary'), ' — ', t('set.src_wikt')),
-              h('li', null, h('a', { href: 'https://groq.com', target: '_blank', rel: 'noopener' }, 'Groq'), ' — ', t('set.src_groq'))))));
+              }, icon('trash', 16), t('set.reset')))))),
+          // the theme and the card template together, across the whole width
+          at(3, A.look.card({
+            title: t('set.look'),
+            before: row(t('set.theme'), null, A.segmented([
+              { value: 'auto', label: t('set.theme_auto') },
+              { value: 'light', label: t('set.theme_light') },
+              { value: 'dark', label: t('set.theme_dark') },
+            ], s.theme, (v) => { A.store.set({ theme: v }); A.applyTheme(); A.route(); })),
+          }))));
       root.querySelector('.page-head h1').className = 'display';
     },
   };

@@ -661,7 +661,6 @@ globalThis.App.i18nData.zh = {
   'anki.role_ex': "例句",
   'anki.role_extr': "例句翻译",
   'anki.role_pron': "发音",
-  'anki.swap': "这些卡片的正面是{lang}",
   'anki.keep': "保留 Anki 中的学习进度",
   'anki.keep_d': "在那里学会的词会在到期时出现，而不是当作新词",
   'anki.preview': "前几个词将是这样",
@@ -700,4 +699,7 @@ globalThis.App.i18nData.zh = {
   'look.shared_site': "它也会改变整个网站的风格。",
   'look.use': "使用这个外观",
   'look.applied': "外观已启用。可以在设置中更改。",
+  'anki.target': "单词的语言",
+  'anki.target_d': "根据单词本身判断；卡组会放到这种语言下",
+  'anki.other_tr': "这里的翻译看起来是{lang}，而不是{native}。可以保留，也可以选择其他字段。",
 };

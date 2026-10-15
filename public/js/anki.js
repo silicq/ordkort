@@ -48,55 +48,86 @@
     // one choice of fields per note type in use
     const used = new Map();
     for (const n of pkg.notes) used.set(n.mid, (used.get(n.mid) || 0) + 1);
+    const name = file.name.replace(/\.(apkg|colpkg)$/i, '');
+
+    /* The language of each field, from its first notes ("щека" is Russian, "cheek" English; a file called
+       "Russian-English…" settles what letters alone cannot). The side in the person's own language is the
+       translation, the other one the word, and the deck goes to that word's language. */
+    const hints = [...A.langs.named(name + ' ' + Object.values(pkg.decks).flat().join(' ')), s.target, s.native];
+    const langs = {};
     const maps = {};
-    const T = A.langs.name(s.target), N = A.langs.name(s.native);
-    const ROLES = [['term', t('anki.role_term', { lang: T })], ['tr', t('anki.role_tr', { lang: N })], ['ex', t('anki.role_ex')], ['exTr', t('anki.role_extr')], ['pron', t('anki.role_pron')]];
+    let target = '';
+    for (const [mid] of [...used].sort((a, b) => b[1] - a[1])) {
+      const fields = pkg.types[mid]?.fields || [];
+      const notes = pkg.notes.filter((n) => n.mid === mid).slice(0, 60);
+      const L = langs[mid] = fields.map((_, i) => A.langs.guess(notes.map((n) => A.apkg.text(n.fields[i])), hints));
+      const m = maps[mid] = A.apkg.guess(fields);
+      if (L[m.tr] !== s.native && L[m.term] === s.native) [m.term, m.tr] = [m.tr, m.term];
+      if (!target && L[m.term] && L[m.term] !== s.native) target = L[m.term];
+    }
+    if (!target || !A.langs.has(target)) target = s.target;
+
+    const N = A.langs.name(s.native);
+    const termLabels = [];
+    const into = h('span');
+    const other = h('p', { class: 'callout', hidden: true });
     const keep = h('input', { type: 'checkbox', class: 'switch', role: 'switch', checked: true });
-    const swap = h('input', { type: 'checkbox', class: 'switch', role: 'switch' });
     const preview = h('ul', { class: 'share-preview' });
     const go = h('button', { class: 'btn btn-primary', type: 'button' });
+    const targetSel = A.langSelect(target, { exclude: [s.native], onChange: (v) => { target = v; labels(); sample(); } });
 
-    const sample = () => {
-      const groups = A.apkg.words(pkg, maps, { withSchedule: false });
-      const all = groups.flatMap((g) => g.words);
-      const sw = swap.checked;
-      preview.replaceChildren(...all.slice(0, 6).map((w) => h('li', null, A.lt(sw ? w.tr : w.term, s.target, 'serif'), ' — ', sw ? w.term : w.tr, w.ex ? h('small', { class: 'muted d-block' }, w.ex) : null)));
+    function labels() {
+      into.textContent = t('anki.into', { target: A.langs.name(target), native: N });
+      for (const el of termLabels) el.textContent = t('anki.role_term', { lang: A.langs.name(target) });
+    }
+    function sample() {
+      const all = A.apkg.words(pkg, maps, { withSchedule: false }).flatMap((g) => g.words);
+      preview.replaceChildren(...all.slice(0, 6).map((w) => h('li', null, A.lt(w.term, target, 'serif'), ' — ', A.lt(w.tr, s.native), w.ex ? h('small', { class: 'muted d-block' }, w.ex) : null)));
       go.textContent = t('anki.go', { n: all.length });
       go.disabled = !all.length;
-    };
+      // translations that look like another language than the person's own: say so, it is their choice
+      const off = Object.keys(maps).map((mid) => langs[mid][maps[mid].tr]).find((l) => l && l !== s.native);
+      other.hidden = !off;
+      if (off) other.replaceChildren(icon('info', 18), h('span', null, t('anki.other_tr', { lang: A.langs.name(off), native: N })));
+    }
 
+    const ROLES = ['term', 'tr', 'ex', 'exTr', 'pron'];
+    const roleLabel = { tr: t('anki.role_tr', { lang: N }), ex: t('anki.role_ex'), exTr: t('anki.role_extr'), pron: t('anki.role_pron') };
     const types = [...used].map(([mid, count]) => {
       const type = pkg.types[mid] || { name: '?', fields: [] };
-      maps[mid] = A.apkg.guess(type.fields);
       return h('fieldset', { class: 'anki-type' },
         h('legend', null, t('anki.type', { name: type.name, n: count })),
-        h('div', { class: 'anki-roles' }, ROLES.map(([role, label]) => {
+        h('div', { class: 'anki-roles' }, ROLES.map((role) => {
           const sel = h('select', { class: 'select' },
             h('option', { value: -1 }, '—'),
-            type.fields.map((f, i) => h('option', { value: i }, f)));
+            type.fields.map((f, i) => h('option', { value: i }, langs[mid][i] && (role === 'term' || role === 'tr') ? `${f} · ${A.langs.name(langs[mid][i])}` : f)));
           sel.value = String(maps[mid][role]);
           sel.addEventListener('change', () => { maps[mid][role] = +sel.value; sample(); });
-          return h('label', { class: 'field' }, h('span', null, label), sel);
+          const label = h('span', null, roleLabel[role] || '');
+          if (role === 'term') termLabels.push(label);
+          return h('label', { class: 'field' }, label, sel);
         })));
     });
-    swap.addEventListener('change', sample);
 
     const decks = new Set(pkg.cards.map((c) => c.did)).size;
     A.put(box,
       h('p', { class: 'muted' }, t('anki.summary', { notes: pkg.notes.length, decks, pics: pkg.media.size })),
-      h('p', { class: 'callout' }, icon('info', 18), h('span', null, t('anki.into', { target: T, native: N }))),
+      h('div', { class: 'set-row' }, h('div', { class: 'set-label' }, h('b', null, t('anki.target')), h('small', null, t('anki.target_d'))), h('div', { class: 'set-ctl' }, targetSel)),
+      h('p', { class: 'callout' }, icon('info', 18), into),
       types,
-      h('label', { class: 'set-row' }, h('span', { class: 'set-label' }, h('b', null, t('anki.swap', { lang: N }))), swap),
+      other,
       h('label', { class: 'set-row' }, h('span', { class: 'set-label' }, h('b', null, t('anki.keep')), h('small', null, t('anki.keep_d'))), keep),
       h('h3', null, t('anki.preview')), preview,
       h('div', { class: 'row gap' }, go));
+    labels();
     sample();
 
     go.addEventListener('click', async () => {
       go.disabled = true;
       go.textContent = t('anki.importing');
       try {
-        const res = await add(pkg, maps, { keep: keep.checked, swap: swap.checked, name: file.name.replace(/\.(apkg|colpkg)$/i, '') });
+        if (target !== A.store.settings.target) A.store.set({ target }); // the deck goes to its own language
+        const res = await add(pkg, maps, { keep: keep.checked, name });
         m.close();
         A.toast(res.added ? t('anki.imported', { n: res.added, decks: res.decks }) : t('anki.nothing'), res.added ? 'ok' : '');
         A.go('#/');
@@ -111,7 +142,7 @@
   }
 
   // the words of a package into decks of the language in use, with their pictures and (if asked) their progress
-  async function add(pkg, maps, { keep, swap, name }) {
+  async function add(pkg, maps, { keep, name }) {
     const groups = A.apkg.words(pkg, maps, { withSchedule: keep });
     let added = 0, decks = 0;
     for (const g of groups) {
@@ -119,7 +150,7 @@
       const title = (leaf === 'Default' ? name : leaf) || name || 'Anki';
       const words = [];
       for (const w of g.words) {
-        const word = swap ? { ...w, term: w.tr, tr: w.term } : { ...w };
+        const word = { ...w };
         const bytes = w.imgName && pkg.media.get(w.imgName);
         const type = bytes && typeOf(w.imgName);
         if (type) { try { word.img = await A.media.add(new Blob([bytes], { type })); } catch { /* a picture the browser cannot read */ } }

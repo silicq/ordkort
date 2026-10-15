@@ -102,9 +102,10 @@
 
   /* ---------- the preview of a look: both sides of a sample card ---------- */
   // before the first-run setup there are no cards (and no settings) yet: a Norwegian sample then
-  const sampleCard = () => (A.store.ready && (A.store.cards().find((c) => c.ex && c.img) || A.store.cards().find((c) => c.ex) || A.store.cards()[0]))
+  const sampleCard = () => (A.store.ready && (A.store.cards().find((c) => c.ex && c.img) || A.store.cards().find((c) => c.img) || A.store.cards().find((c) => c.ex) || A.store.cards()[0]))
     || { id: 'sample', term: 'et hus', tr: 'house', pos: 'noun', forms: 'huset, hus, husa', pron: '/hʉːs/', ex: 'Vi bor i et rødt hus.', exTr: '' };
   // fills `box` with the two sides; the look's CSS applies to them at once, before anything is saved
+  const size = (x) => (String(x || '').length > 30 ? ' xl' : String(x || '').length > 14 ? ' l' : ''); // as in a session
   function preview(box, look, sample = sampleCard()) {
     const { h, t } = A;
     const s = A.store.settings || { target: 'nb', native: 'en' };
@@ -112,8 +113,8 @@
       const own = render(name, sample, look);
       const ex = A.store.example(sample).text;
       const body = own || (name === 'front'
-        ? [A.lt(sample.term, s.target, 'flash-word serif', 'div'), A.speakBtn(sample.term, s.target, 'lg')]
-        : [A.lt(sample.term, s.target, 'flash-small', 'div'), A.lt(sample.tr, s.native, 'flash-word serif', 'div'), ex ? A.lt(ex, s.target, 'flash-ex serif', 'p') : null]);
+        ? [A.lt(sample.term, s.target, 'flash-word serif' + size(sample.term), 'div'), A.speakBtn(sample.term, s.target, 'lg')]
+        : [sample.img ? A.media.el(sample, 'flash-img') : null, A.lt(sample.term, s.target, 'flash-small', 'div'), A.lt(sample.tr, s.native, 'flash-word serif' + size(sample.tr), 'div'), ex ? A.lt(ex, s.target, 'flash-ex serif', 'p') : null]);
       return h('div', { class: 'flash look-flash in' }, h('div', { class: 'face' + (name === 'back' ? ' look-back' : '') },
         h('div', { class: 'flash-tag' }, h('span', { class: 'badge new' }, t('study.new'))),
         h('div', { class: 'face-body' }, body)));
@@ -125,7 +126,8 @@
   }
 
   /* ---------- Settings → Your own look ---------- */
-  function card() {
+  // `title` and `before` (rows such as the theme) let Settings make this its whole "Appearance" card
+  function card({ title, before = null } = {}) {
     const { h, icon, t } = A;
     const s = A.store.settings;
     const look = { front: '', back: '', css: '', site: '', ...(s.look || {}) };
@@ -171,7 +173,9 @@
     paint();
 
     return h('section', { class: 'set-card look-card' },
-      h('h2', null, t('look.title')),
+      h('h2', null, title || t('look.title')),
+      before,
+      title ? h('h3', { class: 'look-sub' }, t('look.title')) : null,
       h('p', { class: 'muted small' }, t('look.lede')),
       h('div', { class: 'set-row' }, h('div', { class: 'set-label' }, h('b', null, t('look.template')), h('small', null, t('look.template_hint'))), h('div', { class: 'set-ctl' }, tplSel)),
       box,

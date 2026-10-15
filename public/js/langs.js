@@ -88,7 +88,77 @@
     return (rest.length && ARTICLE_GENDER[code]?.[art]) || '';
   }
 
+  /* Which language a text is in, as far as its letters tell: the script first, then letters only some languages
+     have (ø, ñ, ї…), then hints (names in a file name, the languages in use), then the usual one for the script.
+     For an Anki deck whose sides are "щека" and "cheek", and for speech that must not read Russian as Norwegian. */
+  const SCRIPTS = [
+    ['Cyrillic', /\p{Script=Cyrillic}/u, ['ru', 'uk', 'bg', 'sr', 'be', 'kk']],
+    ['Arabic', /\p{Script=Arabic}/u, ['ar', 'fa', 'prs', 'ur', 'ps', 'ckb']],
+    ['Hebrew', /\p{Script=Hebrew}/u, ['he']],
+    ['Kana', /[\p{Script=Hiragana}\p{Script=Katakana}]/u, ['ja']],
+    ['Han', /\p{Script=Han}/u, ['zh', 'ja']],
+    ['Hangul', /\p{Script=Hangul}/u, ['ko']],
+    ['Devanagari', /\p{Script=Devanagari}/u, ['hi']],
+    ['Bengali', /\p{Script=Bengali}/u, ['bn']],
+    ['Thai', /\p{Script=Thai}/u, ['th']],
+    ['Greek', /\p{Script=Greek}/u, ['el']],
+    ['Georgian', /\p{Script=Georgian}/u, ['ka']],
+    ['Armenian', /\p{Script=Armenian}/u, ['hy']],
+    ['Tamil', /\p{Script=Tamil}/u, ['ta']],
+    ['Ethiopic', /\p{Script=Ethiopic}/u, ['am', 'ti']],
+    ['Latin', /\p{Script=Latin}/u, null],
+  ];
+  const LETTERS = [ // [language, letters that point to it]
+    ['uk', /[іїєґ]/i], ['be', /ў/i], ['sr', /[ђћџјљњ]/i], ['kk', /[әғқңөұүһ]/i],
+    ['ur', /[ٹڈڑںے]/], ['ps', /[ځڅښږ]/], ['ckb', /[ڵڕۆێ]/], ['fa', /[پچژگ]/],
+    ['ja', /[\p{Script=Hiragana}\p{Script=Katakana}]/u],
+    ['nb', /[æø]/i], ['sv', /ä.*å|å.*ä|ö.*å|å.*ö/i], ['da', /[æø]/i], ['de', /[ßü]|[äö]/i], ['es', /[ñ¿¡]/i], ['pt', /[ãõ]/i],
+    ['pl', /[ąęłśźżń]/i], ['cs', /[řěů]/i], ['sk', /[ľĺŕô]/i], ['tr', /[ğışİ]/], ['ro', /[ășțşţ]/i], ['hu', /[őű]/i],
+    ['vi', /[ơưđạảấầẩẫậắằẳẵặẹẻẽếềểễệỉịọỏốồổỗộớờởỡợụủứừửữựỳỵỷỹ]/i], ['is', /[þð]/i], ['lt', /[ėįųū]/i], ['lv', /[āēīņķļ]/i],
+    ['et', /õ/i], ['fr', /[çœèêëàâîïûù]/i], ['it', /[àèìòù]/i], ['az', /ə/i], ['nb', /å/i],
+  ];
+  function scriptOf(text) {
+    const counts = new Map();
+    for (const ch of String(text || '')) {
+      if (!/\p{L}/u.test(ch)) continue;
+      const sc = SCRIPTS.find(([, re]) => re.test(ch));
+      if (sc) counts.set(sc[0], (counts.get(sc[0]) || 0) + 1);
+    }
+    if (counts.has('Kana')) return 'Kana';
+    return [...counts].sort((a, b) => b[1] - a[1])[0]?.[0] || '';
+  }
+  const scriptLangs = (sc) => SCRIPTS.find(([name]) => name === sc)?.[2] || list.filter((l) => !SCRIPTS.some(([, , codes]) => codes?.includes(l.code))).map((l) => l.code);
+  // the script a language is written in
+  const scriptOfLang = (code) => SCRIPTS.find(([, , codes]) => codes?.includes(code))?.[0] || 'Latin';
+  // codes of languages named in a text such as "Russian-English_Word_List" or "Norsk – русский"
+  function named(text) {
+    const s = ' ' + String(text || '').toLowerCase().replace(/[^\p{L}]+/gu, ' ') + ' ';
+    return list.filter((l) => [l.en.split(' (')[0], l.name, l.name.split(' ')[0]].some((n) => n && s.includes(' ' + n.toLowerCase() + ' '))).map((l) => l.code);
+  }
+  // whether a text can be in a language at all, by its letters ("щека" cannot be Norwegian)
+  function fits(text, code) {
+    const sc = scriptOf(text);
+    return !sc || code === 'sr' || scriptLangs(sc).includes(code);
+  }
+  function guess(texts, hints = []) {
+    const text = [].concat(texts).join(' / ');
+    const sc = scriptOf(text);
+    if (!sc) return '';
+    const can = scriptLangs(sc);
+    if (can.length === 1) return can[0];
+    const hinted = hints.find((c) => can.includes(c));
+    const marked = LETTERS.filter(([c, re]) => can.includes(c) && re.test(text)).map(([c]) => c);
+    if (hinted && (marked.includes(hinted) || !marked.length)) return hinted;
+    if (marked.length) return marked[0];
+    return { Latin: 'en', Cyrillic: 'ru', Arabic: 'ar', Han: 'zh' }[sc] || can[0];
+  }
+
   return {
+    scriptOf,
+    scriptOfLang,
+    fits,
+    named,
+    guess,
     list,
     get,
     name: (c) => get(c).name,
