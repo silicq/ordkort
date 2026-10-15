@@ -15,7 +15,7 @@ AI helps, real dictionaries check it. Everything has to work well on a phone.
 | 3 | **Pictures on cards.** Your own photo, a pasted image, or a free picture found by the word (Openverse). Kept on the device. | done |
 | 4 | **Anki both ways.** Import an `.apkg` (notes, scheduling, pictures and sound), export your decks as an `.apkg` Anki opens, with progress. | done |
 | 5 | **Your own look.** A card template in HTML and CSS with fields such as `{{term}}` and `{{image}}`, and your own CSS for the whole site. No scripts: they never run. | done |
-| 6 | **Your own AI, through MCP.** Connect Claude, ChatGPT or any MCP client to `ordkort.com/mcp`: it can look words up, build a deck with pictures and a design, and give you a link that adds it to your cards. | planned |
+| 6 | **Your own AI, through MCP.** Connect Claude, ChatGPT or any MCP client to `ordkort.com/mcp`: it can look words up, build a deck with pictures and a design, and give you a link that adds it to your cards. | done |
 
 ## Later
 

@@ -347,24 +347,38 @@ export async function gloss(request, env, key) {
 }
 
 /* ---------- decks shared by link ---------- */
-export async function shareCreate(request, env, key) {
-  await takeSimple(env, 'share', key, 20, 36e5);
-  const b = await readJSON(request, 400000);
-  const d = b.deck || {};
-  const { target, native } = pairOf(d);
+// a deck someone shares (here or through MCP), cleaned: at most 500 words, each with a term and a translation
+export function cleanDeck(d) {
+  const { target, native } = pairOf(d || {});
   const words = arr(d.words, 500).map(P.cleanWord).filter((w) => w.term && w.tr);
   if (!words.length) throw new HttpError(400, 'empty');
-  const deck = {
+  return {
     title: str(d.title, 80), emoji: str(d.emoji, 8), level: LEVELS.includes(d.level) ? d.level : '',
     topic: typeof d.topic === 'string' && App.topics.get(d.topic) ? d.topic : '',
     group: str(d.group, 12), target, native, words,
   };
+}
+// kept for a year under a random 8-letter code (a deck, or a look made through MCP)
+export async function storeShare(env, data) {
   for (let i = 0; i < 5; i++) {
     const id = randomCode(8);
-    const r = await env.DB.prepare('INSERT OR IGNORE INTO shares (id, d, t) VALUES (?, ?, ?)').bind(id, JSON.stringify(deck), Date.now()).run();
-    if (r.meta.changes) return json({ id });
+    const r = await env.DB.prepare('INSERT OR IGNORE INTO shares (id, d, t) VALUES (?, ?, ?)').bind(id, JSON.stringify(data), Date.now()).run();
+    if (r.meta.changes) return id;
   }
   throw new HttpError(503, 'busy');
+}
+
+export async function shareCreate(request, env, key) {
+  await takeSimple(env, 'share', key, 20, 36e5);
+  const b = await readJSON(request, 400000);
+  return json({ id: await storeShare(env, cleanDeck(b.deck || {})) });
+}
+
+// words of the shared bank for a topic, without asking the AI: [] when the bank has none yet
+export async function bankWords(env, { target, native, topic, level = 'A1', n = 20 }) {
+  const { grp } = await groupOf({ topic, level }, target, native);
+  const rows = (await env.DB.prepare('SELECT data FROM words WHERE grp = ? ORDER BY id LIMIT ?').bind(grp, int(n, 1, 100, 20)).all()).results || [];
+  return rows.map((r) => JSON.parse(r.data));
 }
 
 export async function shareGet(env, id) {

@@ -700,4 +700,8 @@ globalThis.App.i18nData.en = {
   'look.site_edit': "Edit the site’s CSS",
   'look.site_css': "CSS for the whole site",
   'look.reset': "Back to the usual look",
+  'look.shared_d': "A look someone made for Ordkort cards. This is how a card will look:",
+  'look.shared_site': "It also changes the style of the whole site.",
+  'look.use': "Use this look",
+  'look.applied': "The look is on. You can change it in Settings.",
 };

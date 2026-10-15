@@ -73,6 +73,8 @@ Ordkort is a lightweight site for learning almost any language from almost any o
 - **Remembering better**: two answers or four (Again / Hard / Good / Easy), your own target retention, words
   you keep forgetting set aside, and *What goes wrong*: your answers read back as findings, each with one
   thing to do.
+- **Your own AI, through MCP**: connect Claude, ChatGPT or any MCP client to `https://ordkort.com/mcp` and ask it
+  for a deck with pictures or a look for your cards; it answers with a link that adds it (see [MCP](#mcp)).
 - **Works offline**: a service worker keeps the site, so cards open without a connection.
   After a deploy the app notices the new version by itself — also when it is installed on a phone
   and only woken up — and loads it at the next move to another screen.
@@ -80,6 +82,31 @@ Ordkort is a lightweight site for learning almost any language from almost any o
 - **60 languages** to learn and explain in. The interface is hand-translated into English, Russian,
   Ukrainian, Norwegian, Arabic (RTL) and Chinese; other interface languages are translated once by AI
   and shared.
+
+## MCP
+
+Ordkort is also an [MCP](https://modelcontextprotocol.io) server, so your own AI can make decks and looks for it.
+Address: **`https://ordkort.com/mcp`** (Streamable HTTP; no account, no key).
+
+- **Claude** (claude.ai, desktop): Settings → Connectors → *Add custom connector* → paste the address.
+- **Claude Code**: `claude mcp add --transport http ordkort https://ordkort.com/mcp`
+- **ChatGPT**: Settings → Apps & Connectors → *Create* (developer mode) → paste the address.
+- **Others** (Cursor, VS Code, LM Studio…): add a remote / HTTP MCP server with the address.
+
+Then ask, for example: *“Make me an A2 Norwegian deck about the kitchen with pictures”* or *“Design a dark,
+calm card with the picture on top”*. The AI gets a link; opening it shows the deck or the look and adds it only
+when you agree. It never sees or changes your cards.
+
+| Tool | What it does |
+|---|---|
+| `list_languages` | The 60 languages and their codes |
+| `list_topics` | The built-in topics and their ids |
+| `ready_words` | Words from the shared bank for a topic and level, checked against dictionaries |
+| `find_pictures` | Openly licensed pictures (Openverse) with their credits |
+| `create_deck` | A deck of up to 500 cards, pictures by URL included → a link that adds it |
+| `create_design` | A card template in HTML/CSS and site CSS → a link that shows and applies it |
+
+Scripts in a design never run, and calls count against an hourly limit per client.
 
 ## Architecture
 

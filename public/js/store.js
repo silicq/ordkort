@@ -172,7 +172,7 @@
      the card is explained in when there is a table for it. Hand-made cards keep what the person wrote. */
   const GENDERS = ['m', 'f', 'n', 'c'];
   function shown(c) {
-    const s = state.settings;
+    const s = state.settings || {}; // none yet: a sample card shown before the first-run setup
     // a gender a dictionary confirmed ("книга", "l’école"), else the article's
     const g = c.pos === 'noun' && c.src !== 'user' && ((GENDERS.includes(c.g) && c.g) || A.langs.articleGender(s.target, c.term));
     const art = ART.exec(c.term || '')?.[1];

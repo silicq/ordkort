@@ -696,4 +696,8 @@ globalThis.App.i18nData.zh = {
   'look.site_edit': "编辑网站 CSS",
   'look.site_css': "整个网站的 CSS",
   'look.reset': "恢复默认外观",
+  'look.shared_d': "有人为 Ordkort 卡片做的外观。卡片将是这个样子：",
+  'look.shared_site': "它也会改变整个网站的风格。",
+  'look.use': "使用这个外观",
+  'look.applied': "外观已启用。可以在设置中更改。",
 };

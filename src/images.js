@@ -17,11 +17,16 @@ const license = (r) => `${r.license === 'cc0' || r.license === 'pdm' ? r.license
 
 export async function search(request, env, key) {
   const b = await readJSON(request, 2000);
-  const q = str(b.q, 80);
+  return json(await find(env, key, b.q));
+}
+
+// { results: [{ thumb, by, license, page }] } for a word or phrase (also used by the MCP server)
+export async function find(env, key, query) {
+  const q = str(query, 80);
   if (!q) throw new HttpError(400, 'empty');
   const k = 'img1:' + (await sha256(q.toLowerCase())).slice(0, 32);
   const hit = await cacheGet(env.DB, k, MONTH);
-  if (hit) return json(hit);
+  if (hit) return hit;
   await takeSimple(env, 'imgq', key, 60, 36e5);
   // licences that allow changes: the picture is shrunk and re-encoded on the device
   const url = `https://api.openverse.org/v1/images/?q=${encodeURIComponent(q)}&page_size=18&mature=false&license_type=modification`;
@@ -40,7 +45,7 @@ export async function search(request, env, key) {
       })),
   };
   await cacheSet(env.DB, k, out);
-  return json(out);
+  return out;
 }
 
 export async function proxy(request, env, key) {

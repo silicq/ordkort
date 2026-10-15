@@ -56,7 +56,7 @@
   function values(c) {
     const ex = A.store.example(c);
     const { gram, pron, forms } = A.store.shown(c);
-    const deck = A.store.deck(c.deck);
+    const deck = A.store.ready && A.store.deck(c.deck);
     return {
       term: c.term, translation: c.tr, pronunciation: pron, grammar: gram, forms, example: ex.text, example_translation: ex.tr,
       deck: deck ? A.deckTitle(deck) : '', image: c.img ? '1' : '', audio: '1',
@@ -81,13 +81,18 @@
     box.className = 'tpl tpl-' + side;
     box.innerHTML = clean(fill(tpl, values(c)));
     box.querySelectorAll('[data-slot="image"]').forEach((s) => s.replaceWith(A.media.el(c, 'flash-img') || ''));
-    box.querySelectorAll('[data-slot="audio"]').forEach((s) => s.replaceWith(A.speakBtn(c.term, A.store.settings.target)));
+    box.querySelectorAll('[data-slot="audio"]').forEach((s) => s.replaceWith(A.speakBtn(c.term, A.store.settings?.target || 'nb')));
     return box;
   }
 
   /* ---------- the styles in the page ---------- */
+  // a look chosen before the first-run setup waits here, and moves into the settings once they exist
+  const LATER = 'ordkort.look-later';
+  const later = () => { try { return JSON.parse(localStorage.getItem(LATER) || 'null'); } catch { return null; } };
   function apply() {
-    const look = A.store.settings?.look || {};
+    const waiting = later();
+    if (waiting && A.store.ready) { A.store.set({ look: waiting }); try { localStorage.removeItem(LATER); } catch {} }
+    const look = A.store.settings?.look || waiting || {};
     const css = [look.site || '', look.css ? `.flash .face-body .tpl { display: contents; }\n${look.css}` : ''].map(cleanCss).join('\n').trim();
     let el = document.getElementById('user-look');
     if (!css) { el?.remove(); return; }
@@ -95,13 +100,35 @@
     el.textContent = css;
   }
 
+  /* ---------- the preview of a look: both sides of a sample card ---------- */
+  // before the first-run setup there are no cards (and no settings) yet: a Norwegian sample then
+  const sampleCard = () => (A.store.ready && (A.store.cards().find((c) => c.ex && c.img) || A.store.cards().find((c) => c.ex) || A.store.cards()[0]))
+    || { id: 'sample', term: 'et hus', tr: 'house', pos: 'noun', forms: 'huset, hus, husa', pron: '/hʉːs/', ex: 'Vi bor i et rødt hus.', exTr: '' };
+  // fills `box` with the two sides; the look's CSS applies to them at once, before anything is saved
+  function preview(box, look, sample = sampleCard()) {
+    const { h, t } = A;
+    const s = A.store.settings || { target: 'nb', native: 'en' };
+    const side = (name) => {
+      const own = render(name, sample, look);
+      const ex = A.store.example(sample).text;
+      const body = own || (name === 'front'
+        ? [A.lt(sample.term, s.target, 'flash-word serif', 'div'), A.speakBtn(sample.term, s.target, 'lg')]
+        : [A.lt(sample.term, s.target, 'flash-small', 'div'), A.lt(sample.tr, s.native, 'flash-word serif', 'div'), ex ? A.lt(ex, s.target, 'flash-ex serif', 'p') : null]);
+      return h('div', { class: 'flash look-flash in' }, h('div', { class: 'face' + (name === 'back' ? ' look-back' : '') },
+        h('div', { class: 'flash-tag' }, h('span', { class: 'badge new' }, t('study.new'))),
+        h('div', { class: 'face-body' }, body)));
+    };
+    let st = document.getElementById('user-look-preview');
+    if (!st) { st = document.createElement('style'); st.id = 'user-look-preview'; document.head.append(st); }
+    st.textContent = look.css ? `.look-preview .face-body .tpl { display: contents; }\n${cleanCss(look.css)}` : '';
+    box.replaceChildren(side('front'), side('back'));
+  }
+
   /* ---------- Settings → Your own look ---------- */
   function card() {
     const { h, icon, t } = A;
     const s = A.store.settings;
     const look = { front: '', back: '', css: '', site: '', ...(s.look || {}) };
-    const sample = A.store.cards().find((c) => c.ex && c.img) || A.store.cards().find((c) => c.ex) || A.store.cards()[0]
-      || { id: 'sample', term: 'et hus', tr: 'house', pos: 'noun', forms: 'huset, hus, husa', pron: '/hʉːs/', ex: 'Vi bor i et rødt hus.', exTr: '' };
 
     let timer = null;
     const save = () => {
@@ -138,30 +165,16 @@
     siteTa.addEventListener('input', () => { siteSel.value = siteWhich(); });
 
     // the sample card, both sides, as a session would show them
-    const preview = h('div', { class: 'look-preview' });
-    function paint() {
-      const side = (name) => {
-        const own = render(name, sample, look);
-        const body = own || (name === 'front'
-          ? [A.lt(sample.term, s.target, 'flash-word serif', 'div'), A.speakBtn(sample.term, s.target, 'lg')]
-          : [A.lt(sample.term, s.target, 'flash-small', 'div'), A.lt(sample.tr, s.native, 'flash-word serif', 'div'), A.store.example(sample).text ? A.lt(A.store.example(sample).text, s.target, 'flash-ex serif', 'p') : null]);
-        return h('div', { class: 'flash look-flash in' }, h('div', { class: 'face' + (name === 'back' ? ' look-back' : '') },
-          h('div', { class: 'flash-tag' }, h('span', { class: 'badge new' }, t('study.new'))),
-          h('div', { class: 'face-body' }, body)));
-      };
-      // the template's CSS applies to the preview at once, before it is saved
-      let st = document.getElementById('user-look-preview');
-      if (!st) { st = document.createElement('style'); st.id = 'user-look-preview'; document.head.append(st); }
-      st.textContent = look.css ? `.look-preview .face-body .tpl { display: contents; }\n${cleanCss(look.css)}` : '';
-      preview.replaceChildren(side('front'), side('back'));
-    }
+    const box = h('div', { class: 'look-preview' });
+    const sample = sampleCard();
+    const paint = () => preview(box, look, sample);
     paint();
 
     return h('section', { class: 'set-card look-card' },
       h('h2', null, t('look.title')),
       h('p', { class: 'muted small' }, t('look.lede')),
       h('div', { class: 'set-row' }, h('div', { class: 'set-label' }, h('b', null, t('look.template')), h('small', null, t('look.template_hint'))), h('div', { class: 'set-ctl' }, tplSel)),
-      preview,
+      box,
       h('details', { class: 'look-edit' },
         h('summary', null, icon('edit', 16), t('look.edit')),
         h('p', { class: 'muted small' }, t('look.fields'), ' ', h('code', null, FIELDS.map((f) => `{{${f}}}`).join(' ')), ' · ', h('code', null, '{{#example}}…{{/example}}')),
@@ -181,5 +194,40 @@
         }, icon('refresh', 16), t('look.reset'))));
   }
 
-  A.look = { PRESETS, SITE, FIELDS, render, apply, clean, cleanCss, fill, card, MAX };
+  /* ---------- #/look/ID: a look someone made (through MCP), shown before it is used ---------- */
+  A.views = A.views || {};
+  A.views.look = {
+    render(root, [id]) {
+      const { h, icon, t } = A;
+      const page = h('section', { class: 'link-page' }, h('div', { class: 'link-card share-open' }, A.loading(t('share.loading'))));
+      root.append(page);
+      A.ai.sharedDeck(id).then((d) => {
+        if (!d || d.kind !== 'look') { location.replace('#/s/' + id); return; }
+        const look = { front: String(d.front || ''), back: String(d.back || ''), css: String(d.css || ''), site: String(d.site || '') };
+        const box = h('div', { class: 'look-preview' });
+        A.put(page.firstChild,
+          h('div', { class: 'link-ico' }, icon('palette', 30)),
+          h('h1', { class: 'display sm' }, d.name || t('look.title')),
+          h('p', { class: 'muted' }, t('look.shared_d')),
+          box,
+          look.site ? h('p', { class: 'muted small' }, icon('info', 14), ' ', t('look.shared_site')) : null,
+          h('div', { class: 'row gap center wrap' },
+            h('button', {
+              class: 'btn btn-primary btn-lg', type: 'button',
+              onclick: () => {
+                if (A.store.ready) A.store.set({ look });
+                else try { localStorage.setItem(LATER, JSON.stringify(look)); } catch {}
+                apply(); A.toast(t('look.applied'), 'ok'); A.go(A.store.ready ? '#/settings' : '#/');
+              },
+            }, icon('check', 18), t('look.use')),
+            h('a', { class: 'btn btn-ghost btn-lg', href: '#/' }, t('common.cancel'))));
+        preview(box, look);
+      }).catch((e) => {
+        page.firstChild.replaceChildren(h('h1', { class: 'display sm' }, e.kind === 'gone' ? t('share.gone') : A.ai.errorText(e)), h('a', { class: 'btn btn-ghost', href: '#/' }, t('study.back')));
+      });
+    },
+    leave() { document.getElementById('user-look-preview')?.remove(); },
+  };
+
+  A.look = { PRESETS, SITE, FIELDS, render, apply, clean, cleanCss, fill, card, preview, MAX };
 })();

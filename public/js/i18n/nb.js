@@ -700,4 +700,8 @@ globalThis.App.i18nData.nb = {
   'look.site_edit': "Rediger CSS for nettstedet",
   'look.site_css': "CSS for hele nettstedet",
   'look.reset': "Tilbake til vanlig utseende",
+  'look.shared_d': "Et utseende for Ordkort-kort som noen har laget. Slik vil et kort se ut:",
+  'look.shared_site': "Det endrer også stilen for hele nettstedet.",
+  'look.use': "Bruk dette utseendet",
+  'look.applied': "Utseendet er på. Du kan endre det i innstillingene.",
 };

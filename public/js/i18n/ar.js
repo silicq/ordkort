@@ -716,4 +716,8 @@ globalThis.App.i18nData.ar = {
   'look.site_edit': "عدّل CSS الموقع",
   'look.site_css': "CSS للموقع كله",
   'look.reset': "العودة إلى المظهر المعتاد",
+  'look.shared_d': "مظهر لبطاقات Ordkort صنعه أحدهم. هكذا ستبدو البطاقة:",
+  'look.shared_site': "يغيّر أيضًا نمط الموقع كله.",
+  'look.use': "استخدم هذا المظهر",
+  'look.applied': "تم تطبيق المظهر. يمكنك تغييره في الإعدادات.",
 };

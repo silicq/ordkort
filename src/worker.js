@@ -7,6 +7,7 @@ import { HttpError, errorResponse } from './util.js';
 import * as api from './api.js';
 import * as sync from './sync.js';
 import * as images from './images.js';
+import * as mcp from './mcp.js';
 import { warmOne } from './warm.js';
 
 const DAILY = '17 3 * * *'; // the daily cron in wrangler.jsonc; the other one fills the word bank
@@ -29,6 +30,15 @@ const POST = {
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
+    // the MCP server for people's own AI (src/mcp.js): called by their AI's servers, so no Origin check
+    if (url.pathname === '/mcp') {
+      try {
+        const key = await clientKey(request, env);
+        burst(key);
+        await initDB(env.DB);
+        return await mcp.handle(request, env, key);
+      } catch (e) { return errorResponse(e); }
+    }
     if (!url.pathname.startsWith('/api/')) return env.ASSETS.fetch(request);
 
     try {

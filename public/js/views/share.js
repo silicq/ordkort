@@ -127,6 +127,7 @@
       const card = h('div', { class: 'link-card share-open' }, A.loading(t('share.loading')));
       root.append(h('section', { class: 'link-page' }, card));
       A.ai.sharedDeck(id).then((deck) => {
+        if (deck?.kind === 'look') { location.replace('#/look/' + id); return; } // a look made through MCP, not a deck
         const s = A.store.settings;
         const T = deck.target, N = deck.native;
         const other = s && s.native !== N;

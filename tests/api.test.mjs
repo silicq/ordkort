@@ -128,6 +128,66 @@ test('pictures: the proxy takes only https addresses, the search needs a word', 
   assert.equal(r.status, 400);
 });
 
+/* ---------- MCP: Ordkort for people's own AI ---------- */
+const rpc = async (msg, headers = {}) => {
+  const r = await harness.fetch(BASE + '/mcp', { method: 'POST', headers: { 'CF-Connecting-IP': '203.0.113.9', 'Content-Type': 'application/json', Accept: 'application/json, text/event-stream', ...headers }, body: JSON.stringify(msg) });
+  return { status: r.status, body: r.status === 202 ? null : await r.json() };
+};
+
+test('MCP: handshake, tools, and a version the client asked for', async () => {
+  let r = await rpc({ jsonrpc: '2.0', id: 1, method: 'initialize', params: { protocolVersion: '2025-03-26', capabilities: {}, clientInfo: { name: 'test', version: '1' } } });
+  assert.equal(r.body.result.protocolVersion, '2025-03-26');
+  assert.equal(r.body.result.serverInfo.name, 'ordkort');
+  assert.ok(r.body.result.capabilities.tools);
+  r = await rpc({ jsonrpc: '2.0', method: 'notifications/initialized' });
+  assert.equal(r.status, 202, 'a notification gets no answer');
+  r = await rpc({ jsonrpc: '2.0', id: 2, method: 'tools/list' });
+  assert.deepEqual(r.body.result.tools.map((x) => x.name), ['list_languages', 'list_topics', 'ready_words', 'find_pictures', 'create_deck', 'create_design']);
+  for (const tool of r.body.result.tools) assert.equal(tool.inputSchema.type, 'object', tool.name);
+  r = await rpc({ jsonrpc: '2.0', id: 3, method: 'tools/call', params: { name: 'list_languages', arguments: {} } });
+  assert.ok(r.body.result.structuredContent.languages.some((l) => l.code === 'nb'));
+  r = await rpc({ jsonrpc: '2.0', id: 4, method: 'nope' });
+  assert.equal(r.body.error.code, -32601);
+  r = await rpc([{ jsonrpc: '2.0', id: 5, method: 'ping' }, { jsonrpc: '2.0', id: 6, method: 'tools/call', params: { name: 'list_topics' } }]);
+  assert.equal(r.body.length, 2, 'a batch gets a batch');
+  assert.ok(r.body[1].result.structuredContent.topics.some((x) => x.id === 'greetings'));
+  // other sites may call it (an AI's servers have no Origin of ours), and a GET is not a stream here
+  r = await rpc({ jsonrpc: '2.0', id: 7, method: 'ping' }, { Origin: 'https://claude.ai' });
+  assert.equal(r.status, 200);
+  const g = await harness.fetch(BASE + '/mcp');
+  assert.equal(g.status, 405);
+});
+
+test('MCP: a deck with pictures and a look become links that open them', async () => {
+  let r = await rpc({ jsonrpc: '2.0', id: 1, method: 'tools/call', params: { name: 'create_deck', arguments: {
+    title: 'Kjøkken', target: 'nb', native: 'en', level: 'A1',
+    cards: [{ term: 'en gaffel', translation: 'fork', image_url: 'https://example.org/fork.jpg', image_credit: 'Kari, CC BY 4.0' }, { term: 'en kniv', translation: 'knife' }, { term: '', translation: 'nothing' }],
+  } } });
+  const url = r.body.result.structuredContent.url;
+  assert.match(url, /^https:\/\/ordkort\.com\/#\/s\/[A-Za-z0-9]{8}$/);
+  assert.equal(r.body.result.structuredContent.cards, 2, 'a card without a word is dropped');
+  let s = await call('share/' + url.slice(-8));
+  const { deck } = await s.json();
+  assert.equal(deck.title, 'Kjøkken');
+  assert.equal(deck.words[0].img_url, 'https://example.org/fork.jpg');
+  assert.equal(deck.words[0].img_by, 'Kari, CC BY 4.0');
+
+  r = await rpc({ jsonrpc: '2.0', id: 2, method: 'tools/call', params: { name: 'create_design', arguments: { name: 'Calm', front_html: '<b>{{term}}</b>', card_css: '.tpl b { color: teal; }' } } });
+  const look = r.body.result.structuredContent.url;
+  assert.match(look, /#\/look\/[A-Za-z0-9]{8}$/);
+  s = await call('share/' + look.slice(-8));
+  const d = (await s.json()).deck;
+  assert.equal(d.kind, 'look');
+  assert.equal(d.front, '<b>{{term}}</b>');
+
+  r = await rpc({ jsonrpc: '2.0', id: 3, method: 'tools/call', params: { name: 'create_deck', arguments: { title: 'x', target: 'xx', native: 'en', cards: [{ term: 'a', translation: 'b' }] } } });
+  assert.equal(r.body.result.isError, true, 'an unknown language is an error the AI can read');
+  r = await rpc({ jsonrpc: '2.0', id: 4, method: 'tools/call', params: { name: 'create_design', arguments: { name: 'Empty' } } });
+  assert.equal(r.body.result.isError, true);
+  r = await rpc({ jsonrpc: '2.0', id: 5, method: 'tools/call', params: { name: 'ready_words', arguments: { target: 'nb', native: 'en', topic: 'greetings' } } });
+  assert.ok(Array.isArray(r.body.result.structuredContent.words), 'the bank may be empty here, but the answer has a list');
+});
+
 test('limits endpoint reports the daily allowance', async () => {
   const r = await call('limits');
   const q = await r.json();
