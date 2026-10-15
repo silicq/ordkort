@@ -83,7 +83,7 @@
     function sample() {
       const all = A.apkg.words(pkg, maps, { withSchedule: false }).flatMap((g) => g.words);
       preview.replaceChildren(...all.slice(0, 6).map((w) => h('li', null, A.lt(w.term, target, 'serif'), ' — ', A.lt(w.tr, s.native), w.ex ? h('small', { class: 'muted d-block' }, w.ex) : null)));
-      go.textContent = t('anki.go', { n: all.length });
+      go.textContent = t('anki.go', { n: new Set(all.map((w) => A.store.norm(w.term))).size }); // a word met twice is one card
       go.disabled = !all.length;
       // translations that look like another language than the person's own: say so, it is their choice
       const off = Object.keys(maps).map((mid) => langs[mid][maps[mid].tr]).find((l) => l && l !== s.native);
@@ -156,6 +156,20 @@
         if (type) { try { word.img = await A.media.add(new Blob([bytes], { type })); } catch { /* a picture the browser cannot read */ } }
         words.push(word);
       }
+      // the same word twice ("dry" — сухой, "dry" — сушить) is one card with both translations
+      const one = new Map();
+      for (const w of words) {
+        const k = A.store.norm(w.term);
+        const had = one.get(k);
+        if (!had) { one.set(k, w); continue; }
+        if (!had.tr.split('; ').includes(w.tr)) had.tr = (had.tr + '; ' + w.tr).slice(0, 300);
+        had.img ||= w.img;
+        had.ex ||= w.ex;
+        had.ex_tr ||= w.ex_tr;
+        if (w.sched && (!had.sched || w.sched.s > had.sched.s)) had.sched = w.sched;
+      }
+      words.length = 0;
+      words.push(...one.values());
       const deck = A.store.addDeck({ title: title.slice(0, 80), emoji: '📥', group: 'custom', manual: true });
       const before = new Set(A.store.cards(deck.id).map((c) => c.id));
       const n = A.store.addCards(deck.id, words.map((w) => ({ term: w.term, tr: w.tr, ex: w.ex, ex_tr: w.ex_tr, pron: w.pron, img: w.img, src: 'anki' })));
