@@ -236,10 +236,11 @@
         say(list.length ? '' : t('card.pic_none'));
         results.replaceChildren(...list.map((r) => h('button', {
           class: 'pic-thumb', type: 'button', title: `${r.by} · ${r.license}`,
+          // r.thumb is shown; r.url, when there is one, is the address to keep (a Pixabay page)
           onclick: async (e) => {
             const b = e.currentTarget;
             b.classList.add('loading');
-            try { onPick(await take(r.thumb), r.thumb, `${r.by} · ${r.license}`); } catch { A.toast(t('card.pic_failed'), 'error'); }
+            try { const u = r.url || r.thumb; onPick(await take(u), u, `${r.by} · ${r.license}`); } catch { A.toast(t('card.pic_failed'), 'error'); }
             b.classList.remove('loading');
           },
         }, h('img', { src: '/api/img?u=' + encodeURIComponent(r.thumb), alt: r.by, loading: 'lazy' }))));

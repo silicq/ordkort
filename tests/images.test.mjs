@@ -1,9 +1,9 @@
 // Picture search (src/images.js): the word is looked up in Wikidata in its own language, the item's Commons picture
 // comes first, and Openverse is asked in English with the pictures about the word sorted before the rest.
-// Wikidata, Commons and Openverse are small fakes here: no network.
+// Pixabay (with a key) comes between them. Wikidata, Commons, Pixabay and Openverse are small fakes here: no network.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { find, bare, relevant, wikidata, OV_PAGE } from '../src/images.js';
+import { find, bare, relevant, wikidata, proxy, OV_PAGE } from '../src/images.js';
 
 const DB = { prepare: () => ({ bind: () => ({ first: async () => null, run: async () => ({}) }) }) };
 const env = { DB };
@@ -37,6 +37,11 @@ function fake() {
       body = { entities: Object.fromEntries(p.ids.split('|').map((id) => [id, ENTITIES[id] || { claims: {} }])) };
     } else if (u.host === 'commons.wikimedia.org') {
       body = { query: { pages: { 1: { title: 'File:Old house.jpg', imageinfo: [{ url: 'https://upload.example/Old_house.jpg', thumburl: 'https://upload.example/640px-Old_house.jpg', descriptionurl: 'https://commons.example/File:Old_house.jpg', extmetadata: { Artist: { value: '<a href="x">Kari Nordmann</a>' }, LicenseShortName: { value: 'CC BY-SA 4.0' } } }] } } } };
+    } else if (u.host === 'pixabay.com' && u.pathname === '/api/') {
+      body = { hits: p.id ? [{ webformatURL: `https://pixabay.com/get/g${p.id}_640.jpg` }] : [
+        { pageURL: 'https://pixabay.com/photos/house-home-123456/', previewURL: 'https://cdn.pixabay.com/photo/house_150.jpg', tags: 'house, home', user: 'Lena' },
+        { pageURL: 'https://evil.example/x', previewURL: 'https://cdn.pixabay.com/photo/x_150.jpg', tags: 'x', user: 'X' },
+      ] };
     } else if (u.host === 'api.openverse.org') {
       // as the real API does without a key
       if (+p.page_size > 20) return { ok: false, status: 401, json: async () => ({ detail: 'page_size' }) };
@@ -112,5 +117,55 @@ test('when Openverse does not answer, Wikidata’s picture still comes, and noth
     assert.equal(results.length, 1);
     assert.equal(writes.length, 0);
     await assert.rejects(find({ DB: db }, 'k', 'lobster trap', 'en'), (e) => e.status === 503, 'nothing at all: busy');
+  } finally { globalThis.fetch = real; f.restore(); }
+});
+
+test('with a key, Pixabay is asked in the word’s own language and its pictures come after Wikidata’s', async () => {
+  const f = fake();
+  try {
+    const { results } = await find({ DB, PIXABAY_KEY: 'k1' }, 'k', 'et hus', 'nb');
+    const px = f.calls.find((c) => c.host === 'pixabay.com');
+    assert.equal(px.lang, 'no', 'Norwegian is "no" to Pixabay');
+    assert.equal(px.q, 'hus');
+    assert.equal(px.per_page, '20');
+    assert.equal(results[0].thumb, 'https://upload.example/640px-Old_house.jpg', 'Wikidata first');
+    assert.deepEqual(results[1], {
+      thumb: 'https://cdn.pixabay.com/photo/house_150.jpg', url: 'https://pixabay.com/photos/house-home-123456/',
+      by: '“house”, Lena', license: 'Pixabay License', page: 'https://pixabay.com/photos/house-home-123456/',
+    }, 'kept by its page: the picture addresses Pixabay gives last a day');
+    assert.equal(results.filter((r) => r.license === 'Pixabay License').length, 1, 'a hit whose page is not on Pixabay is dropped');
+    assert.ok(results.slice(2).every((r) => r.thumb.startsWith('https://ov.example/')), 'Openverse after');
+
+    await find({ DB, PIXABAY_KEY: 'k1' }, 'k', 'hus', 'uk');
+    assert.equal(f.calls.filter((c) => c.host === 'pixabay.com').pop().lang, 'en', 'a language Pixabay does not know: in English');
+  } finally { f.restore(); }
+});
+
+test('without a key, Pixabay is not asked', async () => {
+  const f = fake();
+  try {
+    await find(env, 'k', 'hus', 'sv');
+    assert.equal(f.calls.filter((c) => c.host === 'pixabay.com').length, 0);
+  } finally { f.restore(); }
+});
+
+test('the proxy turns a Pixabay page into its picture of today', async () => {
+  const f = fake();
+  const real = globalThis.fetch;
+  const got = [];
+  globalThis.fetch = async (url, opts) => {
+    if (String(url).startsWith('https://pixabay.com/get/')) {
+      got.push(String(url));
+      return new Response(new Uint8Array([0xff, 0xd8, 0xff]), { headers: { 'Content-Type': 'image/jpeg' } });
+    }
+    return real(url, opts);
+  };
+  try {
+    const r = await proxy(new Request('https://ordkort.test/api/img?u=' + encodeURIComponent('https://pixabay.com/photos/house-home-123456/')), { DB, PIXABAY_KEY: 'k1' }, 'k');
+    assert.equal(r.headers.get('Content-Type'), 'image/jpeg');
+    assert.deepEqual(got, ['https://pixabay.com/get/g123456_640.jpg']);
+    await assert.rejects(
+      proxy(new Request('https://ordkort.test/api/img?u=' + encodeURIComponent('https://pixabay.com/photos/cat-777/')), { DB }, 'k'),
+      (e) => e.status === 502, 'no key: a Pixabay page cannot be turned into a picture');
   } finally { globalThis.fetch = real; f.restore(); }
 });

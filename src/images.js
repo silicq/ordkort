@@ -2,9 +2,14 @@
    search — free, openly licensed images for a word. Openverse alone answers by matching the words of titles and
             descriptions, so "hus" or "ключ" bring photos of anything that mentions them. So first the word is looked
             up in Wikidata, in its own language: the item it names ("hus" → house) has a picture on Wikimedia Commons
-            chosen by people for exactly that meaning, and an English name. Openverse is then asked in English, and
-            its answers are sorted so that pictures whose title or tags hold the word come first. The answers are
-            kept in the shared cache for 30 days, so a word someone looked up before costs nobody anything.
+            chosen by people for exactly that meaning, and an English name. Pixabay (when the PIXABAY_KEY secret is
+            set) is asked next, in the word's own language where it knows it: good photos and drawings under its own
+            free licence. Openverse is then asked in English, and its answers are sorted so that pictures whose title
+            or tags hold the word come first. The answers are kept in the shared cache (Pixabay's for a day, as it
+            asks; the rest for 30 days), so a word someone looked up before costs nobody anything.
+            A result has `thumb` (to show it in the list) and may have `url`, the address to keep: Pixabay's own
+            picture addresses last a day, so a Pixabay picture is kept by the address of its page, which the proxy
+            below turns into the picture each time.
    proxy  — fetches one picture for the browser, which then shrinks it and keeps it on the device. The page may load
             nothing from other sites (CSP), and the person's IP never reaches them. Only https, only raster images
             (no SVG), at most 5 MB, under a per-person hourly limit. */
@@ -37,6 +42,10 @@ const NOT_A_THING = new Set([
   'Q105543609', 'Q1002697', 'Q15632617', 'Q95074', 'Q21191270', 'Q7889', 'Q1344', 'Q3305213',
 ]);
 const WD = 'https://www.wikidata.org/w/api.php';
+const DAY = 864e5;
+// the languages Pixabay understands a query in (its "no" is Norwegian)
+const PX_LANGS = new Set('cs da de en es fr id it hu nl no pl pt ro sk fi sv tr vi th bg ru el ja ko zh'.split(' '));
+const PX_PAGE = /^https:\/\/pixabay\.com\/(?:[a-z]{2}\/)?(?:photos|illustrations|vectors)\/(?:[^/?#]*-)?(\d{1,12})\/?$/;
 export const OV_PAGE = 20;
 const COMMONS = 'https://commons.wikimedia.org/w/api.php';
 
@@ -125,28 +134,80 @@ async function openverse(q) {
   }));
 }
 
-/* { results: [{ thumb, by, license, page }] } for a word or phrase in the language `lang` (also used by the MCP
-   server): first the pictures of the Wikidata items the word names, then Openverse's, asked in English. */
+/* Pixabay: up to 20 pictures for a word, asked in its own language when Pixabay knows it, else in English.
+   null when Pixabay did not answer, [] when it has no key here. */
+async function pixabay(env, key, q, lang, en) {
+  if (!env.PIXABAY_KEY) return [];
+  const pl = lang === 'nb' || lang === 'nn' ? 'no' : lang;
+  const [query, ql] = PX_LANGS.has(pl) ? [q, pl] : [en, 'en'];
+  const k = 'pxb1:' + (await sha256(ql + '\n' + query.toLowerCase())).slice(0, 32);
+  const hit = await cacheGet(env.DB, k, DAY);
+  if (hit) return hit;
+  await takeSimple(env, 'pxq', key, 60, 36e5);
+  const url = `https://pixabay.com/api/?key=${encodeURIComponent(env.PIXABAY_KEY)}&q=${encodeURIComponent(query.slice(0, 100))}`
+    + `&lang=${ql}&image_type=all&safesearch=true&per_page=20`;
+  const data = await getJSON(url, 8000);
+  if (!data) return null;
+  const out = (Array.isArray(data.hits) ? data.hits : [])
+    .filter((r) => /^https:\/\//.test(r.previewURL || '') && PX_PAGE.test(r.pageURL || ''))
+    .map((r) => ({
+      thumb: r.previewURL,
+      url: r.pageURL,
+      by: str([`“${String(r.tags || '').split(',')[0].trim()}”`, r.user].filter((x) => x && x !== '“”').join(', '), 160),
+      license: 'Pixabay License',
+      page: r.pageURL,
+    }));
+  await cacheSet(env.DB, k, out);
+  return out;
+}
+
+// a Pixabay page → the address of its picture now (those last a day); kept for 20 hours
+async function pixabayImage(env, id) {
+  if (!env.PIXABAY_KEY) return null;
+  const k = 'pxu1:' + id;
+  const hit = await cacheGet(env.DB, k, 20 * 36e5);
+  if (hit) return hit.u;
+  const data = await getJSON(`https://pixabay.com/api/?key=${encodeURIComponent(env.PIXABAY_KEY)}&id=${id}`, 8000);
+  const u = data?.hits?.[0]?.webformatURL;
+  if (!/^https:\/\//.test(u || '')) return null;
+  await cacheSet(env.DB, k, { u });
+  return u;
+}
+
+/* { results: [{ thumb, url?, by, license, page }] } for a word or phrase in the language `lang` (also used by the
+   MCP server): first the pictures of the Wikidata items the word names, then Pixabay's, then Openverse's. */
 export async function find(env, key, query, lang) {
   const q = str(bare(query), 80);
   if (!q) throw new HttpError(400, 'empty');
   const L = typeof lang === 'string' && /^[a-z]{2,3}$/.test(lang) ? lang : 'en';
   const k = 'img3:' + (await sha256(L + '\n' + q.toLowerCase())).slice(0, 32);
   const hit = await cacheGet(env.DB, k, MONTH);
-  if (hit) return hit;
+  if (hit) return withPixabay(hit, (await pixabay(env, key, q, L, hit.en || q).catch(() => null)) || []);
   await takeSimple(env, 'imgq', key, 60, 36e5);
   const items = await wikidata(q, L).catch(() => []);
   const en = L === 'en' ? q : (items.find((i) => i.en)?.en || q);
-  const [wd, ov] = await Promise.all([
+  const [wd, ov, px] = await Promise.all([
     commons([...new Set(items.map((i) => i.file).filter(Boolean))]).catch(() => []),
     openverse(en),
+    pixabay(env, key, q, L, en).catch(() => null),
   ]);
-  if (!wd.length && !ov) throw new HttpError(503, 'busy');
+  if (!wd.length && !ov && !px?.length) throw new HttpError(503, 'busy');
   const seen = new Set();
-  const out = { results: [...wd, ...(ov || [])].filter((r) => !seen.has(r.thumb) && seen.add(r.thumb)).slice(0, 18) };
-  if (en !== q) out.en = en;
-  if (ov) await cacheSet(env.DB, k, out); // when Openverse did not answer, the next search tries it again
-  return out;
+  const keep = (list) => list.filter((r) => !seen.has(r.thumb) && seen.add(r.thumb));
+  const mine = { results: keep([...wd, ...(ov || [])]).slice(0, 18), wd: wd.length }; // wd: how many lead, from Wikidata
+  if (en !== q) mine.en = en;
+  // Pixabay's part has its own cache (a day): the month-long one holds Wikidata's and Openverse's
+  if (ov) await cacheSet(env.DB, k, mine); // when Openverse did not answer, the next search tries it again
+  return withPixabay(mine, px || []);
+}
+
+// Wikidata's pictures first, then Pixabay's, then Openverse's: 24 at most
+function withPixabay(base, px) {
+  if (!px.length) return base;
+  const n = base.wd ?? base.results.filter((r) => /wikimedia\.org/.test(r.thumb)).length; // kept before `wd` was
+  const wd = base.results.slice(0, n), rest = base.results.slice(n);
+  const seen = new Set(base.results.map((r) => r.thumb));
+  return { ...base, results: [...wd, ...px.filter((r) => !seen.has(r.thumb)).slice(0, 12), ...rest].slice(0, 24) };
 }
 
 export async function proxy(request, env, key) {
@@ -155,6 +216,13 @@ export async function proxy(request, env, key) {
   try { target = new URL(u); } catch { throw new HttpError(400, 'bad_url'); }
   if (target.protocol !== 'https:' || target.username || target.password) throw new HttpError(400, 'bad_url');
   await takeSimple(env, 'img', key, 300, 36e5);
+  // a Pixabay picture is kept by its page: the address of the picture itself changes every day
+  const px = PX_PAGE.exec(target.href);
+  if (px) {
+    const u = await pixabayImage(env, px[1]).catch(() => null);
+    if (!u) throw new HttpError(502, 'unavailable');
+    target = new URL(u);
+  }
   const res = await fetch(target.href, {
     headers: { 'User-Agent': UA, Accept: 'image/*,*/*;q=0.8' }, // Openverse refuses a narrower list (406); the type is checked below
     redirect: 'follow',
