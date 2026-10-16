@@ -350,7 +350,7 @@
     const stop = onPastedPicture(own);
     // a built-in topic is looked for by its English name, which finds the most; a deck of your own by its title
     const tp = d.topic && A.topics.get(d.topic);
-    const [query, lang] = tp ? [tp.en.split(/,| and /)[0].trim(), 'en'] : [A.deckTitle(d), A.i18n.lang()];
+    const [query, lang] = tp ? [A.media.topicQuery(tp), 'en'] : [A.deckTitle(d), A.i18n.lang()];
 
     const m = A.modal({
       title: t('cover.title'),

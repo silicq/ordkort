@@ -822,4 +822,6 @@ globalThis.App.i18nData.en = {
   'lib.no_cover': "The cover could not be checked right now, so the deck was published without it.",
   'look.phone': "How it looks on a phone",
   'look.phone_hint': "The site at a phone's width, wearing this look before it is saved. Nothing you do in it is kept.",
+  'set.auto_cover': "Covers for topics",
+  'set.auto_cover_hint': "A new deck of a ready topic gets a free picture for the topic instead of its emoji. Only the topic's name is searched.",
 };

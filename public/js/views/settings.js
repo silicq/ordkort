@@ -224,7 +224,8 @@
             row(t('set.voice'), t('set.voice_hint'), A.segmented([
               { value: 'site', label: t('set.voice_site') },
               { value: 'system', label: t('set.voice_system') },
-            ], s.voice === 'system' ? 'system' : 'site', (v) => set({ voice: v }))))),
+            ], s.voice === 'system' ? 'system' : 'site', (v) => set({ voice: v }))),
+            row(t('set.auto_cover'), t('set.auto_cover_hint'), toggle(s.autoCover !== false, (v) => set({ autoCover: v }))))),
           at(5, card(t('set.data'),
             h('p', { class: 'muted small' }, t('set.data_hint', { kb: A.store.usage(), n: counts })),
             protection(),

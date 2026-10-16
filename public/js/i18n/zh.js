@@ -818,4 +818,6 @@ globalThis.App.i18nData.zh = {
   'lib.no_cover': "暂时无法检查封面，因此卡组已在没有封面的情况下发布。",
   'look.phone': "在手机上的样子",
   'look.phone_hint': "以手机宽度显示网站，套用尚未保存的外观。在其中的任何操作都不会被保存。",
+  'set.auto_cover': "主题封面",
+  'set.auto_cover_hint': "新建的现成主题卡组会获得一张该主题的免费图片来代替表情符号。只搜索主题名称。",
 };

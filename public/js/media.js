@@ -103,6 +103,22 @@
     return canvas.toDataURL('image/jpeg', 0.82);
   }
   const coverUrl = async (u) => cover(await fetchUrl(u));
+  // what a built-in topic is looked for by: its English name, which finds the most ("Food and drink" → "Food")
+  const topicQuery = (tp) => tp.en.split(/,| and /)[0].trim();
+  // a new deck of a built-in topic gets the first picture found for it as its cover (Settings can turn this off)
+  async function autoCover(id) {
+    const d = A.store.deck(id);
+    const tp = d?.topic && A.topics.get(d.topic);
+    if (!tp || d.cover || A.store.settings.autoCover === false || A.framed || !navigator.onLine) return;
+    try {
+      for (const r of (await search(topicQuery(tp), 'en')).slice(0, 3)) {
+        const c = await coverUrl(r.url || r.thumb).catch(() => '');
+        if (!c) continue;
+        if (A.store.deck(id) && !A.store.deck(id).cover) { A.store.updateDeck(id, { cover: c, coverBy: `${r.by} · ${r.license}` }); A.refresh(); }
+        return;
+      }
+    } catch { /* no picture: the emoji stays */ }
+  }
   // a shared deck's cover: a data: URL as it is, a web address fetched (through the site) and made small
   const coverOf = async (x) => (isCover(x) ? x : /^https:\/\//.test(x || '') ? coverUrl(x).catch(() => '') : '');
   // what stands for a deck: its cover, or its emoji
@@ -158,5 +174,5 @@
     } catch { /* next time */ }
   }
 
-  A.media = { add, addUrl, url, blob, el, search, tidy, addAudio, audio, audioNow, voice, voiceNow, cover, coverUrl, coverOf, isCover, face, _test: { shrink } };
+  A.media = { add, addUrl, url, blob, el, search, tidy, addAudio, audio, audioNow, voice, voiceNow, cover, coverUrl, coverOf, autoCover, topicQuery, isCover, face, _test: { shrink } };
 })();

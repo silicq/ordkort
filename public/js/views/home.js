@@ -161,5 +161,6 @@
     const d = A.store.addDeck({ topic: tp.id, emoji: tp.emoji, group: tp.group, level: s.level });
     A.go('#/deck/' + d.id);
     A.jobs.generate(d.id);
+    A.media.autoCover(d.id);
   }
 })();
