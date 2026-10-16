@@ -757,4 +757,12 @@ globalThis.App.i18nData.en = {
   'fsrs.done': "Fitted to your memory: predictions {pct}% better.",
   'fsrs.failed': "Could not fit this time. Try again later.",
   'fsrs.back': "Back to the default settings.",
+  'fill.big_title': "A big deck to fill in",
+  'fill.big': "Cards to fill in: {n}. That takes {req} AI requests, and you have {left} left today.",
+  'fill.big_why': "The site's AI is shared and free, so a big deck is best filled in a little every day: {per} requests a day, on by itself whenever you open the site, about {days} days in all. You can study meanwhile.",
+  'fill.all_now': "All now",
+  'fill.daily': "{per} a day",
+  'fill.done_today': "Today's share is filled in: {n} cards. {left} more will follow in the next days.",
+  'fill.daily_on': "Empty fields are being filled in a little every day ({per} requests a day): {n} cards still wait.",
+  'fill.go_more': "More now",
 };

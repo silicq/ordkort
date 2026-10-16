@@ -141,7 +141,7 @@
         A.toast(res.added ? t('anki.imported', { n: res.added, decks: res.decks }) : t('anki.nothing'), res.added ? 'ok' : '');
         A.go('#/');
         A.route();
-        if (fill.checked) (async () => { for (const id of res.ids) await A.fill.run(id); })(); // one deck after another
+        if (fill.checked) (async () => { for (const id of res.ids) await A.fill.start(id); })(); // one deck after another; a big one asks first
       } catch (e) {
         console.error(e);
         A.toast(t('anki.bad_file'), 'error');

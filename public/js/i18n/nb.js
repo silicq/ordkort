@@ -757,4 +757,12 @@ globalThis.App.i18nData.nb = {
   'fsrs.done': "Tilpasset hukommelsen din: forutsigelsene er {pct} % bedre.",
   'fsrs.failed': "Kunne ikke tilpasse nå. Prøv igjen senere.",
   'fsrs.back': "Tilbake til standardinnstillingene.",
+  'fill.big_title': "En stor kortstokk",
+  'fill.big': "Kort som skal fylles ut: {n}. Det tar {req} KI-forespørsler, og du har {left} igjen i dag.",
+  'fill.big_why': "KI-en på nettstedet er felles og gratis, så en stor kortstokk fylles best ut litt hver dag: {per} forespørsler om dagen, av seg selv når du åpner nettstedet, omtrent {days} dager i alt. Du kan øve imens.",
+  'fill.all_now': "Alt nå",
+  'fill.daily': "{per} om dagen",
+  'fill.done_today': "Dagens del er fylt ut: {n} kort. {left} til følger de neste dagene.",
+  'fill.daily_on': "Tomme felt fylles ut litt hver dag ({per} forespørsler om dagen): {n} kort venter fortsatt.",
+  'fill.go_more': "Mer nå",
 };

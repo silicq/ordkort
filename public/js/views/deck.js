@@ -68,9 +68,9 @@
         if (empty) {
           const q = A.ai.quota;
           root.append(h('div', { class: 'fill-banner callout plain' }, icon('sparkle', 18),
-            h('span', { class: 'grow' }, t('fill.offer', { n: empty, req: Math.ceil(empty / A.fill.BATCH) }),
+            h('span', { class: 'grow' }, d.fillDaily ? t('fill.daily_on', { n: empty, per: A.fill.PER_DAY }) : t('fill.offer', { n: empty, req: Math.ceil(empty / A.fill.BATCH) }),
               q ? h('small', { class: 'muted d-block' }, t('fill.left', { left: q.left, limit: q.limit })) : null),
-            h('button', { class: 'btn btn-soft btn-sm', type: 'button', onclick: () => A.fill.run(id) }, t('fill.go'))));
+            h('button', { class: 'btn btn-soft btn-sm', type: 'button', onclick: () => A.fill.start(id) }, t(d.fillDaily ? 'fill.go_more' : 'fill.go'))));
         }
       }
 

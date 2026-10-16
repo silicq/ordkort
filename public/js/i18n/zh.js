@@ -753,4 +753,12 @@ globalThis.App.i18nData.zh = {
   'fsrs.done': "已按你的记忆调整：预测准确度提高 {pct}%。",
   'fsrs.failed': "这次没能调整，请稍后再试。",
   'fsrs.back': "已恢复默认参数。",
+  'fill.big_title': "大牌组",
+  'fill.big': "需要补全的卡片：{n} 张。这需要 {req} 次 AI 请求，而你今天还剩 {left} 次。",
+  'fill.big_why': "网站的 AI 是大家共用且免费的，所以大牌组最好每天补一点：每天 {per} 次请求，你打开网站时会自动进行，总共大约 {days} 天。这期间可以照常学习。",
+  'fill.all_now': "现在全部补全",
+  'fill.daily': "每天 {per} 次",
+  'fill.done_today': "今天的部分已补全：{n} 张卡片。剩下的 {left} 张会在接下来几天补全。",
+  'fill.daily_on': "空白字段正在每天补一点（每天 {per} 次请求）：还有 {n} 张卡片在等待。",
+  'fill.go_more': "现在再补一些",
 };

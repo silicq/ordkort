@@ -246,34 +246,92 @@
      nothing. Only what is empty (or a plainly wrong translation) is filled in: the person's own text stays. */
   const filler = (() => {
     const BATCH = 20;
+    const PER_DAY = 10; // requests a day for a deck filled "a little every day"
+    const BIG = 10; // more requests than this, or more than are left today: ask first
     const { needsFill: needs, junkTr: junk, fillPatch: merge } = A.store;
     const todo = (deckId) => A.store.cards(deckId).filter(needs).sort((a, b) => a.created - b.created);
-    async function run(deckId) {
+    // requests used today by the daily filling, on this device
+    const DAY_KEY = 'ordkort.fill-day';
+    const today = () => new Date().toISOString().slice(0, 10);
+    const usedToday = () => { try { const x = JSON.parse(localStorage.getItem(DAY_KEY) || 'null'); return x?.d === today() ? x.n : 0; } catch { return 0; } };
+    const use = (n) => { try { localStorage.setItem(DAY_KEY, JSON.stringify({ d: today(), n: usedToday() + n })); } catch { /* no storage */ } };
+
+    /* fill in up to `max` requests' worth (Infinity: all); `daily`: the requests count against the daily share */
+    async function run(deckId, { max = Infinity, daily = false } = {}) {
       if (jobs.has(deckId) || !todo(deckId).length) return;
       const all = todo(deckId).length;
-      let done = 0, stopped = false;
+      let done = 0, asked = 0, stopped = false;
       const label = () => ({ label: t('fill.working', { done, all }), stop: () => { stopped = true; } });
       jobs.set(deckId, label());
       refresh();
       try {
-        while (!stopped) {
+        while (!stopped && asked < max) {
           const part = todo(deckId).slice(0, BATCH);
           if (!part.length) break;
           const res = await A.ai.fillMany(part.map((c) => ({ term: c.term, tr: junk(c) ? '' : c.tr, ex: c.ex || '' })));
           A.store.updateCards(part.map((c, i) => ({ id: c.id, ...merge(c, res[i]) })));
           done += part.length;
+          asked++;
+          if (daily) use(1);
           jobs.set(deckId, label());
           refresh();
         }
-        if (done) A.toast(t('fill.done', { n: done }), 'ok');
+        if (!todo(deckId).length) A.store.updateDeck(deckId, { fillDaily: undefined }); // all done: no more daily filling
+        if (done) A.toast(todo(deckId).length && daily ? t('fill.done_today', { n: done, left: todo(deckId).length }) : t('fill.done', { n: done }), 'ok');
       } catch (e) {
-        A.toast(e?.kind === 'quota' ? t('fill.quota', { n: todo(deckId).length }) : A.ai.errorText(e), 'error');
+        if (e?.kind === 'quota' || e?.kind === 'budget') {
+          A.store.updateDeck(deckId, { fillDaily: 1 }); // what is left goes on tomorrow by itself
+          A.toast(t('fill.quota', { n: todo(deckId).length }), 'error');
+        } else A.toast(A.ai.errorText(e), 'error');
       } finally {
         jobs.delete(deckId);
         refresh();
       }
     }
-    return { run, todo, BATCH };
+
+    /* "Fill in": a small job starts at once; a big one asks first — a little every day (and on by itself after
+       today), or everything now while today's limit lasts */
+    async function start(deckId) {
+      const need = Math.ceil(todo(deckId).length / BATCH);
+      if (!need) return;
+      let left = A.ai.quota?.left;
+      if (left === undefined) left = await A.ai.limits().then((q) => q.left).catch(() => need);
+      if (need <= BIG && need <= left) return run(deckId);
+      let done;
+      const finished = new Promise((res) => { done = res; });
+      let job = null;
+      const choose = (daily) => {
+        if (daily) {
+          A.store.updateDeck(deckId, { fillDaily: 1 });
+          job = run(deckId, { max: Math.max(0, PER_DAY - usedToday()), daily: true });
+        } else job = run(deckId);
+        m.close();
+      };
+      const m = A.modal({
+        onClose: () => (job || Promise.resolve()).then(done), // resolved when the chosen filling is over
+        title: t('fill.big_title'),
+        body: h('div', null,
+          h('p', null, t('fill.big', { n: todo(deckId).length, req: need, left })),
+          h('p', { class: 'muted small' }, t('fill.big_why', { per: PER_DAY, days: Math.ceil(need / PER_DAY) }))),
+        actions: [
+          h('button', { class: 'btn btn-ghost', type: 'button', onclick: () => m.close() }, t('common.cancel')),
+          h('button', { class: 'btn btn-ghost', type: 'button', onclick: () => choose(false) }, t('fill.all_now')),
+          h('button', { class: 'btn btn-primary', type: 'button', onclick: () => choose(true) }, t('fill.daily', { per: PER_DAY })),
+        ],
+      });
+      return finished;
+    }
+
+    // decks filled "a little every day" go on by themselves, a while after the app opens, one after another
+    async function daily() {
+      if (!A.store.ready || navigator.onLine === false) return;
+      for (const d of A.store.decks()) {
+        const left = PER_DAY - usedToday();
+        if (left <= 0) return;
+        if (d.fillDaily && todo(d.id).length) await run(d.id, { max: left, daily: true });
+      }
+    }
+    return { run, start, daily, todo, BATCH, PER_DAY };
   })();
   A.fill = filler;
 
@@ -411,6 +469,7 @@
     A.sync.start();
     route();
     refill();
+    setTimeout(() => filler.daily(), 20000); // the daily share of a big deck's empty fields
     updater.check().then((stale) => stale && updater.apply()); // opened with an old copy: load the new one now
     A.i18n.ensure();
     // pictures no card uses any more: once a day, a while after opening
