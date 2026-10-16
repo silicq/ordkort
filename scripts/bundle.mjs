@@ -43,6 +43,7 @@ export const APP_SCRIPTS = [
   'js/views/library.js',
   'js/views/stats.js',
   'js/views/insights.js',
+  'js/remind.js',
   'js/app.js',
 ];
 

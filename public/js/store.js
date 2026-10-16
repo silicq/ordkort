@@ -628,7 +628,7 @@
     isCloze, gaps, plain, cleanExtra,
     sentences, sentenceWith, example, shown,
     overview, streak, week, today, newToday,
-    buildSession, cramQueue, answer, stage, MAX_BOX, schedule, preview, suspend, LEECH, boxFromS, dayKey, pairKey: () => pairKey(),
+    today, buildSession, cramQueue, answer, stage, MAX_BOX, schedule, preview, suspend, LEECH, boxFromS, dayKey, pairKey: () => pairKey(),
     get days() { return state.days; },
     addRecent, recent,
     cacheGet, cacheSet, cacheHas, cacheClear, cacheDel,

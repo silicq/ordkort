@@ -845,4 +845,12 @@ globalThis.App.i18nData.en = {
   'sit.phone': "On the phone",
   'sit.help': "Asking for help",
   'deck.more_phrases': "+{n} phrases with AI",
+  'set.remind': "Reminder",
+  'set.remind_hint': "After this hour, on a day you have not studied, a notification says how many cards are due. Worked out on this device only: nothing is sent anywhere.",
+  'remind.title': "Cards to review: {n}",
+  'remind.body': "A few minutes today keep them in memory.",
+  'remind.unsupported': "This browser cannot show notifications.",
+  'remind.denied': "Notifications are blocked for this site in the browser's settings.",
+  'remind.background': "On: it comes even when the app is closed.",
+  'remind.tab': "On: it comes while the site is open in a tab. Install the site as an app (Chrome, Edge) for reminders when it is closed.",
 };

@@ -841,4 +841,12 @@ globalThis.App.i18nData.zh = {
   'sit.phone': "打电话",
   'sit.help': "求助",
   'deck.more_phrases': "用 AI 添加 {n} 个短语",
+  'set.remind': "提醒",
+  'set.remind_hint': "过了这个时间，如果今天还没有学习，会有通知告诉你有多少张卡片该复习了。只在此设备上计算：不会发送任何内容。",
+  'remind.title': "待复习卡片：{n}",
+  'remind.body': "今天花几分钟，就能把它们留在记忆里。",
+  'remind.unsupported': "此浏览器无法显示通知。",
+  'remind.denied': "浏览器设置中已禁止此网站的通知。",
+  'remind.background': "已开启：即使应用关闭也会提醒。",
+  'remind.tab': "已开启：网站在标签页中打开时会提醒。将网站安装为应用（Chrome、Edge）后，关闭时也能收到提醒。",
 };

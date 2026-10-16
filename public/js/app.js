@@ -471,6 +471,7 @@
     route();
     if (A.framed) { document.documentElement.classList.add('framed'); return; } // a look's preview: no sync, no AI, no worker
     A.sync.start();
+    A.remind.start();
     refill();
     setTimeout(() => filler.daily(), 20000); // the daily share of a big deck's empty fields
     updater.check().then((stale) => stale && updater.apply()); // opened with an old copy: load the new one now

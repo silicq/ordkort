@@ -76,6 +76,16 @@ Ordkort is a lightweight site for learning almost any language from almost any o
   in the library*), find others' by title, sort by the best or the newest, vote and add. Before a deck is listed,
   Llama Guard reads its words and looks at its cover; an unsafe deck is refused, and nothing is published while the
   check cannot run. Three people's reports hide a deck until the site's owner looks; the publisher can take it down.
+- **Cards with gaps and fields of your own**: mark a gap as in Anki (`Jeg {{bor}} i Oslo`, `{{c1::bor::verb}}`) and
+  the card is studied as a gap; any card can carry up to eight named fields. Anki cloze notes and a note's other
+  fields come in this way and go back out to Anki.
+- **Phrases for situations**: ready situations (pharmacy, café, doctor, job interview…) or one of your own give a
+  deck of what is said and heard there, each phrase with the line that answers it.
+- **Reminders that stay on the device**: after an hour you choose, on a day without study, a notification says how
+  many cards are due — from the open tab, or from the service worker when the site is installed as an app. There
+  is no push service: the plan lives in the browser's cache.
+- **Covers for topics and a look on a phone**: a new deck of a ready topic gets a free picture as its cover, and
+  Settings → Appearance shows the site at a phone's width wearing the look being edited.
 - **Empty fields filled in**: an imported deck without examples or grammar, or with a translation that is not one,
   is completed by the AI 20 cards per request (one of the day's AI requests); words the shared bank already has
   cost nothing, and only empty fields change. A big deck asks first, and can be filled 10 words a day instead.

@@ -845,4 +845,12 @@ globalThis.App.i18nData.nb = {
   'sit.phone': "I telefonen",
   'sit.help': "Be om hjelp",
   'deck.more_phrases': "+{n} fraser med KI",
+  'set.remind': "Påminnelse",
+  'set.remind_hint': "Etter denne timen, en dag du ikke har øvd, sier et varsel hvor mange kort som skal repeteres. Regnes ut bare på denne enheten: ingenting sendes noe sted.",
+  'remind.title': "Kort å repetere: {n}",
+  'remind.body': "Noen minutter i dag holder dem i minnet.",
+  'remind.unsupported': "Denne nettleseren kan ikke vise varsler.",
+  'remind.denied': "Varsler er blokkert for nettstedet i nettleserens innstillinger.",
+  'remind.background': "På: det kommer selv når appen er lukket.",
+  'remind.tab': "På: det kommer mens nettstedet er åpent i en fane. Installer nettstedet som app (Chrome, Edge) for påminnelser når det er lukket.",
 };

@@ -127,6 +127,24 @@
         c.addEventListener('change', () => onChange(c.checked));
         return c;
       };
+      // a reminder to review at an hour of your choice, worked out on this device only (js/remind.js)
+      const remindRow = () => {
+        const r = { on: false, hour: 19, ...(s.remind || {}) };
+        const note = h('small', { class: 'muted d-block' });
+        const hourSel = numSel(Array.from({ length: 24 }, (_, i) => i), r.hour, (v) => { r.hour = v; set({ remind: { ...r } }); A.remind.update(); });
+        hourSel.disabled = !r.on;
+        const sw = toggle(r.on, async (v) => {
+          if (v) {
+            const how = await A.remind.enable();
+            if (how === 'unsupported' || how === 'denied') { sw.checked = false; note.textContent = t('remind.' + how); return; }
+            note.textContent = t('remind.' + how);
+          } else { note.textContent = ''; }
+          r.on = v; hourSel.disabled = !v;
+          set({ remind: { ...r } });
+          if (!v) A.remind.disable(); else A.remind.update();
+        });
+        return row(t('set.remind'), [t('set.remind_hint'), note], h('div', { class: 'row gap' }, hourSel, sw));
+      };
       const numSel = (values, value, onChange) => {
         const sel = h('select', { class: 'select narrow' }, values.map((v) => h('option', { value: v }, v)));
         sel.value = value;
@@ -225,7 +243,8 @@
               { value: 'site', label: t('set.voice_site') },
               { value: 'system', label: t('set.voice_system') },
             ], s.voice === 'system' ? 'system' : 'site', (v) => set({ voice: v }))),
-            row(t('set.auto_cover'), t('set.auto_cover_hint'), toggle(s.autoCover !== false, (v) => set({ autoCover: v }))))),
+            row(t('set.auto_cover'), t('set.auto_cover_hint'), toggle(s.autoCover !== false, (v) => set({ autoCover: v }))),
+            remindRow())),
           at(5, card(t('set.data'),
             h('p', { class: 'muted small' }, t('set.data_hint', { kb: A.store.usage(), n: counts })),
             protection(),
