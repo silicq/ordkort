@@ -455,4 +455,41 @@ export async function handle(request, env, key) {
   return new Response(JSON.stringify(Array.isArray(body) ? out : out[0]), { headers: HEADERS });
 }
 
+/* How AI clients find this server without being told: /.well-known/ai-catalog.json (Agentic Resource Discovery 1.0)
+   lists it, pointing at a server card at /mcp/server-card (the shape proposed for MCP server cards, SEP-2127: the
+   proposal is not merged yet, so the card says only what /mcp itself answers). Both are made from TOOLS, so they
+   never drift from what the server does. */
+export function serverCard() {
+  return {
+    serverInfo: { name: 'ordkort', title: 'Ordkort', version: '1.0.0' },
+    description: 'Make flashcard decks (with pictures) and card designs for Ordkort, a free vocabulary site with spaced '
+      + 'repetition in 60 languages. Returns links the person opens to add them; it never sees anyone\'s cards.',
+    websiteUrl: SITE,
+    documentationUrl: 'https://github.com/silicq/ordkort#mcp',
+    protocolVersions: VERSIONS,
+    transport: { type: 'streamable-http', url: `${SITE}/mcp` },
+    authentication: { required: false },
+    capabilities: { tools: { listChanged: false } },
+    instructions: INSTRUCTIONS,
+    tools: TOOLS.map(({ name, title, description, inputSchema, annotations }) => ({ name, title, description, inputSchema, annotations })),
+  };
+}
+export function aiCatalog() {
+  return {
+    specVersion: '1.0',
+    entries: [{
+      identifier: 'urn:air:ordkort.com:mcp:ordkort',
+      displayName: 'Ordkort MCP server',
+      description: 'Flashcard decks with pictures and card designs for Ordkort, as links to add them.',
+      type: 'application/mcp-server-card+json',
+      url: `${SITE}/mcp/server-card`,
+      representativeQueries: [
+        'Make me an A2 Norwegian deck about the kitchen with pictures',
+        'Give me 30 common Spanish words for travelling as flashcards',
+        'Design a dark, calm flashcard with the picture on top',
+      ],
+    }],
+  };
+}
+
 export const _test = { TOOLS, VERSIONS, DESIGN_GUIDE };

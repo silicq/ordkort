@@ -246,6 +246,25 @@ test('MCP: handshake, tools, and a version the client asked for', async () => {
   assert.equal(g.status, 405);
 });
 
+test('MCP: AI clients can find the server through the ARD catalog and its card', async () => {
+  let r = await harness.fetch(BASE + '/.well-known/ai-catalog.json');
+  assert.equal(r.status, 200);
+  assert.match(r.headers.get('content-type'), /application\/json/);
+  const cat = await r.json();
+  assert.equal(cat.specVersion, '1.0');
+  const e = cat.entries[0];
+  assert.match(e.identifier, /^urn:air:ordkort\.com(:[a-z0-9-]+)+$/);
+  assert.equal(e.type, 'application/mcp-server-card+json');
+  assert.ok(e.representativeQueries.length >= 2 && e.representativeQueries.length <= 5);
+  r = await harness.fetch(BASE + '/mcp/server-card');
+  assert.equal(r.status, 200);
+  const card = await r.json();
+  assert.equal(card.transport.url, 'https://ordkort.com/mcp');
+  assert.ok(card.tools.some((t) => t.name === 'create_deck'), 'the card lists what /mcp offers');
+  r = await harness.fetch(BASE + '/mcp/server-card', { method: 'POST', body: '{}' });
+  assert.equal(r.status, 405);
+});
+
 test('MCP: a deck with pictures and a look become links that open them', async () => {
   let r = await rpc({ jsonrpc: '2.0', id: 1, method: 'tools/call', params: { name: 'create_deck', arguments: {
     title: 'Kjøkken', target: 'nb', native: 'en', level: 'A1', cover_url: 'https://example.org/kitchen.jpg', cover_credit: 'Ola, CC BY 4.0',

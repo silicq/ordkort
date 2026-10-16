@@ -1,7 +1,7 @@
 /* The static pages about Norwegian words (scripts/seo-pages.mjs): the look of the pages about the site,
    light and dark, phone to desktop, left-to-right and right-to-left. No scripts. */
 :root {
-  --paper: #f4efe6; --paper-2: #ebe4d6; --card: #fffdf8; --ink: #1d1a16; --ink-2: #5a5347; --ink-3: #8f877a; --line: #e4dccc; --line-2: #d2c7b2;
+  --paper: #f4efe6; --paper-2: #ebe4d6; --card: #fffdf8; --ink: #1d1a16; --ink-2: #5a5347; --ink-3: #6b6357; --line: #e4dccc; --line-2: #d2c7b2;
   --blue: #2f4bd9; --blue-ink: #2139b0; --blue-edge: #1d2f96; --red: #d9481f; --yellow-soft: #fbf0ce; --noise: .05;
   --shadow: 0 1px 0 rgba(29,26,22,.04), 0 14px 30px -20px rgba(60,40,10,.4);
   --ui: 'Geologica', 'Readex Pro', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;

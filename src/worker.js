@@ -42,6 +42,17 @@ export default {
         return await mcp.handle(request, env, key);
       } catch (e) { return errorResponse(e); }
     }
+    // how AI clients find the MCP server: a catalog of what the site offers agents, and the server's card
+    if (url.pathname === '/.well-known/ai-catalog.json' || url.pathname === '/mcp/server-card') {
+      if (request.method !== 'GET' && request.method !== 'HEAD') return new Response(null, { status: 405, headers: { Allow: 'GET, HEAD' } });
+      const body = url.pathname === '/mcp/server-card' ? mcp.serverCard() : mcp.aiCatalog();
+      return new Response(request.method === 'HEAD' ? null : JSON.stringify(body, null, 2), {
+        headers: {
+          'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'public, max-age=3600',
+          'Access-Control-Allow-Origin': '*', 'X-Content-Type-Options': 'nosniff',
+        },
+      });
+    }
     if (!url.pathname.startsWith('/api/')) return env.ASSETS.fetch(request);
 
     try {
