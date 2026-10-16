@@ -114,6 +114,10 @@ Ordkort is a lightweight site for learning almost any language from almost any o
 
 Ordkort is also an [MCP](https://modelcontextprotocol.io) server, so your own AI can make decks and looks for it.
 Address: **`https://ordkort.com/mcp`** (Streamable HTTP; no account, no key).
+It is in the [official MCP Registry](https://registry.modelcontextprotocol.io/v0/servers?search=com.ordkort) as `com.ordkort/ordkort`.
+
+[![Install in VS Code](https://img.shields.io/badge/VS_Code-Install_Ordkort_MCP-0098FF?logo=visualstudiocode&logoColor=white)](https://insiders.vscode.dev/redirect/mcp/install?name=ordkort&config=%7B%22type%22%3A%22http%22%2C%22url%22%3A%22https%3A%2F%2Fordkort.com%2Fmcp%22%7D)
+[![Install in Cursor](https://img.shields.io/badge/Cursor-Install_Ordkort_MCP-000000?logo=cursor&logoColor=white)](https://cursor.com/en-US/install-mcp?name=ordkort&config=eyJ1cmwiOiJodHRwczovL29yZGtvcnQuY29tL21jcCJ9)
 
 - **Claude** (claude.ai, desktop): Settings → Connectors → *Add custom connector* → paste the address.
 - **Claude Code**: `claude mcp add --transport http ordkort https://ordkort.com/mcp`
