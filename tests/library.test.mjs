@@ -20,20 +20,22 @@ function d1() {
   };
 }
 
-let verdict = 'safe';
-let pictures = 'ok'; // 'gone': Llama Guard is gone, and with it the only reader of pictures
-let policy = '{"safe": true}'; // what a model told the policy answers
+// what the moderating models answer: the policy model reads text, a vision model looks at a cover
+let policy = '{"safe": true}';
+let down = false; // every model fails
+let pictures = 'ok'; // 'gone': no model that sees pictures answers
 const seen = [];
+const sees = (body) => Array.isArray(body.messages.at(-1).content);
 function fakeGuard() {
   const real = globalThis.fetch;
   globalThis.fetch = async (url, opts) => {
     const body = JSON.parse(opts.body);
     seen.push(body);
-    if (verdict === 'down') return new Response('{}', { status: 500 });
-    if (body.model.includes('llama-guard')) {
-      if (pictures === 'gone') return new Response(JSON.stringify({ error: { code: 'model_decommissioned' } }), { status: 400 });
-      return new Response(JSON.stringify({ choices: [{ message: { content: verdict } }] }));
-    }
+    if (down) return new Response('{}', { status: 500 });
+    if (body.model.includes('llama-guard')) return new Response(JSON.stringify({ error: { code: 'model_decommissioned' } }), { status: 400 });
+    if (sees(body) && pictures === 'gone') return new Response(JSON.stringify({ error: { code: 'model_decommissioned' } }), { status: 404 });
+    // a piece too long for the plan's minute: refused while it is long
+    if (!sees(body) && body.messages[1].content.length > 3000) return new Response(JSON.stringify({ error: { message: 'Request too large: tokens per minute (TPM): Limit 8000, Requested 9000' } }), { status: 413 });
     return new Response(JSON.stringify({ choices: [{ message: { content: policy } }] }));
   };
   return () => { globalThis.fetch = real; };
@@ -49,16 +51,19 @@ const jsonOf = async (r) => [r.status, await r.json()];
 test('a checked deck is listed for its pair, found by its title, and opens', async () => {
   const restore = fakeGuard();
   try {
-    verdict = 'safe';
+    policy = '{"safe": true}';
     const [s, pub] = await jsonOf(await L.publish(req('library', { method: 'POST', body: deck('Kjøkkenet', { cover: 'data:image/jpeg;base64,AAAA' }) }), env, 'k1'));
     assert.equal(s, 200);
     assert.match(pub.id, /^[0-9A-Z]{8}$/);
     assert.ok(pub.token.length >= 24, 'the publisher’s token to take it down');
-    const words = seen.at(-2).messages[0].content;
-    assert.match(words[0].text, /Kjøkkenet/);
-    assert.match(words[0].text, /ord 7 — word 7/, 'the words are read');
-    const look = seen.at(-1).messages[0].content;
-    assert.equal(look[1].image_url.url, 'data:image/jpeg;base64,AAAA', 'and the cover is looked at');
+    const words = seen.at(-2);
+    assert.equal(words.model, 'openai/gpt-oss-safeguard-20b', 'a model told the policy reads the words');
+    assert.match(words.messages[0].content, /vocabulary decks/);
+    assert.match(words.messages[1].content, /Kjøkkenet/);
+    assert.match(words.messages[1].content, /ord 7 — word 7/, 'the words are read');
+    const look = seen.at(-1);
+    assert.match(look.model, /qwen/, 'a model that sees pictures looks at the cover');
+    assert.equal(look.messages[1].content[1].image_url.url, 'data:image/jpeg;base64,AAAA');
 
     await L.publish(req('library', { method: 'POST', body: deck('Familien') }), env, 'k1');
     let [, page] = await jsonOf(await L.list(req('library?target=nb&native=en'), env));
@@ -75,50 +80,56 @@ test('a checked deck is listed for its pair, found by its title, and opens', asy
 test('an unsafe deck is refused, and without the check nothing is published', async () => {
   const restore = fakeGuard();
   try {
-    verdict = 'unsafe\nS12';
+    policy = '{"safe": false, "cats": ["S12"]}';
     const [s, r] = await jsonOf(await L.publish(req('library', { method: 'POST', body: deck('Bad') }), env, 'k2'));
     assert.equal(s, 422);
     assert.deepEqual(r.cats, ['S12']);
-    verdict = 'down';
+    policy = '{"safe": true}';
+    down = true;
     await assert.rejects(L.publish(req('library', { method: 'POST', body: deck('Unchecked') }), env, 'k2'), (e) => e.status === 503);
-    verdict = 'safe';
+    down = false;
     const [, page] = await jsonOf(await L.list(req('library?target=nb&native=en&q=bad'), env));
     assert.equal(page.decks.length, 0);
     await assert.rejects(L.publish(req('library', { method: 'POST', body: { deck: { title: 'Tiny', target: 'nb', native: 'en', words: words(3) } } }), env, 'k2'), (e) => e.status === 400, 'too few words');
   } finally { restore(); }
 });
 
-test('without Llama Guard the words are read against the policy, and a cover nobody can look at is left out', async () => {
+test('a big deck is read in pieces, halved when a piece is too long; a cover nobody can look at is left out', async () => {
   const restore = fakeGuard();
   try {
     pictures = 'gone';
-    policy = '{"safe": true}';
     const from = seen.length;
-    const pics = words(8).map((w, i) => ({ ...w, img_url: i ? 'https://upload.wikimedia.org/a.jpg' : 'https://example.com/x.jpg' }));
-    const [s, pub] = await jsonOf(await L.publish(req('library', { method: 'POST', body: deck('Huset', { cover: 'data:image/jpeg;base64,AAAA', words: pics }) }), env, 'k5'));
+    const long = Array.from({ length: 120 }, (_, i) => ({ term: `et langt ord nummer ${i}`, tr: `a long word number ${i}`, ex: `Dette er en ganske lang eksempelsetning nummer ${i}.`, img_url: i ? 'https://upload.wikimedia.org/a.jpg' : 'https://example.com/x.jpg' }));
+    const [s, pub] = await jsonOf(await L.publish(req('library', { method: 'POST', body: deck('Huset', { cover: 'data:image/jpeg;base64,AAAA', words: long }) }), env, 'k5'));
     assert.equal(s, 200);
     assert.equal(pub.cover, false, 'the publisher is told the cover was left out');
-    const reader = seen.slice(from).find((b) => !b.model.includes('llama-guard'));
-    assert.match(reader.messages[0].content, /vocabulary decks/, 'a model told the policy read the words');
-    assert.match(reader.messages[1].content, /ord 7 — word 7/);
+    const read = seen.slice(from).filter((b) => !sees(b) && b.messages[1].content.length <= 3000).map((b) => b.messages[1].content).join('\n');
+    assert.match(read, /nummer 0 —/);
+    assert.match(read, /nummer 119 —/, 'every word is read, the last ones too');
     const [, got] = await jsonOf(await L.get(env, pub.id));
     assert.equal(got.deck.cover, undefined);
     assert.equal(got.deck.words[0].img_url, undefined, 'a picture from anywhere is dropped');
     assert.equal(got.deck.words[1].img_url, 'https://upload.wikimedia.org/a.jpg', 'one from the site’s sources stays');
 
-    policy = '{"safe": false, "cats": ["S12"]}';
-    const [s2, r] = await jsonOf(await L.publish(req('library', { method: 'POST', body: deck('Bad 2') }), env, 'k5'));
-    assert.deepEqual([s2, r.cats], [422, ['S12']]);
     policy = 'nonsense';
-    await assert.rejects(L.publish(req('library', { method: 'POST', body: deck('Unclear') }), env, 'k5'), (e) => e.status === 503 && /llama-guard-4-12b: 400 model_decommissioned/.test(e.extra.why));
+    await assert.rejects(L.publish(req('library', { method: 'POST', body: deck('Unclear') }), env, 'k5'), (e) => e.status === 503 && /^policy: /.test(e.extra.why));
   } finally { restore(); pictures = 'ok'; policy = '{"safe": true}'; }
+});
+
+test('a Llama Guard named in GUARD_MODEL is asked first; when it is gone the policy model answers', async () => {
+  const restore = fakeGuard();
+  try {
+    const from = seen.length;
+    const [s] = await jsonOf(await L.publish(req('library', { method: 'POST', body: deck('Guarded') }), { ...env, GUARD_MODEL: 'meta-llama/llama-guard-4-12b' }, 'k6'));
+    assert.equal(s, 200);
+    assert.deepEqual(seen.slice(from).map((b) => b.model).slice(0, 2), ['meta-llama/llama-guard-4-12b', 'openai/gpt-oss-safeguard-20b']);
+  } finally { restore(); }
 });
 
 test('votes and adds count once a day per person; reports from three people hide a deck', async () => {
   const restore = fakeGuard();
   try {
-    verdict = 'safe';
-    const [, pub] = await jsonOf(await L.publish(req('library', { method: 'POST', body: deck('Tall') }), env, 'k3'));
+        const [, pub] = await jsonOf(await L.publish(req('library', { method: 'POST', body: deck('Tall') }), env, 'k3'));
     const act = (who, what, body = {}) => L.act(req(`library/${pub.id}/${what}`, { method: 'POST', body }), env, who, pub.id, what);
     await act('a', 'vote', { v: 1 });
     await act('a', 'vote', { v: 1 });
@@ -143,8 +154,7 @@ test('votes and adds count once a day per person; reports from three people hide
 test('the publisher or the site’s owner takes a deck down; nobody else', async () => {
   const restore = fakeGuard();
   try {
-    verdict = 'safe';
-    const [, a] = await jsonOf(await L.publish(req('library', { method: 'POST', body: deck('Mine') }), env, 'k4'));
+        const [, a] = await jsonOf(await L.publish(req('library', { method: 'POST', body: deck('Mine') }), env, 'k4'));
     const [, b] = await jsonOf(await L.publish(req('library', { method: 'POST', body: deck('Other') }), env, 'k4'));
     const del = (id, headers) => L.remove(req('library/' + id, { method: 'DELETE', headers }), env, id);
     await assert.rejects(del(a.id, { 'X-Lib-Token': b.token }), (e) => e.status === 403, 'not with another deck’s token');

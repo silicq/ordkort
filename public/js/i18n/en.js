@@ -818,7 +818,7 @@ globalThis.App.i18nData.en = {
   'lib.unpublish_q': "Remove this deck from the library? Copies others have added stay theirs.",
   'lib.unpublished': "Removed from the library.",
   'about.library_h': "The library of decks",
-  'about.library_p': "You can publish a deck for everybody learning the same languages; only its words and cover go, never your progress. Before it is listed, an AI moderator (Llama Guard) reads the words and looks at the cover, and an unsafe deck is refused. A deck that three people report is hidden until the site's owner looks at it; you can take your own deck down at any time from its menu.",
+  'about.library_p': "You can publish a deck for everybody learning the same languages; only its words and cover go, never your progress. Before it is listed, an AI moderator reads the words and looks at the cover, and an unsafe deck is refused. A deck that three people report is hidden until the site's owner looks at it; you can take your own deck down at any time from its menu.",
   'lib.no_cover': "The cover could not be checked right now, so the deck was published without it.",
   'look.phone': "How it looks on a phone",
   'look.phone_hint': "The site at a phone's width, wearing this look before it is saved. Nothing you do in it is kept.",
