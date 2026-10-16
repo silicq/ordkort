@@ -61,6 +61,10 @@ test('a checked deck is listed for its pair, found by its title, and opens', asy
     assert.match(words.messages[0].content, /vocabulary decks/);
     assert.match(words.messages[1].content, /Kjøkkenet/);
     assert.match(words.messages[1].content, /ord 7 — word 7/, 'the words are read');
+    const title = seen.find((b) => typeof b.messages[1]?.content === 'string' && b.messages[1].content.startsWith('The title of a vocabulary deck'));
+    assert.match(title.messages[1].content, /"Kjøkkenet"/, 'the title is read on its own');
+    assert.match(title.messages[0].content, /Children use it too/);
+    assert.match(title.messages[0].content, /CP, NSFW/, 'slang in a title is named in the policy');
     const look = seen.at(-1);
     assert.match(look.model, /qwen/, 'a model that sees pictures looks at the cover');
     assert.equal(look.messages[1].content[1].image_url.url, 'data:image/jpeg;base64,AAAA');

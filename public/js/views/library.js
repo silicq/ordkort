@@ -146,15 +146,20 @@
         });
         A.store.updateDeck(d.id, { pub: { id: r.id, token: r.token } });
         const url = `${location.origin}/#/lib/${r.id}`;
-        box.replaceChildren(
+        const copy = h('button', { class: 'btn btn-soft btn-sm', type: 'button', onclick: () => navigator.clipboard?.writeText(url).then(() => A.toast(t('sync.copied'))) }, icon('copy', 16), t('sync.copy'));
+        const native = navigator.share ? h('button', { class: 'btn btn-ghost btn-sm', type: 'button', onclick: () => navigator.share({ title: A.deckTitle(d), url }).catch(() => {}) }, icon('share', 16), t('share.send')) : null;
+        box.replaceChildren(...[
           h('p', null, icon('check', 18), ' ', t('lib.published')),
           r.cover === false ? h('p', { class: 'muted small' }, t('lib.no_cover')) : null,
-          h('input', { class: 'input share-url', readonly: true, value: url, onfocus: (e) => e.target.select() }));
+          h('input', { class: 'input share-url', readonly: true, value: url, onfocus: (e) => e.target.select() }),
+          h('div', { class: 'row gap wrap lib-share' }, copy, native),
+        ].filter(Boolean));
         go.replaceWith(h('a', { class: 'btn btn-primary', href: '#/lib/' + r.id, onclick: () => m.close() }, t('lib.open')));
       } catch (e) {
-        box.replaceChildren(
+        box.replaceChildren(...[
           h('p', { class: 'error-text' }, e.status === 422 ? t('lib.refused') : e.status === 503 ? t('lib.check_busy') : A.ai.errorText(e)),
-          e.status === 503 && e.data?.why ? h('p', { class: 'muted small' }, e.data.why) : null);
+          e.status === 503 && e.data?.why ? h('p', { class: 'muted small' }, e.data.why) : null,
+        ].filter(Boolean));
         go.disabled = false;
       }
     });
