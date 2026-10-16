@@ -10,8 +10,8 @@
    the browser keeps the answer too. Only the text and its language reach the server. */
 import { App } from './shared.js';
 import { cacheGet, cacheSet, bump } from './db.js';
-import { takeSimple } from './limits.js';
-import { HttpError, str, sha256 } from './util.js';
+import { takeSimple, takeStore } from './limits.js';
+import { HttpError, str, sha256, readBytes } from './util.js';
 import * as W from './wiktionary.js';
 
 const YEAR = 365 * 864e5;
@@ -36,8 +36,8 @@ async function speaker(env, lang, word) {
   if (!rec) return null;
   const r = await fetch(rec.url, { headers: { 'User-Agent': UA }, signal: AbortSignal.timeout(8000) }).catch(() => null);
   if (!r?.ok) return null;
-  const bytes = new Uint8Array(await r.arrayBuffer());
-  if (!bytes.length || bytes.length > MAX_BYTES) return null;
+  const bytes = await readBytes(r.body, MAX_BYTES).catch(() => null); // stopped at 1 MB, not read whole
+  if (!bytes?.length) return null;
   return { t: 'audio/mpeg', d: b64(bytes), by: rec.file ? `${rec.file} (Wikimedia Commons)` : 'Wikimedia Commons' };
 }
 
@@ -86,6 +86,7 @@ export async function tts(request, env, key) {
   let v = word ? await speaker(env, lang, word) : null;
   if (!v) v = await synthetic(env, lang, text);
   if (v?.later) return none();
+  if (v) await takeStore(env, key, v.d.length); // a voice is kept for a year: up to 1 MB
   await cacheSet(env.DB, k, v || { none: 1 });
   return v ? answer(v) : none();
 }

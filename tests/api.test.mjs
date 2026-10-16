@@ -12,7 +12,7 @@ before(async () => {
   harness = createTestHarness({
     root: fileURLToPath(ROOT),
     // test secrets replace .dev.vars, so a real Groq key is never used here
-    workers: [{ configPath: './wrangler.jsonc', secrets: { GROQ_API_KEY: 'test-key-not-used', IP_SALT: 'test' } }],
+    workers: [{ configPath: './wrangler.jsonc', secrets: { GROQ_API_KEY: 'test-key-not-used', IP_SALT: 'test', STORE_PER_DAY_MB: '25' } }],
   });
   await harness.listen();
 });
@@ -144,6 +144,51 @@ test('sync: versioned writes, token check, conflicts, delete', async () => {
 
   assert.deepEqual(await (await call('sync/' + id, { method: 'DELETE', headers: { 'X-Sync-Token': other } })).json(), { deleted: false });
   assert.deepEqual(await (await call('sync/' + id, { method: 'DELETE', headers: { 'X-Sync-Token': token } })).json(), { deleted: true });
+});
+
+test('room in the database: new copies take from a daily allowance, rewriting one at the same size does not', async () => {
+  // a fresh IPv6 network every run: the counters live in the local D1 for the whole day
+  const r16 = () => Math.floor(Math.random() * 0xffff).toString(16);
+  const ip = `2001:db8:${r16()}:${r16()}::1`;
+  const big = Buffer.alloc(1_800_000, 7).toString('base64').slice(0, 1_850_000);
+  const put = (id, v) => call('sync/' + id, { method: 'PUT', body: { v, d: big }, headers: { 'X-Sync-Token': 'T'.repeat(43), 'CF-Connecting-IP': ip } });
+  const ids = [];
+  let r;
+  for (let i = 0; i < 20; i++) {
+    const id = Buffer.from(crypto.getRandomValues(new Uint8Array(16))).toString('hex');
+    r = await put(id, 0);
+    if (r.status !== 200) break;
+    ids.push(id);
+  }
+  assert.equal(r.status, 429, 'one network cannot fill the database');
+  assert.ok(ids.length >= 5 && ids.length < 20, `${ids.length} copies before the limit`);
+  assert.deepEqual(await (await put(ids[0], 1)).json(), { v: 2 }, 'a copy that does not grow is still written');
+});
+
+test('files of a copy take from the same room in the database; one already there costs nothing', async () => {
+  const r16 = () => Math.floor(Math.random() * 0xffff).toString(16);
+  const headers = { 'X-Sync-Token': 'M'.repeat(43), 'CF-Connecting-IP': `2001:db8:${r16()}:${r16()}::2` };
+  const id = Buffer.from(crypto.getRandomValues(new Uint8Array(16))).toString('hex');
+  assert.equal((await call('sync/' + id, { method: 'PUT', body: { v: 0, d: blob() }, headers })).status, 200);
+  const big = Buffer.alloc(1_800_000, 9).toString('base64').slice(0, 1_850_000);
+  const name = () => 'p' + Buffer.from(crypto.getRandomValues(new Uint8Array(12))).toString('hex');
+  const put = (n) => call(`media/${id}/${n}`, { method: 'PUT', body: { d: big }, headers });
+  const first = name();
+  let r, n = 0;
+  for (; n < 20; n++) { r = await put(n ? name() : first); if (r.status !== 200) break; }
+  assert.equal(r.status, 429, 'one network cannot fill the database with files');
+  assert.ok(n >= 5, `${n} files before the limit`);
+  assert.equal((await put(first)).status, 200, 'the same file again changes nothing and is not refused');
+});
+
+test('a body without Content-Length is cut off at the limit, not read whole', async () => {
+  const chunk = new TextEncoder().encode('{"q":"' + 'a'.repeat(5000));
+  const body = new ReadableStream({ pull(c) { c.enqueue(chunk); } }); // never ends
+  const r = await harness.fetch(BASE + '/api/images', {
+    method: 'POST', body, duplex: 'half',
+    headers: { 'CF-Connecting-IP': '203.0.113.7', 'Content-Type': 'application/json' },
+  });
+  assert.equal(r.status, 413);
 });
 
 test('dictionary check: only languages that inflect, at most 10 words, no AI limit used', async () => {

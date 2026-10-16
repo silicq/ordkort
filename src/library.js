@@ -11,7 +11,7 @@
    per person per day, and nothing about them is kept. */
 import { cleanDeck } from './api.js';
 import { guard } from './groq.js';
-import { takeSimple } from './limits.js';
+import { takeSimple, takeGuard, takeStore } from './limits.js';
 import { HttpError, json, readJSON, str, int, sha256, randomCode, isCode, safeEqual } from './util.js';
 import { App } from './shared.js';
 
@@ -26,7 +26,7 @@ const isAdmin = (request, env) => !!env.ADMIN_TOKEN && safeEqual(request.headers
 /* What the check reads: the title and every word, translation and example, in pieces it can take, and the
    cover on its own. → { bad: the categories found unsafe ([] when all is well), cover: false when the cover could
    not be looked at (it is then left out) }. */
-export async function check(env, deck) {
+export async function check(env, deck, key) {
   // the example's translation says what the example says: it is left out, so a piece stays within the free plan's limit
   const lines = [deck.title, ...deck.words.map((w) => [w.term, w.tr, w.ex].filter(Boolean).join(' — '))];
   const pieces = [];
@@ -36,6 +36,8 @@ export async function check(env, deck) {
     cur += l + '\n';
   }
   if (cur) pieces.push(cur);
+  // each piece and the title are a request to the models, the cover one more (src/limits.js takeGuard)
+  if (key) await takeGuard(env, key, pieces.length + 1 + (deck.cover?.startsWith('data:') ? 1 : 0));
   const found = new Set();
   const note = (r) => { r.cats.forEach((c) => found.add(c)); if (!r.safe && !r.cats.length) found.add('unsafe'); };
   // the title on its own first: it is what everybody sees in the list
@@ -61,10 +63,11 @@ export async function publish(request, env, key) {
   if (deck.words.length < MIN_WORDS) throw new HttpError(400, 'too_small');
   if (str(deck.title, 80).length < 3) throw new HttpError(400, 'no_title');
   await takeSimple(env, 'lib-pub', key, 10, 864e5);
-  const { bad, cover } = await check(env, deck);
+  const { bad, cover } = await check(env, deck, key);
   if (bad.length) return json({ error: 'refused', cats: bad }, 422);
   if (!cover) { delete deck.cover; delete deck.cover_by; }
   const own = token();
+  await takeStore(env, key, JSON.stringify(deck).length);
   for (let i = 0; i < 5; i++) {
     const id = randomCode(8);
     const r = await env.DB.prepare('INSERT OR IGNORE INTO library (id, target, native, title, level, n, d, owner, t) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)')

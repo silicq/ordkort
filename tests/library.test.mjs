@@ -169,3 +169,16 @@ test('the publisher or the site’s owner takes a deck down; nobody else', async
     await assert.rejects(L.removeShare(req('share/ABCDEFGH', { method: 'DELETE' }), env, 'ABCDEFGH'), (e) => e.status === 403, 'shared links: the owner only');
   } finally { restore(); }
 });
+
+test('the check of big decks takes from a daily allowance, so publishing cannot spend Groq for the whole site', async () => {
+  const restore = fakeGuard();
+  try {
+    const small = { ...env, GUARD_PER_DAY: '5' };
+    const big = Array.from({ length: 200 }, (_, i) => ({ term: `et ganske langt ord nummer ${i}`, tr: `a rather long word number ${i}`, ex: `Dette er en ganske lang eksempelsetning nummer ${i}.` }));
+    const from = seen.length;
+    await assert.rejects(L.publish(req('library', { method: 'POST', body: deck('Stort', { words: big }) }), small, 'k7'), (e) => e.status === 429);
+    assert.equal(seen.length, from, 'refused before any model is asked');
+    const [s] = await jsonOf(await L.publish(req('library', { method: 'POST', body: deck('Lite') }), small, 'k7'));
+    assert.equal(s, 200, 'a small deck still fits');
+  } finally { restore(); }
+});
