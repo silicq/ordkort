@@ -142,7 +142,7 @@
       box.style.setProperty('--card-image', `url("${u}")`);
       imgs.forEach((i) => { i.src = u; i.removeAttribute('data-card-image'); });
     });
-    box.querySelectorAll('[data-slot="audio"]').forEach((s) => s.replaceWith(A.speakBtn(c.term, A.store.settings?.target || 'nb')));
+    box.querySelectorAll('[data-slot="audio"]').forEach((s) => s.replaceWith(A.speakBtn(c.term, A.store.settings?.target || 'nb', '', c)));
     return box;
   }
 

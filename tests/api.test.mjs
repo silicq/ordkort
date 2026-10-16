@@ -139,6 +139,15 @@ test('Wiktionary entries: not for Norwegian (it has the official dictionary), no
   assert.equal(r.status, 400);
 });
 
+test('filling in many cards needs words, at most 20 of them', async () => {
+  let r = await call('fillmany', { method: 'POST', body: { target: 'nb', native: 'en', words: [] } });
+  assert.equal(r.status, 400);
+  r = await call('fillmany', { method: 'POST', body: { target: 'nb', native: 'en', words: [{ term: '', tr: '' }] } });
+  assert.equal(r.status, 400, 'a card with neither a word nor a translation');
+  r = await call('fillmany', { method: 'POST', body: { target: 'xx', native: 'en', words: [{ term: 'hus', tr: '' }] } });
+  assert.equal(r.status, 400, 'an unknown language');
+});
+
 test('pictures: the proxy takes only https addresses, the search needs a word', async () => {
   for (const u of ['', 'not a url', 'http://example.com/a.jpg', 'javascript:alert(1)', 'https://user:pw@example.com/a.jpg']) {
     const r = await call('img?u=' + encodeURIComponent(u));

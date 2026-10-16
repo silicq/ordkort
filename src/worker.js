@@ -15,6 +15,7 @@ const DAILY = '17 3 * * *'; // the daily cron in wrangler.jsonc; the other one f
 const POST = {
   words: api.words,
   fill: api.fill,
+  fillmany: api.fillMany,
   lookup: api.lookup,
   chapter: api.chapter,
   ask: api.ask,

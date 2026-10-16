@@ -6,7 +6,7 @@ import { existsSync, readdirSync } from 'node:fs';
 import vm from 'node:vm';
 import { ROOT, read } from './helpers.mjs';
 import { str, int, norm, isCode, randomCode, safeEqual } from '../src/util.js';
-import { cleanGloss, cleanWord } from '../src/prompts.js';
+import { cleanGloss, cleanWord, fillManyPrompt } from '../src/prompts.js';
 
 /* ---------- interface translations ---------- */
 
@@ -370,4 +370,16 @@ test('every class the design guide names is one the site really has', async () =
   for (const v of _test.DESIGN_GUIDE.match(/--[a-z][a-z0-9-]+/g)) {
     if (!['--card-image', '--bg', '--fg', '--edge'].includes(v)) assert.match(css, new RegExp(`${v}:`), v);
   }
+});
+
+test('filling in many cards: one request lists each card with its number and keeps a given example', () => {
+  const p = fillManyPrompt({ target: 'nb', native: 'ru', level: 'A2', items: [
+    { term: 'Hun er ikke så ung som hun ser ut.', tr: 'y', ex: '' },
+    { term: 'et hus', tr: 'дом', ex: 'Vi bor i et hus.' },
+  ] });
+  assert.match(p.user, /\{"i":0,"term":"Hun er ikke så ung som hun ser ut\.","tr":"y"\}/);
+  assert.match(p.user, /"i":1,"term":"et hus","tr":"дом","ex":"Vi bor i et hus\."/);
+  assert.match(p.user, /\{"words":\[\{"i":0,"term":""/, 'the answer keeps the numbers');
+  assert.match(p.user, /keep it exactly/);
+  assert.ok(p.max >= 600 + 2 * 330);
 });

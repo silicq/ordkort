@@ -60,7 +60,18 @@
       root.append(head);
 
       if (job) {
-        root.append(h('div', { class: 'gen-banner' }, h('i', { class: 'spin' }), h('span', null, job.label)));
+        root.append(h('div', { class: 'gen-banner' }, h('i', { class: 'spin' }), h('span', { class: 'grow' }, job.label),
+          job.stop ? h('button', { class: 'btn btn-ghost btn-sm', type: 'button', onclick: (e) => { job.stop(); e.currentTarget.disabled = true; } }, t('fill.stop')) : null));
+      } else if (cards.length) {
+        // cards with empty fields (an imported deck, say): the AI can fill them in, 20 per request
+        const empty = A.fill.todo(id).length;
+        if (empty) {
+          const q = A.ai.quota;
+          root.append(h('div', { class: 'fill-banner callout plain' }, icon('sparkle', 18),
+            h('span', { class: 'grow' }, t('fill.offer', { n: empty, req: Math.ceil(empty / A.fill.BATCH) }),
+              q ? h('small', { class: 'muted d-block' }, t('fill.left', { left: q.left, limit: q.limit })) : null),
+            h('button', { class: 'btn btn-soft btn-sm', type: 'button', onclick: () => A.fill.run(id) }, t('fill.go'))));
+        }
       }
 
       if (!cards.length) {
@@ -135,7 +146,7 @@
         }, icon('trash', 16), t('common.delete'))));
     const el = h('details', { class: 'wrow' + (c.sus ? ' sus' : '') },
       h('summary', null,
-        A.speakBtn(c.term, s.target),
+        A.speakBtn(c.term, s.target, '', c),
         h('span', { class: 'w-term' }, A.lt(c.term, s.target, 'serif'), pron ? h('small', null, pron) : null),
         A.lt(c.tr, s.native, 'w-tr'),
         c.sus ? h('span', { class: 'pill muted-pill', title: t('card.suspend_d') }, icon('pause', 12), t('card.set_aside'))

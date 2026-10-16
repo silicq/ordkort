@@ -240,6 +240,43 @@
       if (d.topic && !d.filled && Date.now() - d.created < week && !A.store.cards(d.id).length) generate(d.id);
     }
   }
+  /* ---------- empty fields, filled in by the AI 20 cards at a time ----------
+     An imported deck (Anki, CSV) often has no examples, no grammar, or a translation that is not one ("y").
+     One request completes 20 cards and counts as one of the day's AI requests; words the shared bank has cost
+     nothing. Only what is empty (or a plainly wrong translation) is filled in: the person's own text stays. */
+  const filler = (() => {
+    const BATCH = 20;
+    const { needsFill: needs, junkTr: junk, fillPatch: merge } = A.store;
+    const todo = (deckId) => A.store.cards(deckId).filter(needs).sort((a, b) => a.created - b.created);
+    async function run(deckId) {
+      if (jobs.has(deckId) || !todo(deckId).length) return;
+      const all = todo(deckId).length;
+      let done = 0, stopped = false;
+      const label = () => ({ label: t('fill.working', { done, all }), stop: () => { stopped = true; } });
+      jobs.set(deckId, label());
+      refresh();
+      try {
+        while (!stopped) {
+          const part = todo(deckId).slice(0, BATCH);
+          if (!part.length) break;
+          const res = await A.ai.fillMany(part.map((c) => ({ term: c.term, tr: junk(c) ? '' : c.tr, ex: c.ex || '' })));
+          A.store.updateCards(part.map((c, i) => ({ id: c.id, ...merge(c, res[i]) })));
+          done += part.length;
+          jobs.set(deckId, label());
+          refresh();
+        }
+        if (done) A.toast(t('fill.done', { n: done }), 'ok');
+      } catch (e) {
+        A.toast(e?.kind === 'quota' ? t('fill.quota', { n: todo(deckId).length }) : A.ai.errorText(e), 'error');
+      } finally {
+        jobs.delete(deckId);
+        refresh();
+      }
+    }
+    return { run, todo, BATCH };
+  })();
+  A.fill = filler;
+
   A.jobs = { generate, state: (id) => jobs.get(id) || null };
 
   /* ---------- cards checked against a dictionary ----------

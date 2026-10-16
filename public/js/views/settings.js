@@ -25,15 +25,17 @@
   }
 
   /* The backup file: everything in localStorage, plus pictures of your own (those found on the web are fetched
-     again from where they came from), as data URLs */
+     again from where they came from) and recordings (from Anki decks), as data URLs */
   async function backup() {
     const data = JSON.parse(A.store.exportData());
     const media = {};
     for (const p of Object.values(data.pairs || {})) {
       for (const c of Object.values(p.cards || {})) {
-        if (!c.img || c.imgUrl || media[c.img]) continue;
-        const blob = await A.idb.mediaGet(c.img);
-        if (blob) media[c.img] = await new Promise((resolve) => { const r = new FileReader(); r.onload = () => resolve(r.result); r.onerror = () => resolve(null); r.readAsDataURL(blob); });
+        for (const k of [c.imgUrl ? '' : c.img, c.audio]) {
+          if (!k || media[k]) continue;
+          const blob = await A.idb.mediaGet(k);
+          if (blob) media[k] = await new Promise((resolve) => { const r = new FileReader(); r.onload = () => resolve(r.result); r.onerror = () => resolve(null); r.readAsDataURL(blob); });
+        }
       }
     }
     for (const k of Object.keys(media)) if (!media[k]) delete media[k];
@@ -110,10 +112,10 @@
           const data = JSON.parse(await f.text());
           if (!(await A.confirm(t('set.import_q'), { ok: t('set.import') }))) return;
           A.store.importData(data);
-          // pictures of your own that came with the backup (the others are fetched again from where they came from)
+          // pictures of your own and recordings that came with the backup (the others are fetched again from where they came from)
           for (const [k, url] of Object.entries(data.media || {})) {
-            const m = /^data:(image\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/=]+)$/.exec(url);
-            if (!/^p[0-9a-f]{24}$/.test(k) || !m) continue;
+            const m = /^data:((?:image\/(?:jpeg|png|webp))|(?:audio\/[a-z0-9.+-]+));base64,([A-Za-z0-9+/=]+)$/.exec(url);
+            if (!/^[pa][0-9a-f]{24}$/.test(k) || !m || (k[0] === 'a') !== m[1].startsWith('audio/')) continue;
             const bin = atob(m[2]), bytes = new Uint8Array(bin.length);
             for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
             await A.idb.mediaPut(k, new Blob([bytes], { type: m[1] })).catch(() => {});

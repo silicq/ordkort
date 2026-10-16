@@ -291,3 +291,39 @@ test('merge rejects garbage', () => {
   assert.throws(() => A.merge(null));
   assert.throws(() => A.merge({ v: 1 }));
 });
+
+/* ---------- empty fields filled in by the AI (js/app.js, 20 cards at a time) ---------- */
+
+test('a card needs filling when it has no word class, no example or no real translation', () => {
+  const S = device();
+  assert.ok(S.junkTr({ term: 'Hun er ikke så ung', tr: 'y' }), 'a single letter is not a translation');
+  assert.ok(S.junkTr({ term: 'hus', tr: '' }));
+  assert.ok(S.junkTr({ term: 'hus', tr: '123' }));
+  assert.ok(S.junkTr({ term: 'hus', tr: 'hus' }), 'the term itself is not a translation');
+  assert.ok(!S.junkTr({ term: 'hus', tr: 'house' }));
+  assert.ok(S.needsFill({ term: 'hus', tr: 'house', pos: 'noun', ex: '' }));
+  assert.ok(S.needsFill({ term: 'hus', tr: 'house', pos: '', ex: 'Vi bor i et hus.' }));
+  assert.ok(!S.needsFill({ term: 'hus', tr: 'house', pos: 'noun', ex: 'Vi bor i et hus.' }));
+  assert.ok(!S.needsFill({ term: 'hus', tr: 'y', pos: '', ex: '', af: 1 }), 'tried once: not again');
+});
+
+test('filling in changes only what is empty, and a translation that is not one', () => {
+  const S = device();
+  const card = { term: 'Hun er ikke så ung som hun ser ut.', tr: 'y', pos: '', gram: '', forms: '', pron: '', ex: '', exTr: '' };
+  const w = { term: 'hun er ikke så ung som hun ser ut', tr: 'she is not as young as she looks', pos: 'phrase', gram: '', forms: '', pron: '/hʉn ær/', ex: 'Hun er ikke så ung som hun ser ut, faktisk.', ex_tr: 'She is not as young as she looks, actually.' };
+  assert.deepEqual({ ...S.fillPatch(card, w) }, { af: 1, tr: w.tr, pos: 'phrase', pron: '/hʉn ær/', ex: w.ex, exTr: w.ex_tr });
+
+  const own = { term: 'et hus', tr: 'дом, здание', pos: '', gram: 'my note', forms: '', pron: '', ex: 'Vi bor i et hus.', exTr: '' };
+  const p = S.fillPatch(own, { term: 'et hus', tr: 'дом', pos: 'noun', gram: 'средний род', forms: 'huset, hus, husa', ex: 'Vi bor i et hus.', ex_tr: 'Мы живём в доме.', chk: 1, g: 'n' });
+  assert.equal(p.tr, undefined, 'a real translation stays');
+  assert.equal(p.gram, undefined, 'the person’s own text stays');
+  assert.equal(p.ex, undefined);
+  assert.equal(p.exTr, 'Мы живём в доме.', 'the given example gets its translation');
+  assert.equal(p.forms, 'huset, hus, husa');
+  assert.equal(p.chk, 1);
+  assert.equal(p.g, 'n');
+
+  const other = S.fillPatch({ ...own, exTr: '' }, { term: 'et hus', tr: 'дом', ex: 'Huset er stort.', ex_tr: 'Дом большой.' });
+  assert.equal(other.exTr, undefined, 'a translation of another example is not put under the card’s own');
+  assert.deepEqual({ ...S.fillPatch(card, null) }, { af: 1 }, 'nothing came back: tried all the same');
+});

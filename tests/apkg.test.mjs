@@ -98,3 +98,23 @@ test('writing: Ordkort cards become a package Anki can read, with progress and p
   assert.equal(w.find((x) => x.term === 'en bil').sched, null, 'new stays new');
   assert.equal(w.find((x) => x.term === 'ei hytte').sus, true);
 });
+
+test('recordings: the word’s own one is read from a note and goes back out with the card', async () => {
+  assert.equal(K.soundOf('<div>[sound:hun er ikke.mp3]</div>'), 'hun er ikke.mp3');
+  assert.equal(K.soundOf('no sound here'), '');
+
+  const now = Date.UTC(2026, 9, 16, 12);
+  const mp3 = new Uint8Array([0x49, 0x44, 0x33, 4, 0, 0]);
+  const cards = [{ term: 'Hun er ikke så ung som hun ser ut.', tr: 'She is not as young as she looks.', audio: 'a00bb', box: 0 }];
+  const bytes = await K.write([{ name: 'Ordkort::Norsk::Fraser', cards }], new Map([['a00bb', { bytes: mp3, type: 'audio/mpeg' }]]), { SQL, now });
+  const pkg = await K.read(bytes, deps);
+  const n = pkg.notes[0];
+  assert.equal(n.fields[8], '[sound:a00bb.mp3]', 'in its own field, as Anki writes a recording');
+  assert.deepEqual([...pkg.media.get('a00bb.mp3')], [...mp3]);
+  assert.equal(K.words(pkg, {}, { now })[0].words[0].audioName, 'a00bb.mp3');
+
+  // a note whose example field reads the sentence: that recording is not the word's
+  const type = Object.keys(pkg.types)[0];
+  const maps = { [type]: { ...K.guess([...pkg.types[type].fields]), ex: 8 } };
+  assert.equal(K.words(pkg, maps, { now })[0].words[0].audioName, '', 'the example’s recording is not the word’s');
+});

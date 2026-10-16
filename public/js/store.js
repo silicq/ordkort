@@ -214,6 +214,7 @@
       if (GENDERS.includes(w.g)) c.g = w.g; // a noun's gender the dictionary confirmed
       // a picture (js/media.js): its name on the device, where it came from, whom to credit
       if (typeof w.img === 'string' && w.img) c.img = w.img;
+      if (typeof w.audio === 'string' && /^a[0-9a-f]{24}$/.test(w.audio)) c.audio = w.audio; // its own recording (js/media.js)
       const iu = w.imgUrl || w.img_url;
       if (typeof iu === 'string' && /^https:\/\//.test(iu)) c.imgUrl = iu.slice(0, 600);
       if (w.imgBy || w.img_by) c.imgBy = String(w.imgBy || w.img_by).slice(0, 200);
@@ -233,6 +234,24 @@
     for (const { id, ...patch } of list || []) { const c = card(id); if (c) Object.assign(c, patch, { u: t }); }
     if (list?.length) save();
   }
+  /* Filling in a card's empty fields (js/app.js asks the AI for 20 at a time). A translation that is not one: empty,
+     a single letter, no word at all, or the term itself. A card needs filling when it has no word class or example
+     or no real translation, and was not tried before (af). */
+  const junkTr = (c) => { const tr = String(c.tr || '').trim(); return tr.length < 2 || !/\p{L}{2}/u.test(tr) || norm(tr) === norm(c.term); };
+  const needsFill = (c) => !c.af && (!c.pos || !c.ex || junkTr(c));
+  // what an AI answer w changes on card c: only what is empty (or the translation that is not one)
+  function fillPatch(c, w) {
+    const p = { af: 1 }; // tried: not asked again, whatever came back
+    if (!w) return p;
+    if (junkTr(c) && w.tr) p.tr = w.tr;
+    for (const k of ['pos', 'gram', 'forms', 'pron']) if (!c[k] && w[k]) p[k] = w[k];
+    if (!c.ex && w.ex) { p.ex = w.ex; if (w.ex_tr) p.exTr = w.ex_tr; }
+    else if (c.ex && !c.exTr && w.ex_tr && (!w.ex || w.ex.trim() === c.ex.trim())) p.exTr = w.ex_tr;
+    // what the dictionary check confirmed holds for this card only when it is the card's own word
+    if (w.chk && norm(w.term) === norm(c.term)) { p.chk = 1; if (GENDERS.includes(w.g)) p.g = w.g; }
+    return p;
+  }
+
   function deleteCard(id) {
     const p = pair();
     delete p.cards[id];
@@ -573,7 +592,7 @@
     get settings() { return state.settings; },
     get ready() { return !!state.settings; },
     decks, deck, addDeck, updateDeck, deleteDeck, mineDeck,
-    cards, card, addCards, updateCard, updateCards, deleteCard, resetCard, hasTerm, norm, fromBank, applyChecks,
+    cards, card, addCards, updateCard, updateCards, deleteCard, resetCard, hasTerm, norm, fromBank, applyChecks, needsFill, junkTr, fillPatch,
     sentences, sentenceWith, example, shown,
     overview, streak, week, today, newToday,
     buildSession, cramQueue, answer, stage, MAX_BOX, schedule, preview, suspend, LEECH, boxFromS, dayKey, pairKey: () => pairKey(),

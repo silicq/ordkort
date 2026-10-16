@@ -207,7 +207,20 @@
     }
     return null;
   }
-  function speak(text, lang) {
+  // a card's own recording when it has one (from an Anki deck), the system's voice otherwise
+  let playing = null;
+  function speak(text, lang, card) {
+    if (!card?.audio || !A.media?.audio) return say(text, lang);
+    A.media.audio(card).then((u) => {
+      if (!u) { say(text, lang); return; }
+      synth?.cancel();
+      playing?.pause();
+      playing = new Audio(u);
+      playing.play().catch(() => say(text, lang));
+    });
+    return true;
+  }
+  function say(text, lang) {
     if (!synth || !text) return false;
     // a word in another alphabet than its deck's (a Russian word in a Norwegian deck) is read in its own language
     if (!A.langs.fits(text, lang)) lang = A.langs.guess(text, [A.store?.settings?.native, A.store?.settings?.target]) || lang;
@@ -221,10 +234,10 @@
     synth.speak(u);
     return true;
   }
-  function speakBtn(text, lang, cls = '') {
+  function speakBtn(text, lang, cls = '', card = null) {
     return h('button', {
       class: 'speak ' + cls, type: 'button', title: A.t('common.listen'), 'aria-label': A.t('common.listen'),
-      onclick: (e) => { e.stopPropagation(); speak(text, lang); },
+      onclick: (e) => { e.stopPropagation(); speak(text, lang, card); },
       onpointerdown: (e) => e.stopPropagation(),
     }, icon('speaker', cls.includes('lg') ? 22 : 18));
   }
