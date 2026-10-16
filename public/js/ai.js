@@ -49,9 +49,9 @@
     return data;
   }
 
-  async function words({ topic, custom, level, n, signal }) {
+  async function words({ topic, custom, phrases, level, n, signal }) {
     const have = A.store.cards().map((c) => c.term);
-    const { data } = await api('words', { ...pair(), topic, custom, level, n, have }, { signal });
+    const { data } = await api('words', { ...pair(), topic, custom, phrases, level, n, have }, { signal });
     return Array.isArray(data?.words) ? data.words : [];
   }
 

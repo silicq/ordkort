@@ -53,6 +53,8 @@
     flip: '<path d="M4 12a8 8 0 0 1 13.7-5.7L20 8.5M20 4v4.5h-4.5M20 12a8 8 0 0 1-13.7 5.7L4 15.5M4 20v-4.5h4.5"/>',
     bulb: '<path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2V16h5v-.1c0-.8.4-1.5 1-2A6 6 0 0 0 12 3z"/>',
     copy: '<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5.5A1.5 1.5 0 0 0 14.5 4h-9A1.5 1.5 0 0 0 4 5.5v9A1.5 1.5 0 0 0 5.5 16H8"/>',
+    phone: '<rect x="6.5" y="2.5" width="11" height="19" rx="2.5"/><path d="M10.5 18.5h3"/>',
+    bell: '<path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20.5a2 2 0 0 0 4 0"/>',
     globe: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.7 3.8 5.7 3.8 9s-1.3 6.3-3.8 9c-2.5-2.7-3.8-5.7-3.8-9S9.5 5.7 12 3z"/>',
     x: '<path d="M7 7l10 10M17 7 7 17"/>',
     info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/>',
@@ -207,17 +209,46 @@
     }
     return null;
   }
-  // a card's own recording when it has one (from an Anki deck), the system's voice otherwise
-  let playing = null;
+  /* A card's own recording when it has one (from an Anki deck), the system's voice otherwise.
+     Phones (Safari above all) play sound only when play() is called right inside a tap, not after waiting for the
+     recording to load. So the recording is loaded as soon as its card shows (speakBtn), one audio element is used
+     for everything (once it has played from a tap, it may play later, e.g. when a card turns), and when the recording
+     is not ready yet the element is still started inside the tap and given the recording when it comes. */
+  let player = null, silence = null;
+  // a twentieth of a second of silence (a WAV made here): what the element plays inside a tap while the sound loads,
+  // so that it may play the sound when it comes — and never the word before
+  function quiet() {
+    if (silence) return silence;
+    const n = 400, b = new Uint8Array(44 + n), v = new DataView(b.buffer);
+    const w = (o, s) => [...s].forEach((c, i) => { b[o + i] = c.charCodeAt(0); });
+    w(0, 'RIFF'); v.setUint32(4, 36 + n, true); w(8, 'WAVE'); w(12, 'fmt '); v.setUint32(16, 16, true); v.setUint16(20, 1, true);
+    v.setUint16(22, 1, true); v.setUint32(24, 8000, true); v.setUint32(28, 8000, true); v.setUint16(32, 1, true); v.setUint16(34, 8, true);
+    w(36, 'data'); v.setUint32(40, n, true); b.fill(128, 44);
+    return (silence = URL.createObjectURL(new Blob([b], { type: 'audio/wav' })));
+  }
+  function play(url, text, lang) {
+    player ||= new Audio();
+    synth?.cancel();
+    player.pause();
+    player.src = url || quiet();
+    return player.play().catch(() => { if (url) say(text, lang); });
+  }
   function speak(text, lang, card) {
-    if (!card?.audio || !A.media?.audio) return say(text, lang);
-    A.media.audio(card).then((u) => {
-      if (!u) { say(text, lang); return; }
-      synth?.cancel();
-      playing?.pause();
-      playing = new Audio(u);
-      playing.play().catch(() => say(text, lang));
-    });
+    if (card?.audio && A.media?.audio) {
+      const ready = A.media.audioNow(card);
+      if (ready) { play(ready, text, lang); return true; }
+      play('', text, lang); // inside the tap: the element may play when the recording comes
+      A.media.audio(card).then((u) => (u ? play(u, text, lang) : say(text, lang)));
+      return true;
+    }
+    // no recording of its own: the site's voice (a native speaker from Wiktionary, or a synthetic one), unless the
+    // person chose the device's voice in Settings; the device's voice also when the site has none for this text
+    if (A.store?.settings?.voice === 'system' || !A.media?.voice || !text) return say(text, lang);
+    const ready = A.media.voiceNow(text, lang);
+    if (ready) { play(ready, text, lang); return true; }
+    if (ready === '') return say(text, lang);
+    play('', text, lang);
+    A.media.voice(text, lang).then((u) => (u ? play(u, text, lang) : say(text, lang)));
     return true;
   }
   function say(text, lang) {
@@ -235,6 +266,7 @@
     return true;
   }
   function speakBtn(text, lang, cls = '', card = null) {
+    if (card?.audio) A.media?.audio(card); // ready by the time it is tapped
     return h('button', {
       class: 'speak ' + cls, type: 'button', title: A.t('common.listen'), 'aria-label': A.t('common.listen'),
       onclick: (e) => { e.stopPropagation(); speak(text, lang, card); },

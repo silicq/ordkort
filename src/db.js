@@ -14,8 +14,15 @@ const SCHEMA = [
   'CREATE TABLE IF NOT EXISTS pair (id TEXT PRIMARY KEY, d TEXT NOT NULL, exp INTEGER NOT NULL)',
   // Sync: copies encrypted on the device. The server does not know the key.
   'CREATE TABLE IF NOT EXISTS sync (id TEXT PRIMARY KEY, auth TEXT NOT NULL, v INTEGER NOT NULL, d TEXT NOT NULL, t INTEGER NOT NULL)',
+  // Files of a sync copy (recordings, photos of your own), each encrypted on the device like the copy itself.
+  'CREATE TABLE IF NOT EXISTS media (sid TEXT NOT NULL, name TEXT NOT NULL, d TEXT NOT NULL, t INTEGER NOT NULL, PRIMARY KEY (sid, name))',
   // Reports about wrong AI answers: after a few independent reports the shared entry is regenerated.
   'CREATE TABLE IF NOT EXISTS reports (k TEXT NOT NULL, who TEXT NOT NULL, t INTEGER NOT NULL, PRIMARY KEY (k, who))',
+  // The library: decks published for everybody learning the same pair (checked before they are listed).
+  'CREATE TABLE IF NOT EXISTS library (id TEXT PRIMARY KEY, target TEXT NOT NULL, native TEXT NOT NULL, title TEXT NOT NULL, level TEXT, n INTEGER NOT NULL, d TEXT NOT NULL, owner TEXT NOT NULL, up INTEGER NOT NULL DEFAULT 0, down INTEGER NOT NULL DEFAULT 0, adds INTEGER NOT NULL DEFAULT 0, reports INTEGER NOT NULL DEFAULT 0, hidden INTEGER NOT NULL DEFAULT 0, t INTEGER NOT NULL)',
+  'CREATE INDEX IF NOT EXISTS library_pair ON library (target, native, hidden)',
+  // Votes, adds and reports on the library, once per person per day (the daily fingerprint); kept two days.
+  'CREATE TABLE IF NOT EXISTS libmarks (id TEXT NOT NULL, who TEXT NOT NULL, kind TEXT NOT NULL, v INTEGER NOT NULL, t INTEGER NOT NULL, PRIMARY KEY (id, who, kind))',
   // Decks shared by link (public to anyone who has the link, deleted after a year).
   'CREATE TABLE IF NOT EXISTS shares (id TEXT PRIMARY KEY, d TEXT NOT NULL, t INTEGER NOT NULL)',
 ];
@@ -77,7 +84,10 @@ export async function cleanup(db) {
     db.prepare('DELETE FROM pair WHERE exp < ?').bind(now),
     // sync copies nobody has touched for more than 400 days
     db.prepare('DELETE FROM sync WHERE t < ?').bind(now - 400 * 864e5),
+    // the files of copies that are gone
+    db.prepare('DELETE FROM media WHERE sid NOT IN (SELECT id FROM sync)'),
     db.prepare('DELETE FROM reports WHERE t < ?').bind(now - 30 * 864e5),
     db.prepare('DELETE FROM shares WHERE t < ?').bind(now - 365 * 864e5),
+    db.prepare('DELETE FROM libmarks WHERE t < ?').bind(now - 2 * 864e5),
   ]);
 }

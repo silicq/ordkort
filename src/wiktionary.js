@@ -284,6 +284,38 @@ export async function lookup(cache, lang, word, opts = {}) {
   return out;
 }
 
+/* ---------- recordings of a word (for cards without one of their own) ----------
+   Many entries carry a recording of the word by a native speaker (Lingua Libre and others, kept on Wikimedia
+   Commons, under free licences). On a parsed page it is an <audio> element whose sources are the original and the
+   MP3 Commons makes of it; the MP3 plays everywhere, Safari too. Only the language's own section counts: "hus" is
+   Danish, Norwegian and Swedish on one page. → { url, file } or null. */
+export function audioOf(html, lang) {
+  const code = WIKT_LANG[lang] || lang;
+  const head = new RegExp(`<strong class="[^"]*headword[^"]*" lang="${code}"`).exec(html);
+  if (!head) return null;
+  const h2s = [...html.matchAll(/<h2 id="[^"]+"/g)].map((m) => m.index);
+  const from = h2s.filter((at) => at < head.index).pop() ?? 0;
+  const to = h2s.find((at) => at > head.index) ?? html.length;
+  for (const m of html.slice(from, to).matchAll(/<audio\b([^>]*)>([\s\S]*?)<\/audio>/g)) {
+    const mp3 = /<source src="([^"]+)" type="audio\/mpeg"/.exec(m[2]);
+    if (!mp3) continue;
+    const url = decode(mp3[1]).replace(/^\/\//, 'https://');
+    if (!/^https:\/\/upload\.wikimedia\.org\//.test(url)) continue;
+    const file = decode(/data-mwtitle="([^"]+)"/.exec(m[1])?.[1] || '');
+    return { url, file };
+  }
+  return null;
+}
+export async function recording(cache, lang, word, opts = {}) {
+  const key = `wka1:${lang}:${plain(word, lang)}`;
+  const hit = await cache.get(key, MONTH);
+  if (hit) return hit.none ? null : hit;
+  const html = await page(word, opts);
+  const out = html ? audioOf(html, lang) : null;
+  await cache.set(key, out || { none: 1 });
+  return out;
+}
+
 /* A short summary — ground for the AI entry, so that the gender, forms and meanings are Wiktionary's */
 export function summary(r) {
   if (!r?.articles?.length) return '';

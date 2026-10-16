@@ -67,9 +67,28 @@ Ordkort is a lightweight site for learning almost any language from almost any o
   (the speaker button then plays the card's own audio) and, if you want, its progress; export your decks as an
   `.apkg` Anki opens, with progress (FSRS memory state included), pictures and recordings. CSV in and out, and
   sharing a deck by link or QR code — only the words, never your progress.
+- **A voice for every card**: a card without a recording of its own plays a native speaker's recording from
+  Wiktionary (Lingua Libre and others on Wikimedia Commons) or, with a `GOOGLE_TTS_KEY`, a synthetic voice within a
+  daily budget of characters; each word is fetched once for everybody. The device's voice remains a choice in Settings.
+- **Fitted to your memory**: Settings → *Fit to my memory* finds the FSRS weights from your own answers on the device
+  (learnt on the earlier answers, kept only when they predict the later ones better than the defaults).
+- **A library of decks**: publish a deck for everybody learning the same pair of languages (Deck → ⋯ → *Publish
+  in the library*), find others' by title, sort by the best or the newest, vote and add. Before a deck is listed,
+  Llama Guard reads its words and looks at its cover; an unsafe deck is refused, and nothing is published while the
+  check cannot run. Three people's reports hide a deck until the site's owner looks; the publisher can take it down.
+- **Cards with gaps and fields of your own**: mark a gap as in Anki (`Jeg {{bor}} i Oslo`, `{{c1::bor::verb}}`) and
+  the card is studied as a gap; any card can carry up to eight named fields. Anki cloze notes and a note's other
+  fields come in this way and go back out to Anki.
+- **Phrases for situations**: ready situations (pharmacy, café, doctor, job interview…) or one of your own give a
+  deck of what is said and heard there, each phrase with the line that answers it.
+- **Reminders that stay on the device**: after an hour you choose, on a day without study, a notification says how
+  many cards are due — from the open tab, or from the service worker when the site is installed as an app. There
+  is no push service: the plan lives in the browser's cache.
+- **Covers for topics and a look on a phone**: a new deck of a ready topic gets a free picture as its cover, and
+  Settings → Appearance shows the site at a phone's width wearing the look being edited.
 - **Empty fields filled in**: an imported deck without examples or grammar, or with a translation that is not one,
   is completed by the AI 20 cards per request (one of the day's AI requests); words the shared bank already has
-  cost nothing, and only empty fields change.
+  cost nothing, and only empty fields change. A big deck asks first, and can be filled 10 words a day instead.
 - **Pictures on cards**: a free, openly licensed picture found by the word, one of your own, or a pasted one;
   kept on the device. The word is looked up in Wikidata in its own language, so "hus" finds the Wikimedia Commons
   picture of a house before Pixabay's (when a `PIXABAY_KEY` is set) and Openverse's, which is searched in English.
@@ -156,7 +175,9 @@ wrangler.jsonc     Cloudflare configuration
 ```
 
 **User data** — cards, progress, settings — lives in the browser’s localStorage; the history of every answer
-(what “What goes wrong” reads) and pictures for cards live in its IndexedDB, on that device only, never synced. Only AI requests
+(what “What goes wrong” reads) and pictures and recordings for cards live in its IndexedDB. The history stays on that
+device; a picture found on the web is fetched again by each device, and photos of your own and recordings from Anki
+reach linked devices file by file, encrypted like the rest. Only AI requests
 (a word, a topic or a text plus the language pair) reach the server, plus decks you choose to share
 by link (kept for a year) and anonymous mistake reports (kept for 30 days). Answers are stored in a shared
 base, so the next person gets them instantly and without using their limit.
@@ -180,7 +201,9 @@ copy’s id, a write token and an AES-256-GCM key. The server stores ciphertext 
 Devices are linked with a one-time 16-character code (valid for 3 minutes, burnt on first read) or a QR
 link whose key part sits after `#` and is never sent to the server. A one-time transfer without cloud
 storage is also available. A 54-character **recovery key** restores the encrypted copy if the browser
-data is wiped on every device.
+data is wiped on every device. The copy holds only the names of photos of your own and of recordings from Anki:
+each file goes to `/api/media` on its own, encrypted with the same key (at most 5,000 files and about 110 MB per copy),
+and a device fetches the ones its cards need. They are deleted with the copy.
 
 Users can read all of this in plain words on the site’s “How it works” page (`#/about`).
 
@@ -226,7 +249,9 @@ GitHub Actions runs them on every push and pull request.
    repository. Leave the build command empty; the deploy command is `npx wrangler deploy`.
 2. After the first deploy: Worker → **Settings** → **Variables and Secrets** → add the secret
    `GROQ_API_KEY` (and optionally `IP_SALT`, any long random string, and `PIXABAY_KEY`, a free
-   [Pixabay API key](https://pixabay.com/api/docs/) that adds Pixabay to the picture search).
+   [Pixabay API key](https://pixabay.com/api/docs/) that adds Pixabay to the picture search, and `GOOGLE_TTS_KEY`, a
+   Google Cloud Text-to-Speech key for a synthetic voice on cards with no recording, and `ADMIN_TOKEN`, a long random
+   string that lets the site's owner take down any deck in the library or shared by link).
 3. The D1 database `ordkort` is created automatically on the first deploy, its tables on the first request.
 
 From then on every push to `main` is deployed automatically.
@@ -243,6 +268,17 @@ npx wrangler secret put GROQ_API_KEY
 
 ```bash
 npx wrangler secret put PIXABAY_KEY   # optional
+```
+
+```bash
+npx wrangler secret put ADMIN_TOKEN   # optional: taking down decks
+```
+
+Taking a deck down, and the decks hidden by reports:
+
+```bash
+curl -X DELETE -H "X-Admin-Token: $ADMIN_TOKEN" https://YOUR-SITE/api/library/DECKID   # or /api/share/DECKID
+curl -H "X-Admin-Token: $ADMIN_TOKEN" https://YOUR-SITE/api/library/hidden
 ```
 
 ```bash

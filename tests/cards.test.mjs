@@ -4,7 +4,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { browser } from './helpers.mjs';
-import { aiWord, wordsPrompt } from '../src/prompts.js';
+import { aiWord, wordsPrompt, phrasesPrompt } from '../src/prompts.js';
 import { App as Shared } from '../src/shared.js';
 
 function tab() {
@@ -254,4 +254,31 @@ test('checked cards remember it; a fix is an edit that syncs', () => {
   assert.equal(T.card(a.id).term, 'en ingrediens');
   assert.equal(T.card(a.id).chk, 1);
   assert.ok(T.card(a.id).u >= u);
+});
+
+/* ---------- cards of your own with gaps, and your own fields ---------- */
+
+test('a card with a gap marked as in Anki is a gap card: no translation needed, typed when it has one gap', () => {
+  const d = S.addDeck({ title: 'Gaps', manual: true });
+  assert.equal(S.addCards(d.id, [
+    { term: 'Jeg {{c1::bor::verb}} i Oslo.', tr: '' },
+    { term: 'Hun {{har}} {{to}} katter.', tr: 'She has two cats.', extra: [{ k: 'Kilde', v: 'Lærebok s. 12' }, { k: '', v: 'no name' }] },
+    { term: 'uten luke', tr: '' },
+  ]), 2, 'a plain word still needs its translation');
+  const [one, two] = S.cards(d.id).sort((a, b) => a.created - b.created);
+  assert.ok(S.isCloze(one) && S.isCloze(two));
+  assert.equal(S.plain(two.term), 'Hun har to katter.');
+  assert.deepEqual({ ...clozeOf(one) }, { before: 'Jeg ', answer: 'bor', after: ' i Oslo.', tr: '', hint: 'verb' });
+  assert.equal(clozeOf(two), null, 'two gaps: turned over, not typed');
+  assert.deepEqual(JSON.parse(JSON.stringify(two.extra)), [{ k: 'Kilde', v: 'Lærebok s. 12' }], 'a field without a name is dropped');
+  assert.equal(S.needsFill(one), false, 'the AI does not fill a gap card in');
+});
+
+test('phrases for a situation: what is said and heard there, each with its answer as the example', () => {
+  const p = phrasesPrompt({ target: 'nb', native: 'ru', topic: 'at the pharmacy', level: 'A2', n: 15, avoid: ['Hei!'] });
+  assert.match(p.user, /15 phrase flashcards/);
+  assert.match(p.user, /"at the pharmacy"/);
+  assert.match(p.user, /SAY and what they will HEAR/);
+  assert.match(p.user, /do NOT repeat these: Hei!/);
+  assert.match(p.user, /"ex": the Norwegian Bokmål line that typically answers it/);
 });

@@ -15,7 +15,8 @@ const CORE = [
   '/manifest.webmanifest',
   '/icons/icon-192.png',
 ];
-const TIMEOUT = 3500; // on a very slow network fall back to the cached copy
+const TIMEOUT = 3500;
+const REMIND = 'ordkort-remind'; // the reminder plan the page keeps (js/remind.js): not the site's copy // on a very slow network fall back to the cached copy
 
 self.addEventListener('install', (e) => {
   // `reload`: straight from the server, never an older copy from the browser's HTTP cache
@@ -24,7 +25,7 @@ self.addEventListener('install', (e) => {
 
 self.addEventListener('activate', (e) => {
   e.waitUntil(caches.keys()
-    .then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k))))
+    .then((keys) => Promise.all(keys.filter((k) => k !== CACHE && k !== REMIND).map((k) => caches.delete(k))))
     .then(() => self.clients.claim()));
 });
 
@@ -59,4 +60,31 @@ self.addEventListener('fetch', (e) => {
     const slow = new Promise((resolve) => setTimeout(() => resolve(cached), TIMEOUT));
     return Promise.race([network.catch(() => cached), slow]);
   })());
+});
+
+/* A reminder to review (js/remind.js): the browser wakes this worker now and then when the site is installed as
+   an app; it reads the plan the page left in the cache and, past the chosen hour on a day without study, says how
+   many cards are due. Nothing is fetched or sent. */
+self.addEventListener('periodicsync', (e) => {
+  if (e.tag === 'ordkort-remind') e.waitUntil(remind());
+});
+async function remind() {
+  const c = await caches.open(REMIND);
+  const r = await c.match('/__remind');
+  if (!r) return;
+  const p = await r.json();
+  const d = new Date();
+  const day = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  const n = (p.due || []).filter((t) => t <= Date.now()).length;
+  if (self.navigator.setAppBadge) (n && p.on ? self.navigator.setAppBadge(n) : self.navigator.clearAppBadge()).catch(() => {});
+  if (!p.on || !n || d.getHours() < p.hour || p.studied === day || p.shown === day) return;
+  await c.put('/__remind', new Response(JSON.stringify({ ...p, shown: day }), { headers: { 'Content-Type': 'application/json' } }));
+  await self.registration.showNotification(String(p.title).replace('{n}', n), { body: p.body, icon: '/icons/icon-192.png', tag: 'ordkort-remind', data: '/#/' });
+}
+self.addEventListener('notificationclick', (e) => {
+  e.notification.close();
+  e.waitUntil(self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((all) => {
+    const open = all.find((w) => new URL(w.url).origin === location.origin);
+    return open ? open.focus() : self.clients.openWindow(e.notification.data || '/');
+  }));
 });

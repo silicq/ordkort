@@ -2,6 +2,8 @@
    There is no AI key here: requests go to /api on this same site, and the key lives only on the server. */
 window.App = window.App || {};
 App.views = App.views || {};
+// the site inside its own look preview (Settings → Appearance → on a phone): it shows, and changes nothing
+App.framed = (() => { try { return window.self !== window.top; } catch { return true; } })();
 
 App.config = {
   storageKey: 'ordkort.v1',      // cards, progress, settings

@@ -49,6 +49,7 @@
   }
 
   function save() {
+    if (A.framed) { if (!silent) listeners.forEach((fn) => fn()); return; } // a preview keeps nothing
     if (!write(A.config.storageKey, JSON.stringify(state)) && !warned) {
       warned = true;
       A.toast?.(A.t('err.storage'), 'error');
@@ -191,6 +192,28 @@
   const card = (id) => pair().cards[id] || null;
   const hasTerm = (term) => cards().some((c) => norm(c.term) === norm(term));
 
+  /* A card with gaps: its term is a sentence with the gaps marked as in Anki, {{c1::bor}} or {{c1::bor::verb}},
+     or simply {{bor}}. Its translation may be empty. → the pieces: text, and gaps { answer, hint, n } */
+  const GAP_RE = /\{\{(?:c(\d+)::)?([^{}]+?)(?:::([^{}]*))?\}\}/g;
+  const isCloze = (c) => typeof c?.term === 'string' && c.term.includes('{{') && new RegExp(GAP_RE.source).test(c.term);
+  function gaps(term) {
+    const out = [];
+    let last = 0;
+    for (const m of String(term || '').matchAll(GAP_RE)) {
+      if (m.index > last) out.push(term.slice(last, m.index));
+      out.push({ answer: m[2].trim(), hint: (m[3] || '').trim(), n: +(m[1] || 1) });
+      last = m.index + m[0].length;
+    }
+    if (last < String(term || '').length) out.push(term.slice(last));
+    return out;
+  }
+  // the sentence as it reads with its gaps filled in
+  const plain = (term) => gaps(term).map((x) => (typeof x === 'string' ? x : x.answer)).join('');
+  // a card's own fields beyond the usual ones (from Anki, or added by hand): [{ k: name, v: text }]
+  const cleanExtra = (x) => (Array.isArray(x) ? x : [])
+    .map((f) => ({ k: String(f?.k || '').trim().slice(0, 60), v: String(f?.v || '').trim().slice(0, 1000) }))
+    .filter((f) => f.k && f.v).slice(0, 8);
+
   function addCards(deckId, words) {
     const p = pair();
     const seen = new Set(Object.values(p.cards).map((c) => norm(c.term)));
@@ -199,7 +222,7 @@
     for (const w of words || []) {
       const term = String(w.term || '').trim();
       const tr = String(w.tr || '').trim();
-      if (!term || !tr) continue;
+      if (!term || (!tr && !isCloze({ term }))) continue;
       const n = norm(term);
       if (seen.has(n)) continue;
       seen.add(n);
@@ -218,6 +241,8 @@
       const iu = w.imgUrl || w.img_url;
       if (typeof iu === 'string' && /^https:\/\//.test(iu)) c.imgUrl = iu.slice(0, 600);
       if (w.imgBy || w.img_by) c.imgBy = String(w.imgBy || w.img_by).slice(0, 200);
+      const extra = cleanExtra(w.extra);
+      if (extra.length) c.extra = extra;
       p.cards[c.id] = c;
       added++;
     }
@@ -238,7 +263,7 @@
      a single letter, no word at all, or the term itself. A card needs filling when it has no word class or example
      or no real translation, and was not tried before (af). */
   const junkTr = (c) => { const tr = String(c.tr || '').trim(); return tr.length < 2 || !/\p{L}{2}/u.test(tr) || norm(tr) === norm(c.term); };
-  const needsFill = (c) => !c.af && (!c.pos || !c.ex || junkTr(c));
+  const needsFill = (c) => !c.af && !isCloze(c) && (!c.pos || !c.ex || junkTr(c));
   // what an AI answer w changes on card c: only what is empty (or the translation that is not one)
   function fillPatch(c, w) {
     const p = { af: 1 }; // tried: not asked again, whatever came back
@@ -358,10 +383,16 @@
     }
     return ids.slice(0, state.settings.sessionSize);
   }
-  /* FSRS-4.5 (Free Spaced Repetition Scheduler, the algorithm used by Anki) with default weights.
+  /* FSRS-4.5 (Free Spaced Repetition Scheduler, the algorithm used by Anki), with default weights or the person's own.
      Each card keeps stability s (days until recall drops to 90%) and difficulty d (1–10).
      `box` is still derived from s so that stages and progress bars keep working. */
-  const FW = [0.4872, 1.4003, 3.7145, 13.8206, 5.1618, 1.2298, 0.8975, 0.031, 1.6474, 0.1367, 1.0461, 2.1072, 0.0793, 0.3246, 1.587, 0.2272, 2.8755];
+  const DEFAULT_W = [0.4872, 1.4003, 3.7145, 13.8206, 5.1618, 1.2298, 0.8975, 0.031, 1.6474, 0.1367, 1.0461, 2.1072, 0.0793, 0.3246, 1.587, 0.2272, 2.8755];
+  // the person's own weights when they fitted them to their answers (js/fsrs.js, Settings), the defaults otherwise
+  let FW = DEFAULT_W;
+  const useWeights = () => {
+    const w = state.settings?.fsrs?.w;
+    FW = Array.isArray(w) && w.length === 17 && w.every(Number.isFinite) ? w : DEFAULT_W;
+  };
   const DECAY = -0.5, FACTOR = 19 / 81;
   const retention = () => Math.min(0.97, Math.max(0.7, state.settings?.retention || 0.9));
   const clampD = (d) => Math.min(10, Math.max(1, d));
@@ -381,6 +412,7 @@
   /* grade: 1 = again, 2 = hard (also the right word in a wrong form: remembered, but due sooner),
      3 = good, 4 = easy. With two answers it follows from ok/hard: a brand-new word someone already knows is easy. */
   function schedule(c, ok, now, hard = false, grade = 0) {
+    useWeights();
     const wasNew = c.box === 0 && !c.s;
     if (!c.s && c.box > 0) { c.s = LEGACY_S[c.box]; c.d = 5; } // cards from the old Leitner scheduler
     const g = grade >= 1 && grade <= 4 ? grade : !ok ? 1 : hard ? 2 : wasNew ? 4 : 3;
@@ -593,9 +625,10 @@
     get ready() { return !!state.settings; },
     decks, deck, addDeck, updateDeck, deleteDeck, mineDeck,
     cards, card, addCards, updateCard, updateCards, deleteCard, resetCard, hasTerm, norm, fromBank, applyChecks, needsFill, junkTr, fillPatch,
+    isCloze, gaps, plain, cleanExtra,
     sentences, sentenceWith, example, shown,
     overview, streak, week, today, newToday,
-    buildSession, cramQueue, answer, stage, MAX_BOX, schedule, preview, suspend, LEECH, boxFromS, dayKey, pairKey: () => pairKey(),
+    today, buildSession, cramQueue, answer, stage, MAX_BOX, schedule, preview, suspend, LEECH, boxFromS, dayKey, pairKey: () => pairKey(),
     get days() { return state.days; },
     addRecent, recent,
     cacheGet, cacheSet, cacheHas, cacheClear, cacheDel,

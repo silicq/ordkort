@@ -70,6 +70,27 @@ JSON shape: {"words":[${cardShape(target)}]}`;
   return { system: SYSTEM(target), user, max: Math.min(7500, 1200 + n * 200), temperature: 0.4, effort: 'medium' };
 }
 
+/* Phrases for a situation ("at the pharmacy"): what a learner says and hears there, each with the answer or the
+   line before it as its example, so the cards read as a short dialogue. */
+export function phrasesPrompt({ target, native, topic, level, n, avoid }) {
+  const T = nameOf(target), N = nameOf(native);
+  const user = `Create ${n} phrase flashcards for a ${N} speaker learning ${T}, for this situation: ${JSON.stringify(topic)}.
+CEFR level: ${level}
+${avoid.length ? `Already known — do NOT repeat these: ${avoid.join(' | ')}\n` : ''}
+Mix what the learner needs to SAY and what they will HEAR in this situation, the way people really speak there (polite, natural, short: 2–9 words). If the text is not a real situation, use everyday small talk instead.
+Field rules:
+- "term": the ${T} phrase as said, with its end punctuation.
+- "tr": its natural ${N} meaning (not word for word).
+- "pos": "phrase".
+- "gram": who says it, 1–3 ${N} words (for example the equivalent of "you say", "staff", "the doctor"); "" if anyone.
+- "forms": "".
+- "pron": pronunciation of the whole phrase — IPA in slashes for alphabetic scripts; pinyin with tone marks for Chinese; romaji for Japanese; standard romanization for other non-Latin scripts.
+- "ex": the ${T} line that typically answers it or comes right before it in such a dialogue; "ex_tr": its ${N} translation.
+
+JSON shape: {"words":[{"term":"","tr":"","pos":"phrase","gram":"","forms":"","pron":"","ex":"","ex_tr":""}]}`;
+  return { system: SYSTEM(target), user, max: Math.min(7500, 1200 + n * 220), temperature: 0.5, effort: 'medium' };
+}
+
 export function fillPrompt({ target, native, level, term, tr }) {
   const T = nameOf(target), N = nameOf(native);
   const user = `Complete one flashcard for a ${N} speaker learning ${T}.

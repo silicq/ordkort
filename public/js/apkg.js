@@ -234,8 +234,16 @@
     for (const n of pkg.notes) {
       const m = maps[n.mid] || guess(pkg.types[n.mid]?.fields || []);
       const f = (i) => (i >= 0 ? n.fields[i] || '' : '');
-      const term = text(f(m.term)), tr = text(f(m.tr));
-      if (!term || !tr) continue;
+      // a cloze note: its text with the gaps is the card, the other field (Back Extra) its translation or note
+      const cz = n.fields.findIndex((x) => /\{\{c\d+::/.test(x));
+      const ti = cz >= 0 ? cz : m.term, tri = cz >= 0 && m.tr === cz ? -1 : m.tr;
+      const term = text(f(ti)), tr = text(f(tri));
+      if (!term || (!tr && cz < 0)) continue;
+      // the note's other fields with text in them come along as the card's own fields, by their names
+      const used = new Set([ti, tri, m.ex, m.exTr, m.pron]);
+      const names = pkg.types[n.mid]?.fields || [];
+      const extra = n.fields.map((x, i) => (used.has(i) ? null : { k: String(names[i] || `Field ${i + 1}`).slice(0, 60), v: text(x).slice(0, 1000) }))
+        .filter((x) => x && x.v).slice(0, 8);
       const c = firstCard.get(n.id);
       const path = pkg.decks[c?.did] || ['Anki'];
       const key = path.join('\x1f');
@@ -246,6 +254,7 @@
         audioName: n.fields.map((x, i) => (i === m.ex || i === m.exTr ? '' : soundOf(x))).find(Boolean) || '',
         sched: withSchedule ? schedule(c, pkg.crt, now) : null,
         sus: !!(withSchedule && c && c.queue === -1),
+        ...(extra.length ? { extra } : {}),
       });
     }
     return [...groups.values()];
@@ -253,13 +262,23 @@
 
   /* ---------- writing ---------- */
   const esc = (s) => String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-  const FIELDS = ['Term', 'Translation', 'Pronunciation', 'Grammar', 'Forms', 'Example', 'Example translation', 'Picture', 'Audio'];
+  const FIELDS = ['Term', 'Translation', 'Pronunciation', 'Grammar', 'Forms', 'Example', 'Example translation', 'Picture', 'Audio', 'Notes'];
+  const CLOZE_FIELDS = ['Text', 'Back Extra', 'Picture', 'Audio', 'Notes'];
+  // a card's own fields as one Anki field
+  const notes = (c) => (c.extra || []).map((x) => `<b>${esc(x.k)}</b>: ${esc(x.v)}`).join('<br>');
+  // a card with gaps in Anki's own form, {{c1::bor}}, and the numbers of its gaps (one Anki card each)
+  function clozeText(term) {
+    const ns = new Set();
+    const s = esc(term).replace(/\{\{(?:c(\d+)::)?([^{}]+?)(?:::([^{}]*))?\}\}/g, (_, n, a, hint) => { ns.add(+(n || 1)); return `{{c${n || 1}::${a}${hint ? '::' + hint : ''}}}`; });
+    return { s, ns: [...ns].sort((a, b) => a - b) };
+  }
   const CSS = '.card { font-family: system-ui, sans-serif; font-size: 22px; text-align: center; color: #1d1a16; background: #fffdf8; }\n'
     + '.term { font: 600 1.6em Georgia, serif; } .small { font-size: 0.7em; color: #5a5347; } .ex { margin-top: 1em; font-style: italic; }\n'
     + 'img { max-width: 90%; max-height: 300px; border-radius: 12px; }\n.nightMode.card { color: #f2ece1; background: #1e1b16; } .nightMode .small { color: #bdb4a4; }';
   const QFMT = '<div class="term">{{Term}}</div>\n<div class="small">{{Pronunciation}}</div>\n{{Audio}}';
   const AFMT = '{{FrontSide}}\n\n<hr id=answer>\n\n{{Translation}}\n<div class="small">{{Grammar}} {{Forms}}</div>\n'
-    + '{{#Example}}<div class="ex">{{Example}}<div class="small">{{Example translation}}</div></div>{{/Example}}\n{{Picture}}';
+    + '{{#Example}}<div class="ex">{{Example}}<div class="small">{{Example translation}}</div></div>{{/Example}}\n{{Picture}}'
+    + '\n{{#Notes}}<div class="small">{{Notes}}</div>{{/Notes}}';
   const SCHEMA = [
     'CREATE TABLE col (id integer primary key, crt integer not null, mod integer not null, scm integer not null, ver integer not null, dty integer not null, usn integer not null, ls integer not null, conf text not null, models text not null, decks text not null, dconf text not null, tags text not null)',
     'CREATE TABLE notes (id integer primary key, guid text not null, mid integer not null, mod integer not null, usn integer not null, tags text not null, flds text not null, sfld integer not null, csum integer not null, flags integer not null, data text not null)',
@@ -293,6 +312,12 @@
         flds: FIELDS.map((name, ord) => ({ name, ord, sticky: false, rtl: false, font: 'Arial', size: 20, media: [] })),
         tmpls: [{ name: 'Ordkort', ord: 0, qfmt: QFMT, afmt: AFMT, bqfmt: '', bafmt: '', did: null, bfont: '', bsize: 0 }],
       };
+      const cmid = now - 1; // the note type for cards with gaps
+      const clozeModel = {
+        ...model, id: cmid, name: 'Ordkort Cloze', type: 1, req: undefined,
+        flds: CLOZE_FIELDS.map((name, ord) => ({ name, ord, sticky: false, rtl: false, font: 'Arial', size: 20, media: [] })),
+        tmpls: [{ name: 'Cloze', ord: 0, qfmt: '{{cloze:Text}}\n{{Picture}}', afmt: '{{cloze:Text}}\n<div class="small">{{Back Extra}}</div>\n{{Picture}}\n{{Audio}}\n{{#Notes}}<div class="small">{{Notes}}</div>{{/Notes}}', bqfmt: '', bafmt: '', did: null, bfont: '', bsize: 0 }],
+      };
       const deckJson = { 1: { id: 1, name: 'Default', conf: 1, desc: '', dyn: 0, collapsed: false, browserCollapsed: false, extendNew: 0, extendRev: 0, mod: secs, usn: 0, newToday: [0, 0], revToday: [0, 0], lrnToday: [0, 0], timeToday: [0, 0] } };
       decks.forEach((d, i) => {
         const id = deckBase + i;
@@ -304,7 +329,7 @@
         rev: { perDay: 200, ease4: 1.3, ivlFct: 1, maxIvl: 36500, bury: false, hardFactor: 1.2 },
         lapse: { delays: [10], mult: 0, minInt: 1, leechFails: 8, leechAction: 1 } } };
       db.run('INSERT INTO col VALUES (1, ?, ?, ?, 11, 0, 0, 0, ?, ?, ?, ?, ?)',
-        [crt, now, now, JSON.stringify(conf), JSON.stringify({ [mid]: model }), JSON.stringify(deckJson), JSON.stringify(dconf), '{}']);
+        [crt, now, now, JSON.stringify(conf), JSON.stringify(decks.some((d) => d.cards.some((c) => /\{\{[^{}]+\}\}/.test(c.term))) ? { [mid]: model, [cmid]: clozeModel } : { [mid]: model }), JSON.stringify(deckJson), JSON.stringify(dconf), '{}']);
 
       const files = new Map(); // file name in the package → name on the device
       const nameOf = (img) => {
@@ -323,19 +348,23 @@
       let id = now, pos = 0;
       for (const [i, d] of decks.entries()) {
         for (const c of d.cards) {
-          const nid = ++id, cid = ++id;
+          const nid = ++id;
           const pic = nameOf(c.img);
           const snd = soundName(c.audio);
-          const flds = [c.term, c.tr, c.pron, c.gram, c.forms, c.ex, c.exTr].map(esc).concat(pic ? `<img src="${pic}">` : '', snd ? `[sound:${snd}]` : '').join('\x1f');
+          const cz = /\{\{[^{}]+\}\}/.test(c.term) ? clozeText(c.term) : null;
+          const media = [pic ? `<img src="${pic}">` : '', snd ? `[sound:${snd}]` : ''];
+          const flds = (cz ? [cz.s, esc(c.tr), ...media, notes(c)] : [c.term, c.tr, c.pron, c.gram, c.forms, c.ex, c.exTr].map(esc).concat(...media, notes(c))).join('\x1f');
           const csum = parseInt((await sha1hex(c.term)).slice(0, 8), 16);
-          db.run('INSERT INTO notes VALUES (?, ?, ?, ?, -1, ?, ?, ?, ?, 0, ?)', [nid, guid(), mid, secs, ' ordkort ', flds, c.term, csum, '']);
+          db.run('INSERT INTO notes VALUES (?, ?, ?, ?, -1, ?, ?, ?, ?, 0, ?)', [nid, guid(), cz ? cmid : mid, secs, ' ordkort ', flds, c.term, csum, '']);
           const review = c.box > 0 && c.s > 0;
           const ivl = review ? Math.max(1, Math.round(Math.max(c.due - (c.last || c.due), DAY) / DAY)) : 0;
           const factor = review ? Math.round(Math.min(3500, Math.max(1300, (2.5 - ((c.d || 5) - 5) / 4) * 1000))) : 0;
           const due = review ? Math.floor((c.due / 1000 - crt) / 86400) : ++pos; // the day it falls due
           const queue = c.sus ? -1 : review ? 2 : 0;
-          db.run('INSERT INTO cards VALUES (?, ?, ?, 0, ?, -1, ?, ?, ?, ?, ?, ?, ?, 0, 0, 0, 0, ?)',
-            [cid, nid, deckBase + i, secs, review ? 2 : 0, queue, due, ivl, factor, c.reps || 0, c.lapses || 0, review ? JSON.stringify({ s: c.s, d: c.d }) : '']);
+          for (const ord of cz ? cz.ns.map((n) => n - 1) : [0]) { // a card with gaps: one Anki card for each gap number
+            db.run('INSERT INTO cards VALUES (?, ?, ?, ?, ?, -1, ?, ?, ?, ?, ?, ?, ?, 0, 0, 0, 0, ?)',
+              [++id, nid, deckBase + i, ord, secs, review ? 2 : 0, queue, due, ivl, factor, c.reps || 0, c.lapses || 0, review ? JSON.stringify({ s: c.s, d: c.d }) : '']);
+          }
         }
       }
       const list = {};

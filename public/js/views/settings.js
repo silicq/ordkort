@@ -43,6 +43,40 @@
     A.download(`ordkort-${new Date().toISOString().slice(0, 10)}.json`, JSON.stringify(data));
   }
 
+  /* FSRS fitted to your own answers (js/fsrs.js): a button, what it found, and the way back to the defaults */
+  function fsrsRow(row) {
+    const s = A.store.settings;
+    const status = h('small', { class: 'muted d-block' });
+    const btn = h('button', { class: 'btn btn-soft btn-sm', type: 'button' }, icon('sparkle', 16), t('fsrs.go'));
+    const reset = h('button', { class: 'btn btn-ghost btn-sm', type: 'button', hidden: !s.fsrs },
+      t('fsrs.reset'));
+    const better = (f) => Math.max(0, Math.round((1 - f.after / f.before) * 100));
+    const paint = () => {
+      const f = A.store.settings.fsrs;
+      status.textContent = f ? t('fsrs.own', { n: f.n, pct: better(f) }) : t('fsrs.default');
+      reset.hidden = !f;
+    };
+    btn.addEventListener('click', async () => {
+      btn.disabled = true;
+      status.textContent = t('fsrs.reading');
+      try {
+        const log = await A.idb.logAll(0);
+        const r = await A.fsrs.fit(log, { onStep: (i, of) => { status.textContent = t('fsrs.working', { pct: Math.round((i / of) * 100) }); } });
+        if (!r.ok && r.need) { status.textContent = t('fsrs.need', { n: r.reviews, need: r.need }); return; }
+        if (!r.ok) { status.textContent = t('fsrs.no_better', { n: r.reviews }); return; }
+        A.store.set({ fsrs: { w: r.w, n: r.reviews, before: Math.round(r.before * 10000) / 10000, after: Math.round(r.after * 10000) / 10000, at: Date.now() } });
+        paint();
+        A.toast(t('fsrs.done', { pct: better(r) }), 'ok');
+      } catch (e) {
+        console.error(e);
+        status.textContent = t('fsrs.failed');
+      } finally { btn.disabled = false; }
+    });
+    reset.addEventListener('click', () => { A.store.set({ fsrs: null }); paint(); A.toast(t('fsrs.back')); });
+    paint();
+    return row(t('fsrs.title'), t('fsrs.hint'), h('div', { class: 'fsrs-ctl' }, h('div', { class: 'row gap wrap' }, btn, reset), status));
+  }
+
   /* Your own AI through MCP: the address to give it, how to connect it, and what to ask */
   function mcpCard() {
     const url = `${location.origin}/mcp`;
@@ -92,6 +126,24 @@
         c.checked = !!value;
         c.addEventListener('change', () => onChange(c.checked));
         return c;
+      };
+      // a reminder to review at an hour of your choice, worked out on this device only (js/remind.js)
+      const remindRow = () => {
+        const r = { on: false, hour: 19, ...(s.remind || {}) };
+        const note = h('small', { class: 'muted d-block' });
+        const hourSel = numSel(Array.from({ length: 24 }, (_, i) => i), r.hour, (v) => { r.hour = v; set({ remind: { ...r } }); A.remind.update(); });
+        hourSel.disabled = !r.on;
+        const sw = toggle(r.on, async (v) => {
+          if (v) {
+            const how = await A.remind.enable();
+            if (how === 'unsupported' || how === 'denied') { sw.checked = false; note.textContent = t('remind.' + how); return; }
+            note.textContent = t('remind.' + how);
+          } else { note.textContent = ''; }
+          r.on = v; hourSel.disabled = !v;
+          set({ remind: { ...r } });
+          if (!v) A.remind.disable(); else A.remind.update();
+        });
+        return row(t('set.remind'), [t('set.remind_hint'), note], h('div', { class: 'row gap' }, hourSel, sw));
       };
       const numSel = (values, value, onChange) => {
         const sel = h('select', { class: 'select narrow' }, values.map((v) => h('option', { value: v }, v)));
@@ -175,6 +227,7 @@
               { value: 'two', label: t('set.grading_two') },
               { value: 'four', label: t('set.grading_four') },
             ], s.grading || 'two', (v) => set({ grading: v }))),
+            fsrsRow(row),
             row(t('set.retention'), t('set.retention_hint'), (() => {
               const sel = h('select', { class: 'select narrow' }, [0.8, 0.85, 0.9, 0.95].map((v) => h('option', { value: v }, Math.round(v * 100) + '%')));
               sel.value = String(s.retention || 0.9);
@@ -185,7 +238,13 @@
             row(t('set.session'), null, numSel([10, 15, 20, 30, 50, 100], s.sessionSize, (v) => set({ sessionSize: v }))),
             row(t('set.goal'), t('set.goal_hint'), numSel([10, 20, 30, 50, 100, 200], s.goal || 20, (v) => set({ goal: v }))),
             row(t('set.batch'), t('set.batch_hint'), numSel([10, 20, 30], s.batch, (v) => set({ batch: v }))),
-            row(t('set.autospeak'), t('set.autospeak_hint'), toggle(s.autoSpeak, (v) => set({ autoSpeak: v }))))),
+            row(t('set.autospeak'), t('set.autospeak_hint'), toggle(s.autoSpeak, (v) => set({ autoSpeak: v }))),
+            row(t('set.voice'), t('set.voice_hint'), A.segmented([
+              { value: 'site', label: t('set.voice_site') },
+              { value: 'system', label: t('set.voice_system') },
+            ], s.voice === 'system' ? 'system' : 'site', (v) => set({ voice: v }))),
+            row(t('set.auto_cover'), t('set.auto_cover_hint'), toggle(s.autoCover !== false, (v) => set({ autoCover: v }))),
+            remindRow())),
           at(5, card(t('set.data'),
             h('p', { class: 'muted small' }, t('set.data_hint', { kb: A.store.usage(), n: counts })),
             protection(),

@@ -76,7 +76,7 @@
         } else if (S.mode === 'flip' && !S.answered && (k === 'ArrowRight' || k === '2')) record(true);
         else if (S.mode === 'flip' && !S.answered && (k === 'ArrowLeft' || k === '1')) record(false);
         else if ((S.mode === 'choice' || S.mode === 'listen') && !S.answered && /^[1-4]$/.test(k)) S.actions.querySelectorAll('.opt')[+k - 1]?.click();
-        else if (k.toLowerCase() === 's') { const c = cur(); if (c) A.speak(c.term, A.store.settings.target, c); }
+        else if (k.toLowerCase() === 's') { const c = cur(); if (c) A.speak(A.store.isCloze(c) ? A.store.plain(c.term) : c.term, A.store.settings.target, c); }
       };
       document.addEventListener('keydown', onKey);
       draw();
@@ -141,7 +141,7 @@
 
   function distractors(c, n = 3) {
     const seen = new Set([A.store.norm(c.tr)]);
-    const pool = A.store.cards().filter((x) => x.id !== c.id && x.tr)
+    const pool = A.store.cards().filter((x) => x.id !== c.id && x.tr && !A.store.isCloze(x))
       .map((x) => ({ x, k: (x.pos === c.pos ? 0 : 1) + Math.random() }))
       .sort((a, b) => a.k - b.k).map((o) => o.x);
     const out = [];
@@ -157,6 +157,12 @@
 
   /* Find the word form of the card inside its example sentence → { before, answer, after, tr } */
   function clozeOf(c) {
+    if (A.store.isCloze(c)) { // a card of your own with its gap marked: typed when there is one gap
+      const g = A.store.gaps(c.term);
+      const at = g.findIndex((x) => typeof x !== 'string');
+      if (g.filter((x) => typeof x !== 'string').length !== 1) return null;
+      return { before: g.slice(0, at).join(''), answer: g[at].answer, after: g.slice(at + 1).join(''), tr: c.tr, hint: g[at].hint };
+    }
     const { text: ex, tr } = A.store.example(c);
     if (!ex) return null;
     const base = c.term.replace(/^(en|ei|et|ein|eit|å|der|die|das|eine?|le|la|les|l['’]|une?|el|los|las|il|lo|gli|uno|o|os|as|uma?|het|ett|att|to|the|an?|ο|η|το)\s+/i, '').trim();
@@ -184,6 +190,7 @@
   }
 
   function available(mode, c) {
+    if (A.store.isCloze(c)) return mode === 'flip' || (mode === 'cloze' && !!clozeOf(c));
     if (mode === 'choice') return !!distractors(c);
     if (mode === 'listen') return !!distractors(c) && A.canSpeak(A.store.settings.target);
     if (mode === 'cloze') return !!clozeOf(c);
@@ -192,6 +199,7 @@
 
   function resolveMode(c) {
     let m = A.store.settings.studyMode || 'flip';
+    if (A.store.isCloze(c)) return m !== 'flip' && clozeOf(c) ? 'cloze' : 'flip'; // its gaps, typed or turned over
     if (m === 'mix') {
       const opts = ['flip', 'choice', 'type', 'listen', 'cloze'].filter((x) => available(x, c));
       m = opts[Math.floor(Math.random() * opts.length)] || 'flip';
@@ -222,6 +230,12 @@
     const { gram, pron, forms } = A.store.shown(c);
     // pinyin or romaji next to 你好 would be read instead of the characters: on the front only on request
     const peek = !!romanOf(c);
+    // a card with gaps: what is read aloud is the whole sentence
+    const cz = A.store.isCloze(c);
+    const said = cz ? A.store.plain(c.term) : c.term;
+    const sentence = (open) => h('p', { class: 'cloze serif', lang: T, dir: 'auto' }, A.store.gaps(c.term).map((x) => (typeof x === 'string' ? x
+      : open ? h('mark', { class: 'gap-fill' }, x.answer) : h('span', { class: 'gap' }, x.hint ? `[${x.hint}]` : '[…]'))));
+    const extra = (c.extra || []).length ? h('dl', { class: 'flash-extra' }, c.extra.map((f) => [h('dt', null, f.k), h('dd', null, f.v)])) : null;
 
     const tag = h('div', { class: 'flash-tag' },
       h('span', { class: 'badge ' + (isNew ? 'new' : 'rev') }, t(isNew ? 'study.new' : 'study.review')),
@@ -238,9 +252,11 @@
     } else if (S.mode === 'cloze') {
       S.cloze = clozeOf(c);
       frontBody = [h('div', { class: 'flash-ask' }, t('study.ask_cloze')),
-        h('p', { class: 'cloze serif', lang: T, dir: 'auto' }, S.cloze.before, h('span', { class: 'gap' }, '＿＿＿'), S.cloze.after),
+        h('p', { class: 'cloze serif', lang: T, dir: 'auto' }, S.cloze.before, h('span', { class: 'gap' }, S.cloze.hint ? `[${S.cloze.hint}]` : '＿＿＿'), S.cloze.after),
         S.cloze.tr ? A.lt(S.cloze.tr, N, 'flash-small', 'p') : null,
-        h('div', { class: 'flash-pron' }, `${c.tr}`)];
+        cz ? null : h('div', { class: 'flash-pron' }, `${c.tr}`)];
+    } else if (cz) {
+      frontBody = [A.media.el(c, 'flash-img'), h('div', { class: 'flash-ask' }, t('study.ask_gaps')), sentence(false)];
     } else if (fwd) {
       // your own card template (Settings → Your own look), for flip cards from the language you learn
       const own = S.mode === 'flip' && A.look.render('front', c);
@@ -255,10 +271,16 @@
       h('div', { class: 'face-body' }, frontBody),
       S.mode === 'flip' ? h('div', { class: 'face-hint' }, icon('flip', 15), t('study.tap')) : null);
 
-    const ownBack = S.mode === 'flip' && fwd && A.look.render('back', c);
+    const ownBack = !cz && S.mode === 'flip' && fwd && A.look.render('back', c);
     const back = h('div', { class: 'face back' + (ownBack ? ' own' : '') },
       tag,
-      ownBack ? h('div', { class: 'face-body' }, ownBack) : h('div', { class: 'face-body' },
+      cz ? h('div', { class: 'face-body' },
+        A.media.el(c, 'flash-img'),
+        sentence(true),
+        A.speakBtn(said, T, '', c),
+        c.tr ? A.lt(c.tr, N, 'flash-small', 'p') : null,
+        extra)
+      : ownBack ? h('div', { class: 'face-body' }, ownBack, extra) : h('div', { class: 'face-body' },
         A.media.el(c, 'flash-img'),
         A.lt(fwd ? c.term : c.tr, fwd ? T : N, 'flash-small', 'div'),
         A.lt(fwd ? c.tr : c.term, fwd ? N : T, 'flash-word serif' + sizeOf(fwd ? c.tr : c.term), 'div'),
@@ -268,7 +290,8 @@
           forms ? A.lt(forms, T, 'serif') : null) : null,
         ex.text ? h('div', { class: 'flash-ex' },
           h('p', null, A.lt(ex.text, T, 'serif'), A.speakBtn(ex.text, T, 'sm')),
-          ex.tr ? A.lt(ex.tr, N, 'muted', 'p') : null) : null));
+          ex.tr ? A.lt(ex.tr, N, 'muted', 'p') : null) : null,
+        extra));
 
     const inner = h('div', { class: 'flash-inner' }, front, back);
     const card = h('div', { class: 'flash mode-' + S.mode, tabindex: '0', role: 'button', 'aria-label': t('study.tap') },
@@ -277,6 +300,9 @@
       inner);
     S.card = card;
     swipe(card);
+    // its recording, or the site's voice for it, ready before it is played (a phone allows no wait)
+    if (c.audio) A.media.audio(c);
+    else if (s.voice !== 'system') A.media.voice(said, T);
 
     S.stage.replaceChildren(h('div', { class: 'stack' }, h('div', { class: 'stack-bg b2' }), h('div', { class: 'stack-bg b1' }), card));
     requestAnimationFrame(() => card.classList.add('in'));
@@ -286,7 +312,7 @@
     else typeBox(c);
 
     if (S.mode === 'listen') setTimeout(() => A.speak(c.term, T, c), 300);
-    else if (s.autoSpeak && S.mode !== 'type' && S.mode !== 'cloze' && fwd) setTimeout(() => A.speak(c.term, T, c), 250);
+    else if (s.autoSpeak && S.mode !== 'type' && S.mode !== 'cloze' && fwd && !cz) setTimeout(() => A.speak(c.term, T, c), 250);
   }
 
   function peekBtn(pron) {
@@ -570,7 +596,7 @@
         h('div', null, h('b', null, streak), h('span', null, A.tn('n_days_streak', streak)))),
       missed.length ? h('div', { class: 'missed' },
         h('h3', null, t('res.review_these')),
-        h('ul', null, missed.map((c) => h('li', null, A.lt(c.term, s.target, 'serif'), h('span', { class: 'dash' }, '—'), A.lt(c.tr, s.native))))) : null,
+        h('ul', null, missed.map((c) => h('li', null, A.lt(A.store.plain(c.term), s.target, 'serif'), h('span', { class: 'dash' }, '—'), A.lt(c.tr, s.native))))) : null,
       h('div', { class: 'row gap center wrap' },
         more ? h('button', { class: 'btn btn-primary btn-lg', type: 'button', onclick: () => A.route() }, t('res.again'), h('span', { class: 'btn-count' }, more)) : null,
         h('a', { class: 'btn btn-ghost btn-lg', href: S.backHref }, t('res.back')))));

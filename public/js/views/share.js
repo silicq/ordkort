@@ -116,11 +116,49 @@
         row('share', t('share.title'), t('share.row'), () => { m.close(); shareLink(d); }),
         row('download', t('csv.export'), t('csv.export_d'), () => { m.close(); exportCSV(d); }),
         row('upload', t('csv.import'), t('csv.import_d'), () => { m.close(); importCSV(d); }),
-        row('anki', t('anki.export'), t('anki.export_d'), () => { m.close(); A.anki.exportDeck(d); })),
+        row('anki', t('anki.export'), t('anki.export_d'), () => { m.close(); A.anki.exportDeck(d); }),
+        d.pub
+          ? row('trash', t('lib.unpublish'), t('lib.unpublish_d'), () => { m.close(); A.library.unpublish(d); })
+          : row('globe', t('lib.publish'), t('lib.publish_d'), () => { m.close(); A.library.publish(d); })),
     });
   }
   const row = (ic, title, desc, onclick) => h('button', { class: 'mode-row', type: 'button', onclick },
     h('span', { class: 'mode-ico' }, icon(ic, 20)), h('span', null, h('b', null, title), h('small', null, desc)));
+
+  /* A deck someone else made (shared by link, or from the library) on a card, with a button that adds it.
+     extra: what goes under the words (votes, a report button); onAdded(deck) runs once it is added. */
+  function offer(card, deck, { extra = null, onAdded = null, src = 'share' } = {}) {
+    const s = A.store.settings;
+    const T = deck.target, N = deck.native;
+    const other = s && s.native !== N;
+    A.put(card,
+      h('div', { class: 'deck-hero-emoji', style: `--tab: var(--t-${deck.group || 'custom'})` },
+        A.media.isCover(deck.cover) ? h('img', { class: 'deck-cover', src: deck.cover, alt: '' })
+          : /^https:\/\//.test(deck.cover || '') ? h('img', { class: 'deck-cover', src: '/api/img?u=' + encodeURIComponent(deck.cover), alt: '' })
+            : deck.emoji || '🗂️'),
+      h('h1', { class: 'display sm' }, deck.title || t('deck.untitled')),
+      h('p', { class: 'muted' }, [A.langs.name(T) + ' → ' + A.langs.name(N), deck.level, A.tn('n_words', deck.words.length)].filter(Boolean).join(' · ')),
+      other ? h('p', { class: 'callout' }, icon('info', 18), h('span', null, t('share.other_lang', { lang: A.langs.name(N) }))) : null,
+      h('ul', { class: 'share-preview' }, deck.words.slice(0, 10).map((w) => h('li', null, A.lt(w.term, T, 'serif'), ' — ', A.lt(w.tr, N)))),
+      extra,
+      h('div', { class: 'row gap center wrap' },
+        h('button', {
+          class: 'btn btn-primary btn-lg', type: 'button',
+          onclick: () => {
+            if (!A.store.ready) A.store.init({ native: N, target: T, level: deck.level || 'A1' });
+            else if (s.target !== T) A.store.set({ target: T });
+            const d = A.store.addDeck({ title: deck.title, emoji: deck.emoji || '🗂️', group: deck.group || 'custom', level: deck.level, manual: true });
+            const n = A.store.addCards(d.id, deck.words.map((w) => ({ ...w, src })));
+            if (!n) { A.store.deleteDeck(d.id); A.toast(t('csv.none_new')); A.go('#/'); return; }
+            // the cover comes along: as it is, or fetched and made small when it is a web address
+            A.media.coverOf(deck.cover).then((cover) => { if (cover) { A.store.updateDeck(d.id, { cover, coverBy: deck.cover_by || undefined }); A.refresh(); } });
+            onAdded?.(d);
+            A.toast(t('csv.added', { n }), 'ok');
+            A.go('#/deck/' + d.id);
+          },
+        }, icon('plus', 18), t('share.add')),
+        h('a', { class: 'btn btn-ghost btn-lg', href: '#/' }, t('common.cancel'))));
+  }
 
   /* ---------- #/s/ID — opening a shared deck ---------- */
   A.views.s = {
@@ -129,34 +167,7 @@
       root.append(h('section', { class: 'link-page' }, card));
       A.ai.sharedDeck(id).then((deck) => {
         if (deck?.kind === 'look') { location.replace('#/look/' + id); return; } // a look made through MCP, not a deck
-        const s = A.store.settings;
-        const T = deck.target, N = deck.native;
-        const other = s && s.native !== N;
-        A.put(card,
-          h('div', { class: 'deck-hero-emoji', style: `--tab: var(--t-${deck.group || 'custom'})` },
-            A.media.isCover(deck.cover) ? h('img', { class: 'deck-cover', src: deck.cover, alt: '' })
-              : /^https:\/\//.test(deck.cover || '') ? h('img', { class: 'deck-cover', src: '/api/img?u=' + encodeURIComponent(deck.cover), alt: '' })
-                : deck.emoji || '🗂️'),
-          h('h1', { class: 'display sm' }, deck.title || t('deck.untitled')),
-          h('p', { class: 'muted' }, [A.langs.name(T) + ' → ' + A.langs.name(N), deck.level, A.tn('n_words', deck.words.length)].filter(Boolean).join(' · ')),
-          other ? h('p', { class: 'callout' }, icon('info', 18), h('span', null, t('share.other_lang', { lang: A.langs.name(N) }))) : null,
-          h('ul', { class: 'share-preview' }, deck.words.slice(0, 10).map((w) => h('li', null, A.lt(w.term, T, 'serif'), ' — ', A.lt(w.tr, N)))),
-          h('div', { class: 'row gap center wrap' },
-            h('button', {
-              class: 'btn btn-primary btn-lg', type: 'button',
-              onclick: () => {
-                if (!A.store.ready) A.store.init({ native: N, target: T, level: deck.level || 'A1' });
-                else if (s.target !== T) A.store.set({ target: T });
-                const d = A.store.addDeck({ title: deck.title, emoji: deck.emoji || '🗂️', group: deck.group || 'custom', level: deck.level, manual: true });
-                const n = A.store.addCards(d.id, deck.words.map((w) => ({ ...w, src: 'share' })));
-                if (!n) { A.store.deleteDeck(d.id); A.toast(t('csv.none_new')); A.go('#/'); return; }
-                // the cover comes along: as it is, or fetched and made small when it is a web address
-                A.media.coverOf(deck.cover).then((cover) => { if (cover) { A.store.updateDeck(d.id, { cover, coverBy: deck.cover_by || undefined }); A.refresh(); } });
-                A.toast(t('csv.added', { n }), 'ok');
-                A.go('#/deck/' + d.id);
-              },
-            }, icon('plus', 18), t('share.add')),
-            h('a', { class: 'btn btn-ghost btn-lg', href: '#/' }, t('common.cancel'))));
+        offer(card, deck);
       }).catch((e) => {
         card.replaceChildren(
           h('div', { class: 'link-ico bad' }, icon('x', 30)),
@@ -166,5 +177,5 @@
     },
   };
 
-  A.deckTools = { menu, exportCSV, importCSV, shareLink, parseCSV, toCSV };
+  A.deckTools = { menu, exportCSV, importCSV, shareLink, parseCSV, toCSV, offer };
 })();

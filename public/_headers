@@ -1,8 +1,8 @@
 /*
-  Content-Security-Policy: default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; media-src 'self' blob:; connect-src 'self' https://ord.uib.no; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'; manifest-src 'self'
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; media-src 'self' blob:; connect-src 'self' https://ord.uib.no; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'self'; manifest-src 'self'
   X-Content-Type-Options: nosniff
   Referrer-Policy: no-referrer
-  X-Frame-Options: DENY
+  X-Frame-Options: SAMEORIGIN
   Cross-Origin-Opener-Policy: same-origin
   Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=()
 

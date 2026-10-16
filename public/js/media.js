@@ -1,7 +1,7 @@
 /* Pictures on cards. A picture is shrunk on the device (640 px at most, JPEG), named after a hash of its bytes and
    kept in IndexedDB (js/idb.js); the card keeps only that name (img), where the picture came from (imgUrl) and
-   whom to credit (imgBy). The name syncs, the bytes do not: another device fetches a picture again from imgUrl
-   when it needs it, so only photos of your own stay on the device they were added on. */
+   whom to credit (imgBy). The name syncs with the cards: another device fetches a picture again from imgUrl when it
+   needs it, and a photo of your own (or a recording) comes to linked devices file by file, encrypted (js/sync.js). */
 (() => {
   const A = window.App;
   const MAX = 640;
@@ -103,6 +103,22 @@
     return canvas.toDataURL('image/jpeg', 0.82);
   }
   const coverUrl = async (u) => cover(await fetchUrl(u));
+  // what a built-in topic is looked for by: its English name, which finds the most ("Food and drink" → "Food")
+  const topicQuery = (tp) => tp.en.split(/,| and /)[0].trim();
+  // a new deck of a built-in topic gets the first picture found for it as its cover (Settings can turn this off)
+  async function autoCover(id) {
+    const d = A.store.deck(id);
+    const tp = d?.topic && A.topics.get(d.topic);
+    if (!tp || d.cover || A.store.settings.autoCover === false || A.framed || !navigator.onLine) return;
+    try {
+      for (const r of (await search(topicQuery(tp), 'en')).slice(0, 3)) {
+        const c = await coverUrl(r.url || r.thumb).catch(() => '');
+        if (!c) continue;
+        if (A.store.deck(id) && !A.store.deck(id).cover) { A.store.updateDeck(id, { cover: c, coverBy: `${r.by} · ${r.license}` }); A.refresh(); }
+        return;
+      }
+    } catch { /* no picture: the emoji stays */ }
+  }
   // a shared deck's cover: a data: URL as it is, a web address fetched (through the site) and made small
   const coverOf = async (x) => (isCover(x) ? x : /^https:\/\//.test(x || '') ? coverUrl(x).catch(() => '') : '');
   // what stands for a deck: its cover, or its emoji
@@ -117,6 +133,8 @@
     await A.idb.mediaPut(name, blob);
     return name;
   }
+  // the recording's address when it is ready already: a phone plays sound only straight from a tap, not after a wait
+  const audioNow = (c) => (c?.audio && urls.get(c.audio)) || null;
   async function audio(c) {
     if (!c?.audio) return null;
     if (urls.has(c.audio)) return urls.get(c.audio);
@@ -126,6 +144,24 @@
     urls.set(c.audio, u);
     return u;
   }
+
+  /* The site's voice for a card without a recording (src/voice.js): a native speaker's recording from Wiktionary,
+     or a synthetic one. Kept for the visit by language and text: an object URL, '' when the site has none (the
+     system's voice then speaks), or the promise while it loads. */
+  const voices = new Map();
+  const vkey = (text, lang) => lang + '\n' + String(text || '').trim().toLowerCase();
+  function voice(text, lang) {
+    const k = vkey(text, lang);
+    if (voices.has(k)) return Promise.resolve(voices.get(k));
+    const p = fetch(`/api/tts?l=${encodeURIComponent(lang)}&q=${encodeURIComponent(String(text).trim().slice(0, 200))}`)
+      .then((r) => (r.ok ? r.blob() : null))
+      .then((b) => { const u = b && /^audio\//.test(b.type) ? URL.createObjectURL(b) : ''; voices.set(k, u); return u; })
+      .catch(() => { voices.delete(k); return ''; }); // offline: ask again next time
+    voices.set(k, p);
+    return p;
+  }
+  // the voice's address when it is ready, '' when there is none, null while unknown or loading
+  const voiceNow = (text, lang) => { const v = voices.get(vkey(text, lang)); return typeof v === 'string' ? v : null; };
 
   // pictures and recordings no card refers to any more, once in a while
   async function tidy() {
@@ -138,5 +174,5 @@
     } catch { /* next time */ }
   }
 
-  A.media = { add, addUrl, url, blob, el, search, tidy, addAudio, audio, cover, coverUrl, coverOf, isCover, face, _test: { shrink } };
+  A.media = { add, addUrl, url, blob, el, search, tidy, addAudio, audio, audioNow, voice, voiceNow, cover, coverUrl, coverOf, autoCover, topicQuery, isCover, face, _test: { shrink } };
 })();

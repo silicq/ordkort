@@ -18,6 +18,7 @@ export const APP_SCRIPTS = [
   'js/topics.js',
   'js/idb.js',
   'js/media.js',
+  'js/fsrs.js',
   'js/store.js',
   'js/ai.js',
   'js/ordbok.js',
@@ -39,8 +40,10 @@ export const APP_SCRIPTS = [
   'js/views/about.js',
   'js/views/read.js',
   'js/views/share.js',
+  'js/views/library.js',
   'js/views/stats.js',
   'js/views/insights.js',
+  'js/remind.js',
   'js/app.js',
 ];
 

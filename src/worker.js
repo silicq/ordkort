@@ -7,6 +7,8 @@ import { HttpError, errorResponse } from './util.js';
 import * as api from './api.js';
 import * as sync from './sync.js';
 import * as images from './images.js';
+import * as voice from './voice.js';
+import * as library from './library.js';
 import * as mcp from './mcp.js';
 import { warmOne } from './warm.js';
 
@@ -53,20 +55,35 @@ export default {
       burst(key);
       await initDB(env.DB);
 
-      const [name, id] = url.pathname.slice(5).split('/');
+      const [name, id, sub] = url.pathname.slice(5).split('/');
       const m = request.method;
 
       if (m === 'POST' && POST[name] && !id) return await POST[name](request, env, key);
       if (m === 'GET' && name === 'limits') return await api.limits(request, env, key);
       if (m === 'GET' && name === 'img' && !id) return await images.proxy(request, env, key);
+      if (m === 'GET' && name === 'tts' && !id) return await voice.tts(request, env, key);
 
       if (name === 'share') {
         if (m === 'POST' && !id) return await api.shareCreate(request, env, key);
         if (m === 'GET' && id) return await api.shareGet(env, id);
+        if (m === 'DELETE' && id) return await library.removeShare(request, env, id);
+      }
+      if (name === 'library') {
+        if (m === 'GET' && !id) return await library.list(request, env);
+        if (m === 'POST' && !id) return await library.publish(request, env, key);
+        if (m === 'GET' && id === 'hidden') return await library.hidden(request, env);
+        if (m === 'GET' && id && !sub) return await library.get(env, id);
+        if (m === 'POST' && id && sub) return await library.act(request, env, key, id, sub);
+        if (m === 'DELETE' && id) return await library.remove(request, env, id);
       }
       if (name === 'pair') {
         if (m === 'POST' && !id) return await sync.pairCreate(request, env, key);
         if (m === 'GET' && id) return await sync.pairTake(env, key, id, url.searchParams.has('peek'));
+      }
+      if (name === 'media' && /^[a-f0-9]{32}$/.test(id || '')) {
+        if (m === 'GET' && !sub) return await sync.mediaList(request, env, key, id);
+        if (m === 'GET' && sub) return await sync.mediaGet(request, env, key, id, sub);
+        if (m === 'PUT' && sub) return await sync.mediaPut(request, env, key, id, sub);
       }
       if (name === 'sync' && /^[a-f0-9]{32}$/.test(id || '')) {
         if (m === 'GET') return await sync.syncGet(request, env, key, id);

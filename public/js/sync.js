@@ -151,6 +151,7 @@
         cfg.at = Date.now();
         saveCfg();
         setStatus('idle', { at: cfg.at, error: '' });
+        mediaSync(); // the files the cards refer to, after the cards themselves
       } catch (e) {
         setStatus('error', { error: e.kind || 'server' });
       } finally {
@@ -158,6 +159,77 @@
       }
     })();
     return running;
+  }
+
+  /* ---------- files: recordings from Anki and photos of your own ----------
+     The copy holds only their names (a hash of the bytes). Each file travels on its own, encrypted with the copy's key
+     (not compressed: audio and JPEG already are): a device sends what it has and the copy has not, and fetches what
+     its cards need and it has not. Gently: one file at a time, a little apart, and what is left waits for the next
+     sync. Pictures found on the web are not sent: every device fetches them again from where they came from. */
+  async function sealBytes(key, blob) {
+    const type = enc.encode(blob.type || 'application/octet-stream');
+    const plain = new Uint8Array(1 + type.length + blob.size);
+    plain[0] = type.length;
+    plain.set(type, 1);
+    plain.set(new Uint8Array(await blob.arrayBuffer()), 1 + type.length);
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const ct = new Uint8Array(await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, plain));
+    const out = new Uint8Array(12 + ct.length);
+    out.set(iv);
+    out.set(ct, 12);
+    return toB64(out);
+  }
+  async function unsealBytes(key, b64) {
+    const buf = fromB64(b64);
+    const plain = new Uint8Array(await crypto.subtle.decrypt({ name: 'AES-GCM', iv: buf.subarray(0, 12) }, key, buf.subarray(12)));
+    const type = new TextDecoder().decode(plain.subarray(1, 1 + plain[0]));
+    return new Blob([plain.subarray(1 + plain[0])], { type });
+  }
+  // the names of the files the cards on this device refer to, in every language pair
+  function wanted() {
+    const out = new Set();
+    try {
+      for (const p of Object.values(JSON.parse(A.store.kvGet(A.config.storageKey) || '{}').pairs || {})) {
+        for (const c of Object.values(p.cards || {})) {
+          if (c.audio) out.add(c.audio);
+          if (c.img && !c.imgUrl) out.add(c.img);
+        }
+      }
+    } catch { /* nothing to send */ }
+    return out;
+  }
+  let mediaRunning = false;
+  async function mediaSync() {
+    if (mediaRunning || !enabled() || !A.idb) return;
+    const need = wanted();
+    if (!need.size) return;
+    mediaRunning = true;
+    let got = 0;
+    try {
+      const k = await ready();
+      const headers = { 'X-Sync-Token': k.token };
+      const r = await request(`media/${k.id}`, { headers });
+      if (!r.ok) return;
+      const remote = new Set((await r.json()).names || []);
+      for (const name of need) {
+        if (!enabled() || document.visibilityState === 'hidden') break;
+        const have = await A.idb.mediaGet(name).catch(() => null);
+        if (have && !remote.has(name)) {
+          const p = await request(`media/${k.id}/${name}`, { method: 'PUT', headers: { ...headers, 'Content-Type': 'application/json' }, body: JSON.stringify({ d: await sealBytes(k.key, have) }) });
+          if (p.status === 429 || p.status === 413) break; // later, or the copy is full
+        } else if (!have && remote.has(name)) {
+          const g = await request(`media/${k.id}/${name}`, { headers });
+          if (g.status === 429) break;
+          if (!g.ok) continue;
+          await A.idb.mediaPut(name, await unsealBytes(k.key, (await g.json()).d));
+          got++;
+        } else continue;
+        await new Promise((res) => setTimeout(res, 250)); // well under the server's limit on bursts
+      }
+    } catch { /* offline or the server is busy: the next sync tries again */ } finally {
+      mediaRunning = false;
+      if (got) A.refresh?.();
+    }
   }
 
   let timer = null;
@@ -310,6 +382,6 @@
     get status() { return status; },
     onStatus: (fn) => { listeners.add(fn); return () => listeners.delete(fn); },
     SyncError,
-    _test: { seal, unseal, derive, pairKey, b32encode, b32decode, checksum, toB64, fromB64 }, // for tests/sync.test.mjs
+    _test: { seal, unseal, sealBytes, unsealBytes, derive, pairKey, b32encode, b32decode, checksum, toB64, fromB64 }, // for tests/sync.test.mjs
   };
 })();

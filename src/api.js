@@ -34,7 +34,9 @@ async function groupOf(b, target, native) {
   const tp = typeof b.topic === 'string' ? App.topics.get(b.topic) : null;
   const custom = tp ? '' : str(b.custom, 80);
   if (!tp && !custom) throw new HttpError(400, 'bad_topic');
-  return { tp, custom, level, grp: `${target}:${native}:${tp ? tp.id : 'c:' + (await h32(norm(custom)))}:${level}` };
+  // phrases for a situation are a bank of their own, apart from the words for the same text
+  const phrases = !tp && b.phrases === true;
+  return { tp, custom, level, phrases, grp: `${target}:${native}:${tp ? tp.id : (phrases ? 'p:' : 'c:') + (await h32(norm(custom)))}:${level}` };
 }
 
 const quotaHeaders = (q) => (q ? { 'X-AI-Left': String(q.left), 'X-AI-Limit': String(q.limit) } : { 'X-Cache': 'hit' });
@@ -73,7 +75,7 @@ export async function words(request, env, key) {
   const b = await readJSON(request, 60000);
   const { target, native } = pairOf(b);
   const n = int(b.n, 5, 30, 20);
-  const { tp, custom, level, grp } = await groupOf(b, target, native);
+  const { tp, custom, level, grp, phrases } = await groupOf(b, target, native);
 
   const have = new Set(arr(b.have, 3000).map((x) => norm(str(x, 80))).filter(Boolean));
   // topics that are a word class ("prepositions and adverbs") get only words of that class — also from the bank,
@@ -90,7 +92,9 @@ export async function words(request, env, key) {
   const quota = await takeAI(env, key);
   try {
     const avoid = [...new Set([...bank.map((r) => r.norm), ...have])].slice(-220);
-    const raw = await groq(env, P.wordsPrompt({ target, native, topic: tp ? tp.en : custom, hint: tp?.hint, only: tp?.pos, level, n, avoid }));
+    const raw = await groq(env, phrases
+      ? P.phrasesPrompt({ target, native, topic: custom, level, n, avoid })
+      : P.wordsPrompt({ target, native, topic: tp ? tp.en : custom, hint: tp?.hint, only: tp?.pos, level, n, avoid }));
     const seen = new Set([...have, ...bank.map((r) => r.norm)]);
     const fresh = [];
     for (const w of arr(raw.words, 40).map((x) => P.aiWord(x, target))) {
@@ -405,7 +409,7 @@ export async function gloss(request, env, key) {
 // a deck someone shares (here or through MCP), cleaned: at most 500 words, each with a term and a translation
 export function cleanDeck(d) {
   const { target, native } = pairOf(d || {});
-  const words = arr(d.words, 500).map(P.cleanWord).filter((w) => w.term && w.tr);
+  const words = arr(d.words, 500).map(P.cleanWord).filter((w) => w.term && (w.tr || /\{\{[^{}]+\}\}/.test(w.term))); // a card with gaps may have no translation
   if (!words.length) throw new HttpError(400, 'empty');
   return {
     title: str(d.title, 80), emoji: str(d.emoji, 8), level: LEVELS.includes(d.level) ? d.level : '',

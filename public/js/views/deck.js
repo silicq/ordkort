@@ -36,7 +36,7 @@
               ? h('a', { class: 'btn btn-primary', href: `#/study/${id}?extra=10` }, icon('cards', 18), t('deck.study_more'))
               : o.total ? h('a', { class: 'btn btn-primary', href: `#/study/${id}?cram=1` }, icon('flip', 18), t('deck.cram')) : null,
           h('button', { class: 'btn btn-soft', type: 'button', disabled: !!job, onclick: () => A.jobs.generate(id) },
-            icon('sparkle', 18), t('deck.more', { n: s.batch })),
+            icon('sparkle', 18), t(d.phrases ? 'deck.more_phrases' : 'deck.more', { n: s.batch })),
           h('button', { class: 'btn btn-ghost', type: 'button', onclick: () => editCard(null, id) }, icon('plus', 18), t('deck.add_word')),
           h('span', { class: 'grow' }),
           h('button', { class: 'icon-btn', type: 'button', title: t('deck.tools'), 'aria-label': t('deck.tools'), onclick: () => A.deckTools.menu(d) }, icon('more')),
@@ -68,9 +68,9 @@
         if (empty) {
           const q = A.ai.quota;
           root.append(h('div', { class: 'fill-banner callout plain' }, icon('sparkle', 18),
-            h('span', { class: 'grow' }, t('fill.offer', { n: empty, req: Math.ceil(empty / A.fill.BATCH) }),
+            h('span', { class: 'grow' }, d.fillDaily ? t('fill.daily_on', { n: empty, per: A.fill.PER_DAY }) : t('fill.offer', { n: empty, req: Math.ceil(empty / A.fill.BATCH) }),
               q ? h('small', { class: 'muted d-block' }, t('fill.left', { left: q.left, limit: q.limit })) : null),
-            h('button', { class: 'btn btn-soft btn-sm', type: 'button', onclick: () => A.fill.run(id) }, t('fill.go'))));
+            h('button', { class: 'btn btn-soft btn-sm', type: 'button', onclick: () => A.fill.start(id) }, t(d.fillDaily ? 'fill.go_more' : 'fill.go'))));
         }
       }
 
@@ -82,7 +82,7 @@
             h('h3', null, t('deck.empty')),
             h('p', { class: 'muted' }, t('deck.empty_hint')),
             h('div', { class: 'row gap center' },
-              h('button', { class: 'btn btn-primary', type: 'button', onclick: () => A.jobs.generate(id) }, icon('sparkle', 18), t('deck.more', { n: s.batch })),
+              h('button', { class: 'btn btn-primary', type: 'button', onclick: () => A.jobs.generate(id) }, icon('sparkle', 18), t(d.phrases ? 'deck.more_phrases' : 'deck.more', { n: s.batch })),
               h('button', { class: 'btn btn-ghost', type: 'button', onclick: () => editCard(null, id) }, icon('plus', 18), t('deck.add_word')))));
         return;
       }
@@ -113,7 +113,7 @@
   function wordReport(c) {
     const d = A.store.deck(c.deck);
     if (!d || d.manual || d.kind === 'mine' || !(d.topic || d.title) || !A.store.fromBank(c)) return null;
-    return A.reportBtn('word', { topic: d.topic || undefined, custom: d.topic ? undefined : d.title, level: d.level || 'A1', term: c.term });
+    return A.reportBtn('word', { topic: d.topic || undefined, custom: d.topic ? undefined : typeof d.phrases === 'string' ? d.phrases : d.title, phrases: d.phrases ? true : undefined, level: d.level || 'A1', term: c.term });
   }
 
   function pips(box) {
@@ -123,6 +123,8 @@
   }
 
   function row(c, s) {
+    const cz = A.store.isCloze(c);
+    const said = cz ? A.store.plain(c.term) : c.term;
     const ex = A.store.example(c);
     const { gram, pron, forms } = A.store.shown(c);
     const detail = h('div', { class: 'wdetail' },
@@ -130,9 +132,10 @@
       gram || c.pos ? h('p', null, h('span', { class: 'k' }, t('card.gram')), [c.pos ? t('pos.' + c.pos) : '', gram].filter(Boolean).join(' · ')) : null,
       forms ? h('p', null, h('span', { class: 'k' }, t('card.forms')), A.lt(forms, s.target, 'serif')) : null,
       ex.text ? h('p', null, h('span', { class: 'k' }, t('card.example')), A.lt(ex.text, s.target, 'serif'), A.speakBtn(ex.text, s.target, 'sm'), ex.tr ? h('span', { class: 'muted d-block' }, ex.tr) : null) : null,
+      (c.extra || []).map((x) => h('p', null, h('span', { class: 'k' }, x.k), x.v)),
       h('div', { class: 'row gap wrap' },
         h('button', { class: 'btn btn-ghost btn-sm', type: 'button', onclick: () => editCard(c, c.deck) }, icon('edit', 16), t('common.edit')),
-        h('a', { class: 'btn btn-ghost btn-sm', href: '#/dict/' + encodeURIComponent(c.term.replace(/^(en|ei|et|å|der|die|das|la|le|el|the|to)\s+/i, '')) }, icon('book', 16), t('card.in_dict')),
+        cz ? null : h('a', { class: 'btn btn-ghost btn-sm', href: '#/dict/' + encodeURIComponent(c.term.replace(/^(en|ei|et|å|der|die|das|la|le|el|the|to)\s+/i, '')) }, icon('book', 16), t('card.in_dict')),
         c.box ? h('button', { class: 'btn btn-ghost btn-sm', type: 'button', onclick: () => { A.store.resetCard(c.id); A.refresh(); } }, icon('refresh', 16), t('card.reset')) : null,
         h('button', {
           class: 'btn btn-ghost btn-sm', type: 'button', title: t(c.sus ? 'card.unsuspend_d' : 'card.suspend_d'),
@@ -146,8 +149,9 @@
         }, icon('trash', 16), t('common.delete'))));
     const el = h('details', { class: 'wrow' + (c.sus ? ' sus' : '') },
       h('summary', null,
-        A.speakBtn(c.term, s.target, '', c),
-        h('span', { class: 'w-term' }, A.lt(c.term, s.target, 'serif'), pron ? h('small', null, pron) : null),
+        A.speakBtn(said, s.target, '', c),
+        h('span', { class: 'w-term' }, cz ? h('span', { class: 'serif', lang: s.target, dir: 'auto' }, A.store.gaps(c.term).map((x) => (typeof x === 'string' ? x : h('mark', { class: 'gap-fill' }, x.answer))))
+          : A.lt(c.term, s.target, 'serif'), pron ? h('small', null, pron) : null),
         A.lt(c.tr, s.native, 'w-tr'),
         c.sus ? h('span', { class: 'pill muted-pill', title: t('card.suspend_d') }, icon('pause', 12), t('card.set_aside'))
           : c.leech ? h('span', { class: 'pill leech-pill', title: t('card.leech_d') }, t('card.leech')) : null,
@@ -188,8 +192,21 @@
     const pic = { img: card?.img || '', imgUrl: card?.imgUrl || '', imgBy: card?.imgBy || '' };
     const picture = pictureField(pic, () => f.term.value.trim(), () => f.tr.value.trim());
 
+    // its own fields: a name and a text each, shown on the back of the card
+    const extras = h('div', { class: 'extra-list' });
+    const extraRow = (k = '', v = '') => {
+      const r = h('div', { class: 'extra-row' },
+        h('input', { class: 'input extra-k', value: k, maxlength: 60, placeholder: t('card.extra_name'), 'aria-label': t('card.extra_name') }),
+        h('input', { class: 'input extra-v', value: v, maxlength: 1000, placeholder: t('card.extra_text'), 'aria-label': t('card.extra_text') }),
+        h('button', { class: 'icon-btn', type: 'button', 'aria-label': t('common.delete'), onclick: () => r.remove() }, icon('x', 16)));
+      extras.append(r);
+    };
+    (card?.extra || []).forEach((x) => extraRow(x.k, x.v));
+    const addExtra = h('button', { class: 'link-btn small', type: 'button', onclick: () => { if (extras.children.length < 8) { extraRow(); extras.lastChild.querySelector('input').focus(); } } }, icon('plus', 14), t('card.extra_add'));
+
     const body = h('div', { class: 'form-grid' },
       field('term', `${t('card.term')} · ${T}`, s.target, { ph: t('card.term_ph') }),
+      h('small', { class: 'muted gap-hint' }, t('card.gap_hint')),
       field('tr', `${t('card.translation')} · ${N}`, s.native),
       h('div', { class: 'fill-row' }, fillBtn, h('small', { class: 'muted' }, t('card.autofill_hint'))),
       picture.el,
@@ -197,12 +214,15 @@
       field('gram', t('card.gram'), s.native, { half: true }),
       field('forms', t('card.forms'), s.target),
       field('ex', t('card.example'), s.target, { area: true }),
-      field('exTr', t('card.example_tr'), s.native, { area: true }));
+      field('exTr', t('card.example_tr'), s.native, { area: true }),
+      h('div', { class: 'field' }, h('span', null, t('card.extra')), extras, addExtra));
 
     const save = () => {
       const data = {};
       for (const k of ['term', 'tr', 'pron', 'gram', 'forms', 'ex', 'exTr']) data[k] = f[k].value.trim();
-      if (!data.term || !data.tr) { A.toast(t('card.need_both'), 'error'); return; }
+      if (!data.term || (!data.tr && !A.store.isCloze(data))) { A.toast(t('card.need_both'), 'error'); return; }
+      data.extra = A.store.cleanExtra([...extras.children].map((r) => ({ k: r.querySelector('.extra-k').value, v: r.querySelector('.extra-v').value })));
+      if (!data.extra.length) data.extra = undefined;
       if (typeof f.pos === 'string') data.pos = f.pos;
       Object.assign(data, { img: pic.img, imgUrl: pic.imgUrl, imgBy: pic.imgBy });
       if (card) A.store.updateCard(card.id, data);
@@ -350,7 +370,7 @@
     const stop = onPastedPicture(own);
     // a built-in topic is looked for by its English name, which finds the most; a deck of your own by its title
     const tp = d.topic && A.topics.get(d.topic);
-    const [query, lang] = tp ? [tp.en.split(/,| and /)[0].trim(), 'en'] : [A.deckTitle(d), A.i18n.lang()];
+    const [query, lang] = tp ? [A.media.topicQuery(tp), 'en'] : [A.deckTitle(d), A.i18n.lang()];
 
     const m = A.modal({
       title: t('cover.title'),
