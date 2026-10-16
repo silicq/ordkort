@@ -4,7 +4,9 @@
 
    /api/pair  — a one-time "mailbox" for 3 minutes, for a link code or a one-off transfer;
                 its content can be taken exactly once.
-   /api/sync  — the encrypted copy for continuous sync between linked devices. */
+   /api/sync  — the encrypted copy for continuous sync between linked devices.
+   /api/media — the files that copy refers to but cannot hold (recordings from Anki, photos of your own), one by one,
+                each encrypted on the device with the copy's key; only who holds the copy's token reaches them. */
 import { HttpError, json, readJSON, sha256, safeEqual, randomCode, isCode } from './util.js';
 import { takeSimple } from './limits.js';
 
@@ -87,5 +89,47 @@ export async function syncDelete(request, env, key, id) {
   await takeSimple(env, 'sync-put', key, 240, HOUR);
   const auth = await authOf(request);
   const r = await env.DB.prepare('DELETE FROM sync WHERE id = ? AND auth = ?').bind(id, auth).run();
+  if (r.meta.changes) await env.DB.prepare('DELETE FROM media WHERE sid = ?').bind(id).run();
   return json({ deleted: !!r.meta.changes });
+}
+
+/* ---------- files of a copy ---------- */
+const MEDIA_NAME = /^[pa][0-9a-f]{24}$/; // js/media.js: 'p' a picture, 'a' a recording, then a hash of the bytes
+const MEDIA_MAX_FILES = 5000;
+const MEDIA_MAX_BYTES = 150_000_000; // what one copy may keep, encrypted (about 110 MB of files)
+
+// the copy must exist and the token must be its own
+async function owner(request, env, id) {
+  const auth = await authOf(request);
+  const row = await env.DB.prepare('SELECT auth FROM sync WHERE id = ?').bind(id).first();
+  if (!row) throw new HttpError(404, 'none');
+  if (!safeEqual(row.auth, auth)) throw new HttpError(403, 'forbidden');
+}
+
+export async function mediaList(request, env, key, id) {
+  await owner(request, env, id);
+  const rows = (await env.DB.prepare('SELECT name FROM media WHERE sid = ?').bind(id).all()).results || [];
+  return json({ names: rows.map((r) => r.name) });
+}
+
+export async function mediaGet(request, env, key, id, name) {
+  if (!MEDIA_NAME.test(name)) throw new HttpError(404, 'gone');
+  await takeSimple(env, 'media-get', key, 3000, HOUR);
+  await owner(request, env, id);
+  const row = await env.DB.prepare('SELECT d FROM media WHERE sid = ? AND name = ?').bind(id, name).first();
+  if (!row) throw new HttpError(404, 'gone');
+  return json({ d: row.d });
+}
+
+export async function mediaPut(request, env, key, id, name) {
+  if (!MEDIA_NAME.test(name)) throw new HttpError(400, 'bad_name');
+  await takeSimple(env, 'media-put', key, 1500, HOUR);
+  await owner(request, env, id);
+  const body = await readJSON(request, MAX_BLOB + 1000);
+  if (!b64ok(body.d)) throw new HttpError(400, 'bad_data');
+  const use = await env.DB.prepare('SELECT COUNT(*) AS n, COALESCE(SUM(LENGTH(d)), 0) AS bytes FROM media WHERE sid = ?').bind(id).first();
+  if ((use?.n || 0) >= MEDIA_MAX_FILES || (use?.bytes || 0) + body.d.length > MEDIA_MAX_BYTES) throw new HttpError(413, 'too_large');
+  // a file's name is a hash of its bytes: the same name is the same file, so a second upload changes nothing
+  await env.DB.prepare('INSERT OR IGNORE INTO media (sid, name, d, t) VALUES (?, ?, ?, ?)').bind(id, name, body.d, Date.now()).run();
+  return json({ ok: true });
 }

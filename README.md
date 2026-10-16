@@ -156,7 +156,9 @@ wrangler.jsonc     Cloudflare configuration
 ```
 
 **User data** — cards, progress, settings — lives in the browser’s localStorage; the history of every answer
-(what “What goes wrong” reads) and pictures for cards live in its IndexedDB, on that device only, never synced. Only AI requests
+(what “What goes wrong” reads) and pictures and recordings for cards live in its IndexedDB. The history stays on that
+device; a picture found on the web is fetched again by each device, and photos of your own and recordings from Anki
+reach linked devices file by file, encrypted like the rest. Only AI requests
 (a word, a topic or a text plus the language pair) reach the server, plus decks you choose to share
 by link (kept for a year) and anonymous mistake reports (kept for 30 days). Answers are stored in a shared
 base, so the next person gets them instantly and without using their limit.
@@ -180,7 +182,9 @@ copy’s id, a write token and an AES-256-GCM key. The server stores ciphertext 
 Devices are linked with a one-time 16-character code (valid for 3 minutes, burnt on first read) or a QR
 link whose key part sits after `#` and is never sent to the server. A one-time transfer without cloud
 storage is also available. A 54-character **recovery key** restores the encrypted copy if the browser
-data is wiped on every device.
+data is wiped on every device. The copy holds only the names of photos of your own and of recordings from Anki:
+each file goes to `/api/media` on its own, encrypted with the same key (at most 5,000 files and about 110 MB per copy),
+and a device fetches the ones its cards need. They are deleted with the copy.
 
 Users can read all of this in plain words on the site’s “How it works” page (`#/about`).
 

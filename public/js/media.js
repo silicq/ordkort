@@ -1,7 +1,7 @@
 /* Pictures on cards. A picture is shrunk on the device (640 px at most, JPEG), named after a hash of its bytes and
    kept in IndexedDB (js/idb.js); the card keeps only that name (img), where the picture came from (imgUrl) and
-   whom to credit (imgBy). The name syncs, the bytes do not: another device fetches a picture again from imgUrl
-   when it needs it, so only photos of your own stay on the device they were added on. */
+   whom to credit (imgBy). The name syncs with the cards: another device fetches a picture again from imgUrl when it
+   needs it, and a photo of your own (or a recording) comes to linked devices file by file, encrypted (js/sync.js). */
 (() => {
   const A = window.App;
   const MAX = 640;
@@ -117,6 +117,8 @@
     await A.idb.mediaPut(name, blob);
     return name;
   }
+  // the recording's address when it is ready already: a phone plays sound only straight from a tap, not after a wait
+  const audioNow = (c) => (c?.audio && urls.get(c.audio)) || null;
   async function audio(c) {
     if (!c?.audio) return null;
     if (urls.has(c.audio)) return urls.get(c.audio);
@@ -138,5 +140,5 @@
     } catch { /* next time */ }
   }
 
-  A.media = { add, addUrl, url, blob, el, search, tidy, addAudio, audio, cover, coverUrl, coverOf, isCover, face, _test: { shrink } };
+  A.media = { add, addUrl, url, blob, el, search, tidy, addAudio, audio, audioNow, cover, coverUrl, coverOf, isCover, face, _test: { shrink } };
 })();

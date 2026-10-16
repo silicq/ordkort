@@ -84,6 +84,30 @@ test('a shared deck keeps its cover: a small data: URL or an https address, noth
   }
 });
 
+test('the files of a sync copy: only its own token reaches them, and they go with the copy', async () => {
+  const id = Buffer.from(crypto.getRandomValues(new Uint8Array(16))).toString('hex');
+  const token = 'M'.repeat(43), other = 'N'.repeat(43);
+  const headers = (tok = token) => ({ 'X-Sync-Token': tok, 'CF-Connecting-IP': '198.51.100.200' });
+  const name = 'a' + '0123456789abcdef01234567';
+  assert.equal((await call(`media/${id}`, { headers: headers() })).status, 404, 'no copy, no files');
+  await call('sync/' + id, { method: 'PUT', body: { v: 0, d: blob() }, headers: headers() });
+
+  assert.deepEqual(await (await call(`media/${id}`, { headers: headers() })).json(), { names: [] });
+  const file = blob(300);
+  assert.equal((await call(`media/${id}/${name}`, { method: 'PUT', body: { d: file }, headers: headers() })).status, 200);
+  assert.equal((await call(`media/${id}/${name}`, { method: 'PUT', body: { d: blob() }, headers: headers() })).status, 200, 'the same name again changes nothing');
+  assert.deepEqual(await (await call(`media/${id}`, { headers: headers() })).json(), { names: [name] });
+  assert.equal((await (await call(`media/${id}/${name}`, { headers: headers() })).json()).d, file, 'the first upload stays');
+
+  assert.equal((await call(`media/${id}/${name}`, { headers: headers(other) })).status, 403, 'another token reads nothing');
+  assert.equal((await call(`media/${id}/${name}`, { method: 'PUT', body: { d: blob() }, headers: headers(other) })).status, 403);
+  assert.equal((await call(`media/${id}/x${name.slice(1)}`, { method: 'PUT', body: { d: blob() }, headers: headers() })).status, 400, 'only names of pictures and recordings');
+  assert.equal((await call(`media/${id}/${name}`, { method: 'PUT', body: { d: 'not base64!' }, headers: headers() })).status, 400);
+
+  await call('sync/' + id, { method: 'DELETE', headers: headers() });
+  assert.equal((await call(`media/${id}/${name}`, { headers: headers() })).status, 404, 'deleting the copy deletes its files');
+});
+
 test('pairing codes can be taken exactly once', async () => {
   let r = await call('pair', { method: 'POST', body: { d: blob() } });
   const { id, ttl } = await r.json();

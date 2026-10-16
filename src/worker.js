@@ -53,7 +53,7 @@ export default {
       burst(key);
       await initDB(env.DB);
 
-      const [name, id] = url.pathname.slice(5).split('/');
+      const [name, id, sub] = url.pathname.slice(5).split('/');
       const m = request.method;
 
       if (m === 'POST' && POST[name] && !id) return await POST[name](request, env, key);
@@ -67,6 +67,11 @@ export default {
       if (name === 'pair') {
         if (m === 'POST' && !id) return await sync.pairCreate(request, env, key);
         if (m === 'GET' && id) return await sync.pairTake(env, key, id, url.searchParams.has('peek'));
+      }
+      if (name === 'media' && /^[a-f0-9]{32}$/.test(id || '')) {
+        if (m === 'GET' && !sub) return await sync.mediaList(request, env, key, id);
+        if (m === 'GET' && sub) return await sync.mediaGet(request, env, key, id, sub);
+        if (m === 'PUT' && sub) return await sync.mediaPut(request, env, key, id, sub);
       }
       if (name === 'sync' && /^[a-f0-9]{32}$/.test(id || '')) {
         if (m === 'GET') return await sync.syncGet(request, env, key, id);

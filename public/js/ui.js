@@ -207,17 +207,25 @@
     }
     return null;
   }
-  // a card's own recording when it has one (from an Anki deck), the system's voice otherwise
-  let playing = null;
+  /* A card's own recording when it has one (from an Anki deck), the system's voice otherwise.
+     Phones (Safari above all) play sound only when play() is called right inside a tap, not after waiting for the
+     recording to load. So the recording is loaded as soon as its card shows (speakBtn), one audio element is used
+     for everything (once it has played from a tap, it may play later, e.g. when a card turns), and when the recording
+     is not ready yet the element is still started inside the tap and given the recording when it comes. */
+  let player = null;
+  function play(url, text, lang) {
+    player ||= new Audio();
+    synth?.cancel();
+    player.pause();
+    if (url) player.src = url;
+    return player.play().catch(() => { if (url) say(text, lang); });
+  }
   function speak(text, lang, card) {
     if (!card?.audio || !A.media?.audio) return say(text, lang);
-    A.media.audio(card).then((u) => {
-      if (!u) { say(text, lang); return; }
-      synth?.cancel();
-      playing?.pause();
-      playing = new Audio(u);
-      playing.play().catch(() => say(text, lang));
-    });
+    const ready = A.media.audioNow(card);
+    if (ready) { play(ready, text, lang); return true; }
+    play('', text, lang); // inside the tap: the element may play when the recording comes
+    A.media.audio(card).then((u) => (u ? play(u, text, lang) : say(text, lang)));
     return true;
   }
   function say(text, lang) {
@@ -235,6 +243,7 @@
     return true;
   }
   function speakBtn(text, lang, cls = '', card = null) {
+    if (card?.audio) A.media?.audio(card); // ready by the time it is tapped
     return h('button', {
       class: 'speak ' + cls, type: 'button', title: A.t('common.listen'), 'aria-label': A.t('common.listen'),
       onclick: (e) => { e.stopPropagation(); speak(text, lang, card); },

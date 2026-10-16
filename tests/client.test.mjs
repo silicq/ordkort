@@ -122,3 +122,18 @@ test('CSV import reads Anki plain-text exports and semicolon files', () => {
   assert.deepEqual(parseCSV(excel).map((w) => [w.term, w.tr]), [['hund', 'dog'], ['katt', 'cat']]);
   assert.equal(parseCSV('only one column\nanother').length, 0);
 });
+
+test('a file (a recording, a photo) travels sealed with the copy’s key, its type with it', async () => {
+  const { App } = browser(['public/js/sync.js']);
+  const X = App.sync._test;
+  const secret = X.toB64(crypto.getRandomValues(new Uint8Array(32)));
+  const a = await X.derive(secret), b = await X.derive(secret);
+  const bytes = new Uint8Array([0x49, 0x44, 0x33, 4, 0, 0, 255, 0, 7]);
+  const box = await X.sealBytes(a.key, new Blob([bytes], { type: 'audio/mpeg' }));
+  assert.ok(!box.includes(X.toB64(bytes).slice(0, 8)), 'not readable on the server');
+  const back = await X.unsealBytes(b.key, box);
+  assert.equal(back.type, 'audio/mpeg');
+  assert.deepEqual([...new Uint8Array(await back.arrayBuffer())], [...bytes]);
+  const stranger = await X.derive(X.toB64(crypto.getRandomValues(new Uint8Array(32))));
+  await assert.rejects(X.unsealBytes(stranger.key, box), 'another copy’s key opens nothing');
+});
