@@ -183,7 +183,10 @@ test('files of a copy take from the same room in the database; one already there
 
 test('a body without Content-Length is cut off at the limit, not read whole', async () => {
   const chunk = new TextEncoder().encode('{"q":"' + 'a'.repeat(5000));
-  const body = new ReadableStream({ pull(c) { c.enqueue(chunk); } }); // never ends
+  // 100 KB in pieces, with no Content-Length: far over the 2 KB limit (a stream that never ends keeps Node writing
+  // after the answer and runs it out of memory)
+  let left = 20;
+  const body = new ReadableStream({ pull(c) { if (left-- > 0) c.enqueue(chunk); else c.close(); } });
   const r = await harness.fetch(BASE + '/api/images', {
     method: 'POST', body, duplex: 'half',
     headers: { 'CF-Connecting-IP': '203.0.113.7', 'Content-Type': 'application/json' },
