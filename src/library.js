@@ -1,7 +1,7 @@
 /* The library: decks people publish for everybody learning the same pair of languages.
 
-   Publishing is a choice (a deck shared by link stays unlisted). Before a deck is listed, Llama Guard reads its
-   title and words and looks at its cover; an unsafe deck is refused, and when the words cannot be checked nothing
+   Publishing is a choice (a deck shared by link stays unlisted). Before a deck is listed, a model told the
+   library's policy reads its title and words, and one that sees pictures looks at its cover (src/groq.js guard); an unsafe deck is refused, and when the words cannot be checked nothing
    is published (a cover that cannot be looked at is left out). Listed decks can be voted up or down, are counted when added, and can be reported: after
    REPORTS_TO_HIDE reports from different people a deck is hidden until the site's owner looks at it.
    The publisher keeps a token that lets them take the deck down; the site's owner can take down any deck, or any
@@ -27,11 +27,12 @@ const isAdmin = (request, env) => !!env.ADMIN_TOKEN && safeEqual(request.headers
    cover on its own. → { bad: the categories found unsafe ([] when all is well), cover: false when the cover could
    not be looked at (it is then left out) }. */
 export async function check(env, deck) {
-  const lines = [deck.title, ...deck.words.map((w) => [w.term, w.tr, w.ex, w.ex_tr].filter(Boolean).join(' — '))];
+  // the example's translation says what the example says: it is left out, so a piece stays within the free plan's limit
+  const lines = [deck.title, ...deck.words.map((w) => [w.term, w.tr, w.ex].filter(Boolean).join(' — '))];
   const pieces = [];
   let cur = '';
   for (const l of lines) {
-    if (cur.length + l.length > 12000) { pieces.push(cur); cur = ''; }
+    if (cur.length + l.length > 3500) { pieces.push(cur); cur = ''; }
     cur += l + '\n';
   }
   if (cur) pieces.push(cur);
