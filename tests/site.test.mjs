@@ -2,7 +2,7 @@
 // and server-side helpers clean untrusted input.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { existsSync, readdirSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import vm from 'node:vm';
 import { ROOT, read } from './helpers.mjs';
 import { str, int, norm, isCode, randomCode, safeEqual } from '../src/util.js';
@@ -155,6 +155,27 @@ test('the topic and word pages on disk are exactly what the generator writes, wi
     assert.equal(built.live.topics[ui].size, 29, `${ui}: every topic has a page`);
     assert.ok(built.live.words[ui].size >= 500, `${ui}: ${built.live.words[ui].size} words`);
   }
+});
+
+test('the topic pages offer their Anki decks, and the decks on disk are what scripts/anki-decks.mjs writes', async () => {
+  const { decks } = await import('../scripts/anki-decks.mjs');
+  const made = await decks(built.live);
+  const linked = new Set();
+  for (const [, html] of built.pages) for (const m of html.matchAll(/href="(\/anki\/[^"]+)" download/g)) linked.add(m[1]);
+  assert.deepEqual([...linked].sort(), [...made.keys()].sort(), 'every deck is linked, and every link has its deck');
+  for (const [p, bytes] of made) {
+    assert.ok(existsSync(new URL('public' + p, ROOT)), `public${p} is missing: run npm run decks`);
+    assert.ok(Buffer.from(bytes).equals(readFileSync(new URL('public' + p, ROOT))), `public${p} is out of date: run npm run decks`);
+  }
+  assert.deepEqual(readdirSync(new URL('public/anki/', ROOT)).map((f) => '/anki/' + f).filter((p) => !made.has(p)), []);
+  // the Polish deck with every topic: one note for each word of the pages, a guid that stays, a link back in the description
+  const { default: initSqlJs } = await import('sql.js');
+  const pkg = await globalThis.App.apkg.read(made.get(S.deckPath('pl')), { SQL: await initSqlJs(), zstd: () => { throw new Error('not zstd'); } });
+  const words = S.TOPIC_IDS.filter((id) => built.live.topics.pl.has(id)).reduce((n, id) => n + S.topicWords('pl', id).filter((x) => x.tr).length, 0);
+  assert.equal(pkg.notes.length, words);
+  assert.equal(Object.values(pkg.decks).filter((d) => d.length === 2).length, built.live.topics.pl.size);
+  const hus = pkg.notes.find((n) => n.fields[0] === 'et hus');
+  assert.deepEqual(hus.fields.slice(0, 7), ['et hus', 'dom', '', 'rzeczownik', 'huset, hus, husene', 'De bor i et rødt hus.', 'Mieszkają w czerwonym domu.']);
 });
 
 test('every page has its own title, description, canonical address and a single h1', () => {

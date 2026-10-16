@@ -25,7 +25,7 @@ const DATA = new URL('../data/seo/', import.meta.url);
 const PUBLIC = new URL('../public/', import.meta.url);
 const json = (name) => JSON.parse(readFileSync(new URL(name, DATA), 'utf8'));
 const dir = (name) => (existsSync(new URL(name, DATA)) ? readdirSync(new URL(name, DATA)).filter((f) => f.endsWith('.json')).sort() : []);
-const t = (ui, key) => App.i18nData[ui]?.[key] ?? UI[ui].names?.[key]; // Polish has no app interface of its own: its names are in seo-text.mjs
+export const t = (ui, key) => App.i18nData[ui]?.[key] ?? UI[ui].names?.[key]; // Polish has no app interface of its own: its names are in seo-text.mjs
 const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 const collator = new Intl.Collator('nb');
 
@@ -80,7 +80,7 @@ function formsTable(ui, a, lemma) {
 }
 
 // the few forms a flashcard shows: "huset, hus, husene", "er, var, har vært", "stort, store, større, størst"
-function keyForms(a, lemma) {
+export function keyForms(a, lemma) {
   if (!a) return '';
   // of two correct forms, the one textbooks teach first: "husene" rather than "husa"
   const first = (...k) => { const v = get(a, ...k).split(' / '); return v.find((x) => /ene$/.test(x)) || v[0]; };
@@ -109,10 +109,12 @@ const clean = (s) => String(s || '').replace(/(?<![\p{L}])([\p{L}]+(?:_[\p{L}]+)
 
 /* ---------- pages and their addresses ---------- */
 
-const topicsHubPath = (ui) => `/${ui}/${UI[ui].learn}/`;
-const topicPath = (ui, id) => `/${ui}/${UI[ui].learn}/${slug(translit(t(ui, 'topic.' + id), ui))}/`;
+export const topicsHubPath = (ui) => `/${ui}/${UI[ui].learn}/`;
+export const topicPath = (ui, id) => `/${ui}/${UI[ui].learn}/${slug(translit(t(ui, 'topic.' + id), ui))}/`;
 const dictHubPath = (ui) => `/${ui}/ordbok/${LEARN}/`;
 const wordPath = (ui, w) => `/${ui}/ordbok/${LEARN}/${slug(w)}/`;
+// the Anki decks of the topics, made by scripts/anki-decks.mjs: one per topic, and one with them all
+export const deckPath = (ui, id) => `/anki/ordkort-norsk-${ui}${id ? '-' + id : ''}.apkg`;
 const abs = (p) => SITE + p;
 // into the app with the language pair of the page: the first-run setup starts from it (public/js/views/onboarding.js)
 const invite = (ui) => (ui === LEARN ? `learn=${LEARN}` : `from=${ui}&amp;learn=${LEARN}`);
@@ -123,7 +125,7 @@ const EX = { en: 1, ru: 2, uk: 3, pl: 4 };
 const dictA = (ui, label) => (UI[ui].noDict ? '' : `<a href="${dictHubPath(ui)}">${esc(label)}</a>`);
 
 // topic word lists: the hand-made seed first, then words of the shared word bank it does not have yet
-function topicWords(ui, id) {
+export function topicWords(ui, id) {
   const seed = TOPICS.get(id).words.map((x) => {
     const lemma = lemmaOf(x.nb);
     const given = /^(en|ei|et)\s/.exec(x.nb)?.[1];
@@ -155,7 +157,7 @@ for (const [id, d] of TOPICS) for (const x of d.words) {
   if (!TOPICS_OF.get(l).includes(id)) TOPICS_OF.get(l).push(id);
 }
 const RANK = new Map(FREQ.map((f) => [f.w, f]));
-const TOPIC_IDS = App.topics.list.map((x) => x.id).filter((id) => TOPICS.has(id));
+export const TOPIC_IDS = App.topics.list.map((x) => x.id).filter((id) => TOPICS.has(id));
 
 /* ---------- counting a page's own words ---------- */
 
@@ -361,7 +363,7 @@ function topicPage(ui, id, live) {
           <li><div class="w">${link ? `<a href="${link}">${term}</a>` : term}${x.tr ? ` <span class="w-tr">${esc(x.tr)}</span>` : ''}</div>${f ? `<div class="w-forms"${nbA}>${esc(f)}</div>` : ''}<div class="w-ex"><span${nbA}>${esc(x.ex)}</span>${x.exTr ? ` <span class="ex-tr">${esc(x.exTr)}</span>` : ''}</div></li>`;
   }).join('')}
         </ul>
-${usesOrdbok ? `        <p class="t source">${esc(UI[ui].table.forms)}: <a href="https://ordbokene.no" rel="noopener">${esc(U.source)}</a></p>\n` : ''}      </section>
+${usesOrdbok ? `        <p class="t source">${esc(UI[ui].table.forms)}: <a href="https://ordbokene.no" rel="noopener">${esc(U.source)}</a></p>\n` : ''}${ankiLinks(ui, id, live)}      </section>
 ${sameGroup.length ? `      <nav class="t more" aria-label="${esc(U.otherTopics(t(ui, 'group.' + tp.group)))}">
         <h2>${esc(U.otherTopics(t(ui, 'group.' + tp.group)))}</h2>
         <ul class="chips">${sameGroup.map((x) => `<li><a href="${topicPath(ui, x)}">${App.topics.get(x).emoji} ${esc(t(ui, 'topic.' + x))}</a></li>`).join('')}</ul>
@@ -380,6 +382,16 @@ ${sameGroup.length ? `      <nav class="t more" aria-label="${esc(U.otherTopics(
     },
   ];
   return { path, title, desc, alternates, body, graph, crumbs: [[U.home, `/${ui}/`], [U.topicsHub, topicsHubPath(ui)], [name, path]] };
+}
+
+// a topic's deck and the deck of every topic, for the languages that have deck names
+function ankiLinks(ui, id, live) {
+  const U = UI[ui];
+  if (!U.ankiRoot) return '';
+  const own = id ? `<a href="${deckPath(ui, id)}" download>${esc(U.ankiTopic)}</a>` : '';
+  return `        <p class="t links">${own}<a href="${deckPath(ui)}" download>${esc(U.ankiAll(live.topics[ui].size))}</a></p>
+        <p class="t source">${esc(U.ankiNote)}</p>
+`;
 }
 
 /* ---------- the two hubs ---------- */
@@ -403,7 +415,7 @@ ${App.topics.groups.map((g) => {
         </ul>
       </section>`;
   }).filter(Boolean).join('\n')}
-      ${U.noDict ? '' : `<p class="t links">${dictA(ui, U.alsoDict)}</p>`}`;
+${ankiLinks(ui, null, live)}      ${U.noDict ? '' : `<p class="t links">${dictA(ui, U.alsoDict)}</p>`}`;
   const title = U.topicsTitle(ids.length);
   const desc = U.topicsDesc(ids.length, total);
   const alternates = Object.fromEntries(UIS.filter((u) => live.topics[u].size).map((u) => [u, topicsHubPath(u)]));

@@ -11,6 +11,7 @@
     "pretest": "node scripts/build.mjs",
     "test": "node --test \"tests/*.test.mjs\"",
     "seo": "node scripts/seo-pages.mjs",
+    "decks": "node scripts/anki-decks.mjs",
     "landing": "node scripts/seo-pages.mjs",
     "seo:bank": "node scripts/export-bank.mjs",
     "seo:ordbok": "node scripts/fetch-ordbok.mjs",
