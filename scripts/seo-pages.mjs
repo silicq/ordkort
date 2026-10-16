@@ -25,7 +25,7 @@ const DATA = new URL('../data/seo/', import.meta.url);
 const PUBLIC = new URL('../public/', import.meta.url);
 const json = (name) => JSON.parse(readFileSync(new URL(name, DATA), 'utf8'));
 const dir = (name) => (existsSync(new URL(name, DATA)) ? readdirSync(new URL(name, DATA)).filter((f) => f.endsWith('.json')).sort() : []);
-const t = (ui, key) => App.i18nData[ui][key];
+const t = (ui, key) => App.i18nData[ui]?.[key] ?? UI[ui].names?.[key]; // Polish has no app interface of its own: its names are in seo-text.mjs
 const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 const collator = new Intl.Collator('nb');
 
@@ -117,6 +117,10 @@ const abs = (p) => SITE + p;
 // into the app with the language pair of the page: the first-run setup starts from it (public/js/views/onboarding.js)
 const invite = (ui) => (ui === LEARN ? `learn=${LEARN}` : `from=${ui}&amp;learn=${LEARN}`);
 const lang = (ui) => Landing.PAGES[ui];
+// where each language's translation stands in an example: [nb, en, ru, uk, pl]
+const EX = { en: 1, ru: 2, uk: 3, pl: 4 };
+// a link to the dictionary, if this interface language has one (Polish does not yet)
+const dictA = (ui, label) => (UI[ui].noDict ? '' : `<a href="${dictHubPath(ui)}">${esc(label)}</a>`);
 
 // topic word lists: the hand-made seed first, then words of the shared word bank it does not have yet
 function topicWords(ui, id) {
@@ -126,7 +130,7 @@ function topicWords(ui, id) {
     const a = article(lemma, x.pos, GENDER_OF[given]);
     // the article Bokmålsordboka gives the noun wins over the one in the seed
     const term = given && x.pos === 'noun' && a?.g.length && !a.g.includes(GENDER_OF[given]) ? `${ART[a.g[0]]} ${lemma}` : x.nb;
-    return { term, lemma, pos: x.pos, a, tr: ui === 'nb' ? '' : x[ui], ex: x.ex[0], exTr: ui === 'nb' ? '' : x.ex[['en', 'ru', 'uk'].indexOf(ui) + 1] };
+    return { term, lemma, pos: x.pos, a, tr: ui === 'nb' ? '' : x[ui], ex: x.ex[0], exTr: ui === 'nb' ? '' : x.ex[EX[ui]] };
   });
   const seen = new Set(seed.map((x) => x.lemma.toLowerCase()));
   const natives = ui === 'nb' ? Object.keys(BANK) : [ui];
@@ -212,7 +216,7 @@ ${alt.filter((u) => u !== ui).map((u) => `  <meta property="og:locale:alternate"
   <div class="wrap">
     <header class="top">
       <a class="brand" href="/${ui}/">${LOGO}<span>ordkort</span></a>
-      <nav class="sections" aria-label="Ordkort"><a href="${topicsHubPath(ui)}">${esc(U.topicsHub)}</a><a href="${dictHubPath(ui)}">${esc(U.dictHub)}</a></nav>
+      <nav class="sections" aria-label="Ordkort"><a href="${topicsHubPath(ui)}">${esc(U.topicsHub)}</a>${dictA(ui, U.dictHub)}</nav>
       ${alt.length > 1 ? `<ul class="langs">${alt.map((u) => `<li><a href="${alternates[u]}" hreflang="${lang(u).hreflang}" lang="${lang(u).htmlLang}"${u === ui ? ' aria-current="page"' : ''}>${esc(lang(u).name)}</a></li>`).join('')}</ul>` : ''}
     </header>
     <nav class="crumbs" aria-label="${esc(U.crumbs)}"><ol>${crumbs.map(([name, p], i) => (i === crumbs.length - 1
@@ -224,7 +228,7 @@ ${body}
     <footer>
       <a href="/${ui}/">Ordkort</a>
       <a href="${topicsHubPath(ui)}">${esc(U.topicsHub)}</a>
-      <a href="${dictHubPath(ui)}">${esc(U.dictHub)}</a>
+      ${dictA(ui, U.dictHub)}
       <a href="/#/about">${esc(t(ui, 'foot.about') || 'About')}</a>
       <a href="https://github.com/silicq/ordkort" rel="noopener">GitHub</a>
     </footer>
@@ -245,7 +249,7 @@ function wordPage(ui, w, live) {
   const forms = keyForms(a, w);
   const table = formsTable(ui, a, w);
   const nbA = lang(ui).rtl ? ' lang="nb" dir="ltr"' : ' lang="nb"';
-  const exIdx = { en: 1, ru: 2, uk: 3 }[ui];
+  const exIdx = EX[ui];
   const ofc = a ? { senses: a.senses.slice(0, 5), expr: a.expr.slice(0, 5), compounds: a.compounds.slice(0, 8) } : null;
 
   // related: words of the same topics first, then words of the same class close in frequency
@@ -361,7 +365,7 @@ ${usesOrdbok ? `        <p class="t source">${esc(UI[ui].table.forms)}: <a href=
 ${sameGroup.length ? `      <nav class="t more" aria-label="${esc(U.otherTopics(t(ui, 'group.' + tp.group)))}">
         <h2>${esc(U.otherTopics(t(ui, 'group.' + tp.group)))}</h2>
         <ul class="chips">${sameGroup.map((x) => `<li><a href="${topicPath(ui, x)}">${App.topics.get(x).emoji} ${esc(t(ui, 'topic.' + x))}</a></li>`).join('')}</ul>
-        <p class="t links"><a href="${topicsHubPath(ui)}">${esc(U.allTopics)}</a><a href="${dictHubPath(ui)}">${esc(U.alsoDict)}</a></p>
+        <p class="t links"><a href="${topicsHubPath(ui)}">${esc(U.allTopics)}</a>${dictA(ui, U.alsoDict)}</p>
       </nav>` : ''}`;
 
   const alternates = Object.fromEntries(UIS.filter((u) => live.topics[u].has(id)).map((u) => [u, topicPath(u, id)]));
@@ -399,7 +403,7 @@ ${App.topics.groups.map((g) => {
         </ul>
       </section>`;
   }).filter(Boolean).join('\n')}
-      <p class="t links"><a href="${dictHubPath(ui)}">${esc(U.alsoDict)}</a></p>`;
+      ${U.noDict ? '' : `<p class="t links">${dictA(ui, U.alsoDict)}</p>`}`;
   const title = U.topicsTitle(ids.length);
   const desc = U.topicsDesc(ids.length, total);
   const alternates = Object.fromEntries(UIS.filter((u) => live.topics[u].size).map((u) => [u, topicsHubPath(u)]));

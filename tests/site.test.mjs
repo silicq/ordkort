@@ -179,7 +179,7 @@ test('every page has its own title, description, canonical address and a single 
 });
 
 test('hreflang alternates exist, point back to each other and use valid codes', () => {
-  const codes = new Set(['en', 'ru', 'uk', 'nb', 'ar', 'zh-Hans', 'x-default']);
+  const codes = new Set(['en', 'ru', 'uk', 'nb', 'ar', 'zh-Hans', 'pl', 'x-default']);
   const alt = (html) => [...html.matchAll(/<link rel="alternate" hreflang="([^"]+)" href="([^"]+)">/g)].map((m) => [m[1], m[2]]);
   for (const [f, html] of built.pages) {
     const own = one(html, /<link rel="canonical" href="([^"]+)">/);

@@ -10,12 +10,14 @@ const POS = {
   ru: { noun: 'существительное', verb: 'глагол', adjective: 'прилагательное', adverb: 'наречие', preposition: 'предлог', pronoun: 'местоимение', determiner: 'определитель', conjunction: 'союз', numeral: 'числительное', interjection: 'междометие', particle: 'частица инфинитива', phrase: 'выражение' },
   uk: { noun: 'іменник', verb: 'дієслово', adjective: 'прикметник', adverb: 'прислівник', preposition: 'прийменник', pronoun: 'займенник', determiner: 'означальне слово', conjunction: 'сполучник', numeral: 'числівник', interjection: 'вигук', particle: 'частка інфінітива', phrase: 'вираз' },
   nb: { noun: 'substantiv', verb: 'verb', adjective: 'adjektiv', adverb: 'adverb', preposition: 'preposisjon', pronoun: 'pronomen', determiner: 'determinativ', conjunction: 'konjunksjon', numeral: 'tallord', interjection: 'interjeksjon', particle: 'infinitivsmerke', phrase: 'uttrykk' },
+  pl: { noun: 'rzeczownik', verb: 'czasownik', adjective: 'przymiotnik', adverb: 'przysłówek', preposition: 'przyimek', pronoun: 'zaimek', determiner: 'określnik', conjunction: 'spójnik', numeral: 'liczebnik', interjection: 'wykrzyknik', particle: 'znacznik bezokolicznika', phrase: 'wyrażenie' },
 };
 const GENDER = {
   en: { Masc: 'masculine', Fem: 'feminine', Neuter: 'neuter' },
   ru: { Masc: 'мужской род', Fem: 'женский род', Neuter: 'средний род' },
   uk: { Masc: 'чоловічий рід', Fem: 'жіночий рід', Neuter: 'середній рід' },
   nb: { Masc: 'hankjønn', Fem: 'hunkjønn', Neuter: 'intetkjønn' },
+  pl: { Masc: 'rodzaj męski', Fem: 'rodzaj żeński', Neuter: 'rodzaj nijaki' },
 };
 const TABLE = {
   en: {
@@ -41,6 +43,12 @@ const TABLE = {
     inf: 'Infinitiv', pres: 'Presens', past: 'Preteritum', perf: 'Presens perfektum', imp: 'Imperativ', pass: 'Passiv',
     mf: 'Hankjønn / hunkjønn', n: 'Intetkjønn', defsg: 'Bestemt form', plur: 'Flertall', cmp: 'Komparativ', sup: 'Superlativ', supdef: 'Superlativ, bestemt',
     forms: 'Former',
+  },
+  pl: {
+    sg: 'Liczba pojedyncza', pl: 'Liczba mnoga', ind: 'Forma nieokreślona', def: 'Forma określona',
+    inf: 'Bezokolicznik', pres: 'Czas teraźniejszy', past: 'Czas przeszły', perf: 'Perfekt', imp: 'Tryb rozkazujący', pass: 'Strona bierna',
+    mf: 'Rodzaj męski / żeński', n: 'Rodzaj nijaki', defsg: 'Forma określona', plur: 'Liczba mnoga', cmp: 'Stopień wyższy', sup: 'Stopień najwyższy', supdef: 'Stopień najwyższy, forma określona',
+    forms: 'Formy',
   },
 };
 
@@ -187,12 +195,63 @@ export const UI = {
     hubsH: 'Norsk, klart til å leses',
     hubsP: 'Gloser etter tema og de 500 vanligste ordene – med bøyning og eksempler, rett her på siden.',
   },
+  /* Polish: the largest group learning Norwegian in Norway. Topic lists only for now (the dictionary has no Polish
+     yet, and noDict hides its links); the app has no hand-made Polish interface, so the names it would give are here. */
+  pl: {
+    learn: 'norweski', noDict: true,
+    pos: POS.pl, gender: GENDER.pl, table: TABLE.pl, source: SOURCE,
+    home: 'Ordkort', topicsHub: 'Norweski według tematów', dictHub: 'Słownik norweski',
+    topicsTitle: (n) => `Norweski: słówka według tematów — ${n} list | Ordkort`,
+    topicsH1: 'Norweskie słówka według tematów',
+    topicsDesc: (n, w) => `${n} list norweskich słówek według tematów — ${w} słów z tłumaczeniem na polski, formami i przykładami: od powitań po urząd skarbowy. Za darmo, bez rejestracji.`,
+    topicsIntro: [
+      'Każda lista zbiera norweskie słowa, które są potrzebne najpierw w jednej dziedzinie życia: przy stole, u lekarza, w pracy, w autobusie. Każde słowo ma tłumaczenie na polski, formy, których wymaga każdy podręcznik, i krótkie zdanie z przykładem.',
+      'Rzeczowniki podajemy z rodzajnikiem (en, ei albo et), czasowniki z czasem przeszłym i perfektem. Formy są sprawdzone w Bokmålsordboka, oficjalnym słowniku bokmålu.',
+    ],
+    dictTitle: (n) => `Słownik norwesko-polski: ${n} częstych słów | Ordkort`,
+    dictH1: (n) => `Słownik norwesko-polski: ${n} najczęstszych słów`,
+    dictDesc: (n) => `${n} najczęstszych słów norweskiego (bokmål) od A do Å: tłumaczenie na polski, tabele odmiany, przykłady i typowe błędy.`,
+    dictIntro: [
+      'Te słowa stanowią większość każdego norweskiego tekstu: małe og, på i som oraz najpotrzebniejsze czasowniki, rzeczowniki i przymiotniki. Znać je dobrze to więcej niż pamiętać tysiące rzadkich.',
+      'Każde hasło ma formy z Bokmålsordboka, przykłady z tłumaczeniem i krótką uwagę o tym, gdzie uczący się najczęściej popełniają błędy.',
+    ],
+    groupsH: 'Tematy', words: (n) => `${n} ${plural(n, 'słowo', 'słowa', 'słów', 'pl')}`, wordsH: 'Słowa', allTopics: 'Wszystkie tematy',
+    otherTopics: (g) => `Więcej w dziale „${g}”`, alsoDict: '500 najczęstszych norweskich słów', alsoTopics: 'Norweskie słówka według tematów',
+    thWord: 'Po norwesku', thTr: 'Tłumaczenie', thForms: 'Formy', thEx: 'Przykład',
+    topicTitle: (t) => (t.length > 22 ? `${t} po norwesku – słówka` : `${t} po norwesku: słówka z tłumaczeniem`), // about 60 characters at most
+    topicH1: (t) => `${t}: norweskie słówka`,
+    topicDesc: (t, n, sample) => `${n} norweskich słówek na temat „${t}” z tłumaczeniem na polski, formami i przykładami: ${sample}…`,
+    ctaTopic: 'Ucz się tych słów z fiszkami',
+    wordTitle: (w) => `${w} — tłumaczenie z norweskiego, formy i przykłady`,
+    wordDesc: (w, pos, tr, forms) => `${w} — słowo norweskie (${pos}): ${tr}.${forms ? ` Formy: ${forms}.` : ''} Przykłady z tłumaczeniem i wskazówki dla uczących się.`,
+    ctaWord: (w) => `Ucz się „${w}” w Ordkort`,
+    phH: 'Przydatne zwroty', plain: 'Prostymi słowami po norwesku', examplesH: 'Przykłady', noteH: 'Warto wiedzieć', formsH: 'Formy',
+    officialH: 'W słowniku Bokmålsordboka', exprH: 'Stałe wyrażenia', compoundsH: 'Wyrazy złożone', relatedH: 'Podobne słowa', inTopicsH: 'W tematach',
+    prev: 'Poprzednie słowo', next: 'Następne słowo', letters: 'Słowa według liter', crumbs: 'Ścieżka nawigacji',
+    trLang: 'polski',
+    hubsH: 'Norweski do czytania od razu',
+    hubsP: 'Listy norweskich słówek według tematów — z tłumaczeniem na polski, formami i przykładami, bez instalowania i rejestracji.',
+    names: {
+      'topic.greetings': 'Powitania i grzeczność', 'topic.core': 'Najczęstsze słowa', 'topic.numbers': 'Liczby i ilości',
+      'topic.time': 'Czas i kalendarz', 'topic.colors': 'Kolory i kształty', 'topic.questions': 'Pytania i spójniki',
+      'topic.family': 'Rodzina', 'topic.body': 'Ciało i zdrowie', 'topic.feelings': 'Uczucia i charakter', 'topic.clothes': 'Ubrania',
+      'topic.home': 'Dom', 'topic.food': 'Jedzenie i napoje', 'topic.cooking': 'Kuchnia i gotowanie', 'topic.shopping': 'Zakupy i pieniądze',
+      'topic.city': 'Miasto i transport', 'topic.nature': 'Przyroda i pogoda', 'topic.animals': 'Zwierzęta', 'topic.travel': 'Podróże',
+      'topic.hobby': 'Sport i hobby', 'topic.culture': 'Kultura i sztuka', 'topic.work': 'Praca i zawody', 'topic.study': 'Szkoła i studia',
+      'topic.tech': 'Technologia', 'topic.doctor': 'U lekarza', 'topic.official': 'Dokumenty i urzędy',
+      'topic.verbs': 'Najważniejsze czasowniki', 'topic.adjectives': 'Najważniejsze przymiotniki', 'topic.preps': 'Przyimki i przysłówki', 'topic.phrases': 'Zwroty i idiomy',
+      'group.start': 'Pierwsze kroki', 'group.people': 'Ludzie', 'group.daily': 'Życie codzienne', 'group.world': 'Świat wokół nas',
+      'group.society': 'Praca i społeczeństwo', 'group.grammar': 'Gramatyka',
+      'foot.about': 'Jak to działa',
+    },
+  },
 };
 export const UIS = Object.keys(UI);
 
-function plural(n, one, few, many) {
+// Russian and Ukrainian: 1 and 21 слово; Polish: only 1 is słowo, 21 is słów
+function plural(n, one, few, many, lang) {
   const m10 = n % 10, m100 = n % 100;
-  if (m10 === 1 && m100 !== 11) return one;
+  if (lang === 'pl' ? n === 1 : m10 === 1 && m100 !== 11) return one;
   if (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) return few;
   return many;
 }
@@ -205,6 +264,7 @@ const CYR = {
 };
 const UKR = { ...CYR, г: 'h', ґ: 'g', и: 'y', і: 'i', ї: 'yi', є: 'ye', х: 'kh', щ: 'shch', '’': '', "'": '' };
 export const translit = (s, lang) => {
+  if (lang === 'pl') return s.toLowerCase().replace(/ł/g, 'l'); // "Ciało i zdrowie" → cialo-i-zdrowie (ł does not decompose)
   const map = lang === 'uk' ? UKR : CYR;
   return s.toLowerCase().replace(/&/g, ' and ').replace(/./g, (c) => (c in map ? map[c] : c));
 };

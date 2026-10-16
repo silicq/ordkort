@@ -295,6 +295,52 @@ export const PAGES = {
     endP: '选择你会的语言和想学的语言——一分钟内第一批卡片就准备好。',
     langNav: '本页语言',
   },
+  pl: {
+    hreflang: 'pl', htmlLang: 'pl', locale: 'pl_PL', name: 'Polski',
+    title: 'Ordkort — ucz się języków z fiszkami, za darmo i bez reklam',
+    desc: 'Darmowe fiszki z powtórkami w odstępach dla 60 języków: gotowe listy słówek według tematów, słownik, gramatyka i tłumacz, który wyjaśnia każde słowo. Bez reklam i bez rejestracji.',
+    h1: 'Ucz się dowolnego języka z fiszkami',
+    lede: 'Ordkort daje gotowe listy słówek do twojego tematu i poziomu, przypomina każde słowo tuż przed tym, zanim je zapomnisz, i wyjaśnia gramatykę, która za nim stoi. Za darmo, bez reklam i bez konta.',
+    cta: 'Zacznij naukę',
+    note: 'Za darmo · Bez rejestracji · Bez reklam · Działa offline',
+    sample: [['niemiecki', 'der Hund', 'pies'], ['hiszpański', 'la casa', 'dom'], ['norweski', 'et eple', 'jabłko']],
+    featuresH: 'Wszystko do nauki słówek w jednym miejscu',
+    features: [
+      ['Powtórki w odstępach', 'Fiszki wracają dokładnie wtedy, gdy masz je zapomnieć (FSRS, ten sam algorytm co w Anki). Sześć sposobów ćwiczenia: odwracanie fiszek, wybór odpowiedzi, wpisywanie, słuchanie, uzupełnianie luki w przykładzie albo wszystko naraz.'],
+      ['Gotowe listy słówek', '29 tematów od powitań po dokumenty i urzędy, na poziomach A1–C1. AI wybiera częste, przydatne słowa; jedno dotknięcie dodaje dwadzieścia kolejnych. Możesz też dodać własne słowa albo zaimportować je z Anki lub CSV.'],
+      ['Słowa sprawdzone w słownikach', 'Rzeczowniki i czasowniki są sprawdzane w prawdziwych słownikach: w oficjalnych słownikach norweskich (ordbokene.no), a dla innych języków w Wiktionary — rodzajnik, rodzaj i formy.'],
+      ['Słownik dla uczących się', 'Tłumaczenie, tabele odmiany, znaczenia z przykładami, stałe wyrażenia i wyrazy złożone. Dla norweskiego obok widać oficjalne hasła bokmål i nynorsk.'],
+      ['Podręcznik gramatyki', '15 rozdziałów — rzeczowniki, przymiotniki, czasowniki, szyk zdania i więcej — z tabelami, przykładami, typowymi błędami i ćwiczeniami. Zadaj dowolne pytanie o gramatykę własnymi słowami.'],
+      ['Tłumacz, który wyjaśnia', 'Każde słowo tłumaczenia jest oznaczone kolorem części mowy, z formą i regułą, która wyjaśnia, dlaczego stoi właśnie tam.'],
+      ['Czytanie', 'Wklej artykuł, wiadomość albo tekst piosenki i dotknij dowolnego słowa, żeby zobaczyć, co znaczy w tym zdaniu — i dodaj je do swoich fiszek.'],
+      ['Postępy na każdym urządzeniu', 'Statystyki, cel dzienny i seria dni. Synchronizuj urządzenia bez konta, z szyfrowaniem end-to-end. Działa offline i instaluje się jak aplikacja.'],
+      ['Anki w obie strony', 'Zaimportuj plik .apkg z dowolnego Anki razem z obrazkami i, jeśli chcesz, postępami. Wyeksportuj talie jako .apkg, który otworzy Anki, z postępami i obrazkami. CSV w obie strony i talie udostępniane przez link albo kod QR.'],
+      ['Obrazki i własny wygląd', 'Darmowy obrazek na wolnej licencji do każdego słowa, znaleziony po słowie w jego własnym języku, albo twoje zdjęcie. Zmień wygląd fiszek i całej strony szablonem w HTML i CSS; skrypty nigdy się nie uruchamiają.'],
+      ['Lepsze zapamiętywanie', 'Dwie odpowiedzi albo cztery (Znowu, Trudne, Dobrze, Łatwe), własny docelowy poziom zapamiętania i odkładanie słów, które ciągle umykają. „Co idzie nie tak” czyta twoje odpowiedzi i pokazuje, co zmienić.'],
+      ['Twoja własna AI przez MCP', 'Podłącz Claude, ChatGPT albo innego asystenta do ordkort.com/mcp i poproś o talię z obrazkami albo nowy wygląd. Odpowie linkiem, który doda ją tylko wtedy, gdy się zgodzisz, i nigdy nie widzi twoich fiszek.'],
+    ],
+    honestH: 'Uczciwie z założenia',
+    honest: [
+      'Bez reklam, bez śledzenia i bez konta. Twoje fiszki i postępy są zapisane w przeglądarce; synchronizacja między urządzeniami jest szyfrowana na urządzeniu, więc serwer nigdy ich nie widzi.',
+      'Ordkort ma otwarty kod źródłowy (AGPL-3.0). Odpowiedzi AI są wspólne: to, o co ktoś już zapytał, otwiera się od razu dla następnej osoby — dzięki temu strona pozostaje darmowa.',
+    ],
+    how: 'Jak to działa', source: 'Kod źródłowy na GitHubie',
+    languagesH: '60 języków',
+    languagesP: 'Ucz się dowolnego z nich z dowolnego innego:',
+    faqH: 'Pytania',
+    faq: [
+      ['Czy Ordkort jest naprawdę darmowy?', 'Tak. Nie ma reklam, subskrypcji ani płatnej wersji. Funkcje AI mają dzienny limit na osobę, który w zupełności wystarcza do codziennej nauki.'],
+      ['Czy potrzebuję konta?', 'Nie. Otwórz stronę i zacznij. Fiszki zostają w przeglądarce; żeby używać ich na kilku urządzeniach, połącz je jednorazowym kodem albo kodem QR — bez e-maila i bez hasła.'],
+      ['Jakich języków mogę się uczyć?', 'Sześćdziesięciu, z każdego na każdy: norweskiego, angielskiego, niemieckiego, hiszpańskiego, francuskiego, chińskiego, arabskiego, ukraińskiego i wielu innych. Interfejs jest po angielsku, rosyjsku, ukraińsku, norwesku, arabsku i chińsku; pozostałe języki interfejsu są tłumaczone automatycznie.'],
+      ['Czym różni się od Anki albo Quizleta?', 'Ordkort ma gotowe listy słówek do każdego tematu i poziomu, a do tego wbudowany słownik, podręcznik gramatyki, tłumacza i tryb czytania. Używa tego samego algorytmu FSRS co Anki, a talie przechodzą w obie strony: zaimportuj .apkg z obrazkami i postępami, wyeksportuj talie jako .apkg, który otworzy Anki.'],
+      ['Czy działa offline?', 'Tak. Po pierwszym otwarciu strona zachowuje kopię, więc fiszki otwierają się bez internetu. Słownik, gramatyka, tłumacz i czytanie potrzebują połączenia, poza hasłami, które już otwierałeś.'],
+      ['Skąd pochodzą słowa i wyjaśnienia?', 'Pisze je AI, a potem są sprawdzane: norweskie w oficjalnych słownikach Rady Języka Norweskiego i Uniwersytetu w Bergen, pozostałe języki w Wiktionary. Każde hasło można zgłosić jako błąd bezpośrednio na stronie.'],
+      ['Czy moja własna AI może robić dla mnie talie?', 'Tak. Ordkort jest serwerem MCP: podłącz Claude, ChatGPT albo innego asystenta do ordkort.com/mcp (w ustawieniach aplikacji jest opis). Poproś o talię na dowolny temat, z obrazkami, albo o nowy wygląd strony; odpowie linkiem, który doda ją, gdy się zgodzisz. Nigdy nie widzi twoich fiszek.'],
+    ],
+    endH: 'Zacznij od pierwszych słów',
+    endP: 'Wybierz język, który znasz, i ten, którego chcesz się uczyć — pierwsze fiszki są gotowe w minutę.',
+    langNav: 'Język tej strony',
+  },
 };
 export const CODES = Object.keys(PAGES);
 export const url = (code) => `${SITE}/${code}/`;
@@ -484,7 +530,7 @@ ${ogAlt}
 ${SEO[code] ? `      <section>
         <h2>${esc(SEO[code].hubsH)}</h2>
         <p>${esc(SEO[code].hubsP)}</p>
-        <p class="links"><a href="/${code}/${SEO[code].learn}/">${esc(SEO[code].alsoTopics)}</a><a href="/${code}/ordbok/${LEARN}/">${esc(SEO[code].alsoDict)}</a>${TEACH[code] ? `<a href="${TEACH[code].path}">${esc(TEACH[code].nav)}</a>` : ''}</p>
+        <p class="links"><a href="/${code}/${SEO[code].learn}/">${esc(SEO[code].alsoTopics)}</a>${SEO[code].noDict ? '' : `<a href="/${code}/ordbok/${LEARN}/">${esc(SEO[code].alsoDict)}</a>`}${TEACH[code] ? `<a href="${TEACH[code].path}">${esc(TEACH[code].nav)}</a>` : ''}</p>
       </section>
 ` : ''}      <section>
         <h2>${esc(p.languagesH)}</h2>
