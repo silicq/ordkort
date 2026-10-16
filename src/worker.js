@@ -10,6 +10,7 @@ import * as images from './images.js';
 import * as voice from './voice.js';
 import * as library from './library.js';
 import * as mcp from './mcp.js';
+import * as preview from './preview.js';
 import { warmOne } from './warm.js';
 
 const DAILY = '17 3 * * *'; // the daily cron in wrangler.jsonc; the other one fills the word bank
@@ -55,6 +56,17 @@ export default {
           'Access-Control-Allow-Origin': '*', 'X-Content-Type-Options': 'nosniff',
         },
       });
+    }
+    // a shared deck or look by its own address: the app's page with a link preview of what is shared (src/preview.js)
+    const shared = preview.match(url.pathname);
+    if (shared) {
+      try {
+        await initDB(env.DB);
+        return await preview.page(request, env, shared);
+      } catch (e) {
+        console.error(e);
+        return env.ASSETS.fetch(new Request(new URL('/', request.url)));
+      }
     }
     if (!url.pathname.startsWith('/api/')) return env.ASSETS.fetch(request);
 

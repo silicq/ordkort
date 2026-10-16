@@ -246,6 +246,37 @@ test('MCP: handshake, tools, and a version the client asked for', async () => {
   assert.equal(g.status, 405);
 });
 
+test('a shared deck has its own address, and chat apps see what it is', async () => {
+  const cover = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==';
+  let r = await rpc({ jsonrpc: '2.0', id: 1, method: 'tools/call', params: { name: 'create_deck', arguments: {
+    title: 'Kjøkken', emoji: '🍴', target: 'nb', native: 'uk', level: 'A1',
+    cards: [{ term: 'en gaffel', translation: 'виделка' }, { term: 'en kniv', translation: 'ніж' }, { term: 'en skje', translation: 'ложка' }],
+  } } });
+  const id = r.body.result.structuredContent.url.slice(-8);
+  const page = await harness.fetch(BASE + '/s/' + id);
+  assert.equal(page.status, 200);
+  const html = await page.text();
+  assert.match(html, /<link rel="stylesheet" href="\/css\/style\.css">/, 'the app\'s own files still load under /s/');
+  assert.doesNotMatch(html, /src="js\//);
+  assert.match(html, /<meta name="robots" content="noindex">/);
+  assert.match(html, /property="og:title" content="🍴 Kjøkken: слів: 3, Norsk bokmål → Українська · A1"/);
+  assert.match(html, /property="og:description" content="en gaffel — виделка · en kniv — ніж · en skje — ложка Безкоштовні картки/);
+  assert.match(html, /property="og:url" content="https:\/\/ordkort\.com\/s\/[0-9A-Z]{8}"/);
+  assert.match(html, /<script src="\/js\/bundle\.js"><\/script>/, 'it is the app itself');
+  // a cover made on the device is served as a picture the preview can load
+  const res = await call('share', { method: 'POST', body: { deck: { title: 'Med bilde', target: 'nb', native: 'en', cover, words: [{ term: 'et hus', tr: 'house' }] } } });
+  const { id: withCover } = await res.json();
+  const html2 = await (await harness.fetch(BASE + '/s/' + withCover)).text();
+  assert.match(html2, new RegExp(`property="og:image" content="https://ordkort\.com/s/${withCover}/cover"`));
+  const pic = await harness.fetch(BASE + `/s/${withCover}/cover`);
+  assert.equal(pic.headers.get('content-type'), 'image/png');
+  assert.equal((await pic.arrayBuffer()).byteLength, Buffer.from(cover.split(',')[1], 'base64').length);
+  // an unknown code still opens the app, which says the deck is gone
+  const gone = await harness.fetch(BASE + '/s/ZZZZZZZZ');
+  assert.equal(gone.status, 200);
+  assert.match(await gone.text(), /og:title" content="Ordkort — learn any language/);
+});
+
 test('MCP: AI clients can find the server through the ARD catalog and its card', async () => {
   let r = await harness.fetch(BASE + '/.well-known/ai-catalog.json');
   assert.equal(r.status, 200);
@@ -271,7 +302,7 @@ test('MCP: a deck with pictures and a look become links that open them', async (
     cards: [{ term: 'en gaffel', translation: 'fork', image_url: 'https://example.org/fork.jpg', image_credit: 'Kari, CC BY 4.0' }, { term: 'en kniv', translation: 'knife' }, { term: '', translation: 'nothing' }],
   } } });
   const url = r.body.result.structuredContent.url;
-  assert.match(url, /^https:\/\/ordkort\.com\/#\/s\/[A-Za-z0-9]{8}$/);
+  assert.match(url, /^https:\/\/ordkort\.com\/s\/[A-Za-z0-9]{8}$/);
   assert.equal(r.body.result.structuredContent.cards, 2, 'a card without a word is dropped');
   let s = await call('share/' + url.slice(-8));
   const { deck } = await s.json();
@@ -285,7 +316,7 @@ test('MCP: a deck with pictures and a look become links that open them', async (
   const look = r.body.result.structuredContent.url;
   assert.match(r.body.result.content[0].text, /Powered by ordkort\.com/, 'the AI is asked to name the site');
   assert.equal(r.body.result.structuredContent.notes.length, 0, 'a tidy design has nothing to note');
-  assert.match(look, /#\/look\/[A-Za-z0-9]{8}$/);
+  assert.match(look, /\/look\/[A-Za-z0-9]{8}$/);
   s = await call('share/' + look.slice(-8));
   const d = (await s.json()).deck;
   assert.equal(d.kind, 'look');

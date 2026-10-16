@@ -395,7 +395,7 @@ async function callTool(name, a, env, key) {
     } catch (e) { return fail(e.code === 'empty' ? 'The deck has no cards with both a term and a translation.' : `Cannot make that deck: ${e.code || e.message}. Check the language codes.`); }
     await takeSimple(env, 'share', key, 20, 36e5);
     const id = await storeShare(env, key, deck);
-    const url = `${SITE}/#/s/${id}`;
+    const url = `${SITE}/s/${id}`; // its own address: chat apps show a preview of the deck (src/preview.js)
     return text(`The deck "${deck.title}" (${deck.words.length} cards) is ready. Opening this link adds it to the person's cards: ${url}\n${POWERED}`, { url, cards: deck.words.length });
   }
   if (name === 'create_design') {
@@ -408,7 +408,7 @@ async function callTool(name, a, env, key) {
     // a link is kept for a year: the same small hourly allowance as decks shared from the site
     await takeSimple(env, 'share', key, 20, 36e5);
     const id = await storeShare(env, key, look);
-    const url = `${SITE}/#/look/${id}`;
+    const url = `${SITE}/look/${id}`;
     const notes = designNotes(look);
     return text(`The look "${look.name}" is ready. Opening this link shows it and applies it if the person agrees: ${url}`
       + (notes.length ? `\n\nNotes (fix them with a new create_design if they matter):\n${notes.map((n) => '- ' + n).join('\n')}` : '')
