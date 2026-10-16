@@ -151,6 +151,8 @@ test('the topic and word pages on disk are exactly what the generator writes, wi
   for (const d of S.OWNED) if (existsSync(new URL('public/' + d, ROOT))) walk(d);
   assert.deepEqual(onDisk.filter((f) => !built.pages.has(f) && !built.embeds.has(f)), []);
   assert.ok(seoPages.length > 2000, `only ${seoPages.length} pages`);
+  // Arabic topic names are romanized by hand: every address stays plain ASCII
+  assert.deepEqual([...built.pages.keys(), ...built.embeds.keys()].filter((f) => /[^\x21-\x7e]/.test(f)), []);
   for (const ui of ['en', 'ru', 'uk', 'nb']) {
     assert.equal(built.live.topics[ui].size, 29, `${ui}: every topic has a page`);
     assert.ok(built.live.words[ui].size >= 500, `${ui}: ${built.live.words[ui].size} words`);
@@ -185,7 +187,7 @@ test('the cards for other sites: one frame per topic, framable anywhere, not ind
   assert.match(rule, /! X-Frame-Options/);
   assert.match(rule, /frame-ancestors \*/);
   assert.doesNotMatch(rule.split('frame-ancestors')[0], /'unsafe-inline'/, 'the frame runs no inline script or style');
-  for (const ui of ['en', 'ru', 'uk', 'pl']) assert.equal([...built.embeds.keys()].filter((f) => f.startsWith(`embed/${ui}/`)).length, built.live.topics[ui].size);
+  for (const ui of ['en', 'ru', 'uk', 'pl', 'ar']) assert.equal([...built.embeds.keys()].filter((f) => f.startsWith(`embed/${ui}/`)).length, built.live.topics[ui].size);
   for (const [f, html] of built.embeds) {
     assert.match(html, /<meta name="robots" content="noindex">/, f);
     assert.doesNotMatch(html, /<script>|style="/, `${f}: the frame's own rules allow no inline script or style`);

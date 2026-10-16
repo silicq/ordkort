@@ -11,6 +11,7 @@ const POS = {
   uk: { noun: 'іменник', verb: 'дієслово', adjective: 'прикметник', adverb: 'прислівник', preposition: 'прийменник', pronoun: 'займенник', determiner: 'означальне слово', conjunction: 'сполучник', numeral: 'числівник', interjection: 'вигук', particle: 'частка інфінітива', phrase: 'вираз' },
   nb: { noun: 'substantiv', verb: 'verb', adjective: 'adjektiv', adverb: 'adverb', preposition: 'preposisjon', pronoun: 'pronomen', determiner: 'determinativ', conjunction: 'konjunksjon', numeral: 'tallord', interjection: 'interjeksjon', particle: 'infinitivsmerke', phrase: 'uttrykk' },
   pl: { noun: 'rzeczownik', verb: 'czasownik', adjective: 'przymiotnik', adverb: 'przysłówek', preposition: 'przyimek', pronoun: 'zaimek', determiner: 'określnik', conjunction: 'spójnik', numeral: 'liczebnik', interjection: 'wykrzyknik', particle: 'znacznik bezokolicznika', phrase: 'wyrażenie' },
+  ar: { noun: 'اسم', verb: 'فعل', adjective: 'صفة', adverb: 'ظرف', preposition: 'حرف جر', pronoun: 'ضمير', determiner: 'محدِّد', conjunction: 'أداة ربط', numeral: 'عدد', interjection: 'أداة تعجّب', particle: 'علامة المصدر', phrase: 'عبارة' },
 };
 const GENDER = {
   en: { Masc: 'masculine', Fem: 'feminine', Neuter: 'neuter' },
@@ -18,6 +19,7 @@ const GENDER = {
   uk: { Masc: 'чоловічий рід', Fem: 'жіночий рід', Neuter: 'середній рід' },
   nb: { Masc: 'hankjønn', Fem: 'hunkjønn', Neuter: 'intetkjønn' },
   pl: { Masc: 'rodzaj męski', Fem: 'rodzaj żeński', Neuter: 'rodzaj nijaki' },
+  ar: { Masc: 'مذكّر', Fem: 'مؤنّث', Neuter: 'محايد' },
 };
 const TABLE = {
   en: {
@@ -49,6 +51,12 @@ const TABLE = {
     inf: 'Bezokolicznik', pres: 'Czas teraźniejszy', past: 'Czas przeszły', perf: 'Perfekt', imp: 'Tryb rozkazujący', pass: 'Strona bierna',
     mf: 'Rodzaj męski / żeński', n: 'Rodzaj nijaki', defsg: 'Forma określona', plur: 'Liczba mnoga', cmp: 'Stopień wyższy', sup: 'Stopień najwyższy', supdef: 'Stopień najwyższy, forma określona',
     forms: 'Formy',
+  },
+  ar: {
+    sg: 'المفرد', pl: 'الجمع', ind: 'النكرة', def: 'المعرفة',
+    inf: 'المصدر', pres: 'المضارع', past: 'الماضي', perf: 'الماضي التام', imp: 'الأمر', pass: 'المبني للمجهول',
+    mf: 'المذكّر / المؤنّث', n: 'المحايد', defsg: 'المعرفة', plur: 'الجمع', cmp: 'صيغة المقارنة', sup: 'صيغة التفضيل', supdef: 'صيغة التفضيل، معرفة',
+    forms: 'الصيغ',
   },
 };
 
@@ -279,6 +287,62 @@ export const UI = {
       'foot.about': 'Jak to działa',
     },
   },
+  /* Arabic: many in Norway came from Syria, Iraq and other Arabic-speaking countries. The topic names come from the
+     app's hand-made Arabic interface; the pages run right to left, the Norwegian in them left to right. The topic
+     addresses are romanized by hand (slugs): Arabic letters have no plain ASCII form. */
+  ar: {
+    learn: 'narwiji', noDict: true,
+    pos: POS.ar, gender: GENDER.ar, table: TABLE.ar, source: SOURCE,
+    home: 'Ordkort', topicsHub: 'النرويجية حسب الموضوع', dictHub: 'القاموس النرويجي',
+    topicsTitle: (n) => `كلمات نرويجية حسب الموضوع: ${arCount(n, 'قائمة', 'قائمتان', 'قوائم', 'قائمةً')} | Ordkort`,
+    topicsH1: 'كلمات نرويجية حسب الموضوع',
+    topicsDesc: (n, w) => `${arCount(n, 'قائمة', 'قائمتان', 'قوائم', 'قائمةً')} من الكلمات النرويجية حسب الموضوع — ${arCount(w, 'كلمة', 'كلمتان', 'كلمات', 'كلمة')} مع الترجمة العربية والصيغ والأمثلة: من التحيات إلى مصلحة الضرائب. مجانًا وبلا تسجيل.`,
+    topicsIntro: [
+      'تجمع كل قائمة الكلمات النرويجية التي تحتاجها أولًا في مجال واحد من الحياة: على المائدة، وعند الطبيب، وفي العمل، وفي الحافلة. لكل كلمة ترجمتها العربية، والصيغ التي يطلبها كل كتاب مدرسي، وجملة قصيرة تبيّن كيف تُستعمل.',
+      'نذكر الأسماء مع أداة التنكير (en أو ei أو et)، والأفعال مع الماضي والماضي التام. والصيغ مدقّقة في Bokmålsordboka، القاموس الرسمي للبوكمول.',
+    ],
+    dictTitle: (n) => `قاموس نرويجي عربي: ${arCount(n, 'كلمة', 'كلمتان', 'كلمات', 'كلمة')} شائعة | Ordkort`,
+    dictH1: (n) => `قاموس نرويجي عربي: أكثر ${arCount(n, 'كلمة', 'كلمتان', 'كلمات', 'كلمة')} شيوعًا`,
+    dictDesc: (n) => `أكثر ${arCount(n, 'كلمة', 'كلمتان', 'كلمات', 'كلمة')} شيوعًا في النرويجية (بوكمول) من A إلى Å: الترجمة العربية، وجداول التصريف، والأمثلة، والأخطاء الشائعة.`,
+    dictIntro: [
+      'هذه الكلمات تشكّل معظم أي نص نرويجي: الكلمات الصغيرة مثل og وpå وsom، وأكثر الأفعال والأسماء والصفات استعمالًا. أن تعرفها جيدًا أنفع من أن تحفظ آلاف الكلمات النادرة.',
+      'في كل مدخل الصيغ من Bokmålsordboka، وأمثلة مع ترجمتها، وملاحظة قصيرة عمّا يخطئ فيه المتعلّمون الناطقون بالعربية في الغالب.',
+    ],
+    groupsH: 'المواضيع', words: (n) => arCount(n, 'كلمة', 'كلمتان', 'كلمات', 'كلمة'), wordsH: 'الكلمات', allTopics: 'كل المواضيع',
+    otherTopics: (g) => `المزيد في «${g}»`, alsoDict: 'أكثر 500 كلمة نرويجية شيوعًا', alsoTopics: 'كلمات نرويجية حسب الموضوع',
+    thWord: 'بالنرويجية', thTr: 'الترجمة', thForms: 'الصيغ', thEx: 'مثال',
+    topicTitle: (t) => `${t} بالنرويجية: كلمات مع الترجمة`,
+    topicH1: (t) => `${t}: كلمات نرويجية`,
+    topicDesc: (t, n, sample) => `${arCount(n, 'كلمة', 'كلمتان', 'كلمات', 'كلمة')} نرويجية في موضوع «${t}» مع الترجمة العربية والصيغ والأمثلة: ${sample}…`,
+    ctaTopic: 'تعلّم هذه الكلمات بالبطاقات',
+    ankiRoot: 'النرويجية حسب الموضوع (ordkort.com)', ankiTopic: 'نزّل هذا الموضوع رزمةً لـ Anki', ankiAll: (n) => `كل المواضيع (${n}) في رزمة Anki واحدة`,
+    ankiNote: 'يُفتح ملف .apkg في Anki على الحاسوب وفي AnkiDroid وAnkiMobile. مجانًا، ككل شيء هنا.',
+    ankiDesc: (n) => `${arCount(n, 'كلمة', 'كلمتان', 'كلمات', 'كلمة')} نرويجية مع الترجمة العربية والصيغ وجملة مثال. من إعداد Ordkort، بطاقات تعليمية مجانية في المتصفح:`,
+    embed: {
+      title: (t) => `${t} بالنرويجية: بطاقات تعليمية`, flip: 'اضغط على البطاقة لترى الترجمة', prev: 'الكلمة السابقة', next: 'الكلمة التالية',
+      shuffle: 'اخلط', more: 'تعلّم هذه الكلمات في Ordkort', h: 'ضع هذه البطاقات في موقعك',
+      p: 'الصق هذا الرمز في صفحة من موقع مدرستك أو مدوّنتك. البطاقات تعمل على الهاتف، بلا تسجيل وبلا إعلانات.',
+    },
+    wordTitle: (w) => `${w} — الترجمة من النرويجية، الصيغ والأمثلة`,
+    wordDesc: (w, pos, tr, forms) => `${w} — كلمة نرويجية (${pos}): ${tr}.${forms ? ` الصيغ: ${forms}.` : ''} أمثلة مع الترجمة ونصائح للمتعلّمين.`,
+    ctaWord: (w) => `تعلّم «${w}» في Ordkort`,
+    phH: 'عبارات مفيدة', plain: 'بنرويجية بسيطة', examplesH: 'أمثلة', noteH: 'من المفيد أن تعرف', formsH: 'الصيغ',
+    officialH: 'في قاموس Bokmålsordboka', exprH: 'تعابير ثابتة', compoundsH: 'كلمات مركّبة', relatedH: 'كلمات قريبة', inTopicsH: 'في المواضيع',
+    prev: 'الكلمة السابقة', next: 'الكلمة التالية', letters: 'الكلمات حسب الحرف', crumbs: 'مسار التنقّل',
+    trLang: 'العربية',
+    hubsH: 'النرويجية جاهزة للقراءة',
+    hubsP: 'قوائم كلمات حسب الموضوع وأكثر 500 كلمة نرويجية شيوعًا — مع الترجمة العربية والصيغ والأمثلة، بلا تثبيت وبلا تسجيل.',
+    slugs: {
+      greetings: 'at-tahiyyat-wal-mujamala', core: 'al-kalimat-al-akthar-shuyuan', numbers: 'al-adad-wal-kammiyyat',
+      time: 'al-waqt-wat-taqwim', colors: 'al-alwan-wal-ashkal', questions: 'adawat-al-istifham-war-rabt',
+      family: 'al-aila', body: 'al-jism-was-sihha', feelings: 'al-mashair-wash-shakhsiyya', clothes: 'al-malabis',
+      home: 'al-manzil', food: 'at-taam-wash-sharab', cooking: 'al-matbakh-wat-tahy', shopping: 'at-tasawwuq-wal-mal',
+      city: 'al-madina-wal-muwasalat', nature: 'at-tabia-wat-taqs', animals: 'al-hayawanat', travel: 'as-safar',
+      hobby: 'ar-riyada-wal-hiwayat', culture: 'ath-thaqafa-wal-fann', work: 'al-amal-wal-mihan', study: 'al-madrasa-wal-jamia',
+      tech: 'at-teknolojia', doctor: 'inda-at-tabib', official: 'al-wathaiq-wal-khadamat-al-hukumiyya',
+      verbs: 'ahamm-al-afal', adjectives: 'ahamm-as-sifat', preps: 'huruf-al-jarr-waz-zuruf', phrases: 'ibarat-wa-taabir',
+    },
+  },
 };
 export const UIS = Object.keys(UI);
 
@@ -288,6 +352,15 @@ function plural(n, one, few, many, lang) {
   if (lang === 'pl' ? n === 1 : m10 === 1 && m100 !== 11) return one;
   if (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) return few;
   return many;
+}
+
+// Arabic counted nouns: 1 كلمة, 2 كلمتان, 3–10 كلمات, 11–99 the singular in the accusative (قائمةً), 100 and up
+// the plural after 103–110 and the plain singular otherwise
+function arCount(n, one, two, few, many) {
+  const m100 = n % 100;
+  if (n === 1) return one;
+  if (n === 2) return two;
+  return `${n} ${m100 >= 3 && m100 <= 10 ? few : n < 100 ? many : one}`;
 }
 
 // Cyrillic topic names in URLs: Russian and Ukrainian transliteration ("Еда и напитки" → "eda-i-napitki",

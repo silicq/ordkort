@@ -28,9 +28,11 @@
     for (let k = words.length - 1; k > 0; k--) { const j = Math.floor(Math.random() * (k + 1)); [words[k], words[j]] = [words[j], words[k]]; }
     i = 0; back = false; show();
   });
+  // the next card lies to the right, or to the left on a right-to-left page
+  const ahead = document.documentElement.dir === 'rtl' ? 'ArrowLeft' : 'ArrowRight';
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'ArrowRight') go(1);
-    else if (e.key === 'ArrowLeft') go(-1);
+    if (e.key === ahead) go(1);
+    else if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') go(-1);
   });
   show();
 })();
