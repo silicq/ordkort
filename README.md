@@ -67,6 +67,11 @@ Ordkort is a lightweight site for learning almost any language from almost any o
   (the speaker button then plays the card's own audio) and, if you want, its progress; export your decks as an
   `.apkg` Anki opens, with progress (FSRS memory state included), pictures and recordings. CSV in and out, and
   sharing a deck by link or QR code — only the words, never your progress.
+- **A voice for every card**: a card without a recording of its own plays a native speaker's recording from
+  Wiktionary (Lingua Libre and others on Wikimedia Commons) or, with a `GOOGLE_TTS_KEY`, a synthetic voice within a
+  daily budget of characters; each word is fetched once for everybody. The device's voice remains a choice in Settings.
+- **Fitted to your memory**: Settings → *Fit to my memory* finds the FSRS weights from your own answers on the device
+  (learnt on the earlier answers, kept only when they predict the later ones better than the defaults).
 - **Empty fields filled in**: an imported deck without examples or grammar, or with a translation that is not one,
   is completed by the AI 20 cards per request (one of the day's AI requests); words the shared bank already has
   cost nothing, and only empty fields change.
@@ -230,7 +235,8 @@ GitHub Actions runs them on every push and pull request.
    repository. Leave the build command empty; the deploy command is `npx wrangler deploy`.
 2. After the first deploy: Worker → **Settings** → **Variables and Secrets** → add the secret
    `GROQ_API_KEY` (and optionally `IP_SALT`, any long random string, and `PIXABAY_KEY`, a free
-   [Pixabay API key](https://pixabay.com/api/docs/) that adds Pixabay to the picture search).
+   [Pixabay API key](https://pixabay.com/api/docs/) that adds Pixabay to the picture search, and `GOOGLE_TTS_KEY`, a
+   Google Cloud Text-to-Speech key for a synthetic voice on cards with no recording).
 3. The D1 database `ordkort` is created automatically on the first deploy, its tables on the first request.
 
 From then on every push to `main` is deployed automatically.

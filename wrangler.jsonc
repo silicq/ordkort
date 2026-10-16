@@ -29,13 +29,16 @@
   // AI limits (can be changed in the Cloudflare dashboard without touching the code).
   // The GROQ_API_KEY secret is set separately: npx wrangler secret put GROQ_API_KEY
   // Optional: npx wrangler secret put PIXABAY_KEY adds Pixabay to the picture search (src/images.js)
+  // Optional: npx wrangler secret put GOOGLE_TTS_KEY gives cards without a recording a synthetic voice (src/voice.js)
   "vars": {
     "AI_PER_HOUR": "40",
     "AI_PER_DAY": "120",
     "AI_DAILY_BUDGET": "2500",
     // How many lists of words the cron may generate a day for the bank of ready decks (src/warm.js).
     // Groq's free plan gives each model 200,000 tokens a day, about 100–150 answers for the whole site: keep this small
-    "WARM_PER_DAY": "24"
+    "WARM_PER_DAY": "24",
+    // characters a day the synthetic voice may speak for the whole site (src/voice.js), when GOOGLE_TTS_KEY is set
+    "TTS_DAILY_CHARS": "30000"
   },
 
   // Branch previews (npx wrangler preview) inherit nothing from the settings above.

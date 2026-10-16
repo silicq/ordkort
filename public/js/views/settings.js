@@ -220,7 +220,11 @@
             row(t('set.session'), null, numSel([10, 15, 20, 30, 50, 100], s.sessionSize, (v) => set({ sessionSize: v }))),
             row(t('set.goal'), t('set.goal_hint'), numSel([10, 20, 30, 50, 100, 200], s.goal || 20, (v) => set({ goal: v }))),
             row(t('set.batch'), t('set.batch_hint'), numSel([10, 20, 30], s.batch, (v) => set({ batch: v }))),
-            row(t('set.autospeak'), t('set.autospeak_hint'), toggle(s.autoSpeak, (v) => set({ autoSpeak: v }))))),
+            row(t('set.autospeak'), t('set.autospeak_hint'), toggle(s.autoSpeak, (v) => set({ autoSpeak: v }))),
+            row(t('set.voice'), t('set.voice_hint'), A.segmented([
+              { value: 'site', label: t('set.voice_site') },
+              { value: 'system', label: t('set.voice_system') },
+            ], s.voice === 'system' ? 'system' : 'site', (v) => set({ voice: v }))))),
           at(5, card(t('set.data'),
             h('p', { class: 'muted small' }, t('set.data_hint', { kb: A.store.usage(), n: counts })),
             protection(),

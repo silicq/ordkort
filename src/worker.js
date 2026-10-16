@@ -7,6 +7,7 @@ import { HttpError, errorResponse } from './util.js';
 import * as api from './api.js';
 import * as sync from './sync.js';
 import * as images from './images.js';
+import * as voice from './voice.js';
 import * as mcp from './mcp.js';
 import { warmOne } from './warm.js';
 
@@ -59,6 +60,7 @@ export default {
       if (m === 'POST' && POST[name] && !id) return await POST[name](request, env, key);
       if (m === 'GET' && name === 'limits') return await api.limits(request, env, key);
       if (m === 'GET' && name === 'img' && !id) return await images.proxy(request, env, key);
+      if (m === 'GET' && name === 'tts' && !id) return await voice.tts(request, env, key);
 
       if (name === 'share') {
         if (m === 'POST' && !id) return await api.shareCreate(request, env, key);

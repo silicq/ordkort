@@ -19,6 +19,7 @@
     ['pictures', 'image'],
     ['look', 'palette'],
     ['anki', 'anki'],
+    ['voice', 'speaker'],
     ['mcp', 'plug'],
     ['third', 'globe'],
     ['free', 'grammar'],

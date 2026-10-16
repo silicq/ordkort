@@ -761,4 +761,10 @@ globalThis.App.i18nData.zh = {
   'fill.done_today': "今天的部分已补全：{n} 张卡片。剩下的 {left} 张会在接下来几天补全。",
   'fill.daily_on': "空白字段正在每天补一点（每天 {per} 次请求）：还有 {n} 张卡片在等待。",
   'fill.go_more': "现在再补一些",
+  'set.voice': "语音",
+  'set.voice_hint': "用于没有自带录音的卡片：来自维基词典的母语者录音或网站语音，或者这台设备的语音。",
+  'set.voice_site': "录音和网站语音",
+  'set.voice_system': "设备语音",
+  'about.voice_h': "卡片的语音",
+  'about.voice_p': "来自 Anki 的卡片会播放自带的录音。否则服务器会在维基词典上查找母语者的单词录音（维基共享资源上的 Lingua Libre 等，采用开放许可），或用合成语音朗读；只发送文本和语言，而且每个单词对所有人只请求一次。你可以在设置中改用设备自带的语音。",
 };

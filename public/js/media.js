@@ -129,6 +129,24 @@
     return u;
   }
 
+  /* The site's voice for a card without a recording (src/voice.js): a native speaker's recording from Wiktionary,
+     or a synthetic one. Kept for the visit by language and text: an object URL, '' when the site has none (the
+     system's voice then speaks), or the promise while it loads. */
+  const voices = new Map();
+  const vkey = (text, lang) => lang + '\n' + String(text || '').trim().toLowerCase();
+  function voice(text, lang) {
+    const k = vkey(text, lang);
+    if (voices.has(k)) return Promise.resolve(voices.get(k));
+    const p = fetch(`/api/tts?l=${encodeURIComponent(lang)}&q=${encodeURIComponent(String(text).trim().slice(0, 200))}`)
+      .then((r) => (r.ok ? r.blob() : null))
+      .then((b) => { const u = b && /^audio\//.test(b.type) ? URL.createObjectURL(b) : ''; voices.set(k, u); return u; })
+      .catch(() => { voices.delete(k); return ''; }); // offline: ask again next time
+    voices.set(k, p);
+    return p;
+  }
+  // the voice's address when it is ready, '' when there is none, null while unknown or loading
+  const voiceNow = (text, lang) => { const v = voices.get(vkey(text, lang)); return typeof v === 'string' ? v : null; };
+
   // pictures and recordings no card refers to any more, once in a while
   async function tidy() {
     try {
@@ -140,5 +158,5 @@
     } catch { /* next time */ }
   }
 
-  A.media = { add, addUrl, url, blob, el, search, tidy, addAudio, audio, audioNow, cover, coverUrl, coverOf, isCover, face, _test: { shrink } };
+  A.media = { add, addUrl, url, blob, el, search, tidy, addAudio, audio, audioNow, voice, voiceNow, cover, coverUrl, coverOf, isCover, face, _test: { shrink } };
 })();

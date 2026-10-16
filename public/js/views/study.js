@@ -277,7 +277,9 @@
       inner);
     S.card = card;
     swipe(card);
-    if (c.audio) A.media.audio(c); // its recording, ready before it is played (a phone allows no wait)
+    // its recording, or the site's voice for it, ready before it is played (a phone allows no wait)
+    if (c.audio) A.media.audio(c);
+    else if (s.voice !== 'system') A.media.voice(c.term, T);
 
     S.stage.replaceChildren(h('div', { class: 'stack' }, h('div', { class: 'stack-bg b2' }), h('div', { class: 'stack-bg b1' }), card));
     requestAnimationFrame(() => card.classList.add('in'));

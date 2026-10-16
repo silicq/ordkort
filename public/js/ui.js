@@ -212,20 +212,41 @@
      recording to load. So the recording is loaded as soon as its card shows (speakBtn), one audio element is used
      for everything (once it has played from a tap, it may play later, e.g. when a card turns), and when the recording
      is not ready yet the element is still started inside the tap and given the recording when it comes. */
-  let player = null;
+  let player = null, silence = null;
+  // a twentieth of a second of silence (a WAV made here): what the element plays inside a tap while the sound loads,
+  // so that it may play the sound when it comes — and never the word before
+  function quiet() {
+    if (silence) return silence;
+    const n = 400, b = new Uint8Array(44 + n), v = new DataView(b.buffer);
+    const w = (o, s) => [...s].forEach((c, i) => { b[o + i] = c.charCodeAt(0); });
+    w(0, 'RIFF'); v.setUint32(4, 36 + n, true); w(8, 'WAVE'); w(12, 'fmt '); v.setUint32(16, 16, true); v.setUint16(20, 1, true);
+    v.setUint16(22, 1, true); v.setUint32(24, 8000, true); v.setUint32(28, 8000, true); v.setUint16(32, 1, true); v.setUint16(34, 8, true);
+    w(36, 'data'); v.setUint32(40, n, true); b.fill(128, 44);
+    return (silence = URL.createObjectURL(new Blob([b], { type: 'audio/wav' })));
+  }
   function play(url, text, lang) {
     player ||= new Audio();
     synth?.cancel();
     player.pause();
-    if (url) player.src = url;
+    player.src = url || quiet();
     return player.play().catch(() => { if (url) say(text, lang); });
   }
   function speak(text, lang, card) {
-    if (!card?.audio || !A.media?.audio) return say(text, lang);
-    const ready = A.media.audioNow(card);
+    if (card?.audio && A.media?.audio) {
+      const ready = A.media.audioNow(card);
+      if (ready) { play(ready, text, lang); return true; }
+      play('', text, lang); // inside the tap: the element may play when the recording comes
+      A.media.audio(card).then((u) => (u ? play(u, text, lang) : say(text, lang)));
+      return true;
+    }
+    // no recording of its own: the site's voice (a native speaker from Wiktionary, or a synthetic one), unless the
+    // person chose the device's voice in Settings; the device's voice also when the site has none for this text
+    if (A.store?.settings?.voice === 'system' || !A.media?.voice || !text) return say(text, lang);
+    const ready = A.media.voiceNow(text, lang);
     if (ready) { play(ready, text, lang); return true; }
-    play('', text, lang); // inside the tap: the element may play when the recording comes
-    A.media.audio(card).then((u) => (u ? play(u, text, lang) : say(text, lang)));
+    if (ready === '') return say(text, lang);
+    play('', text, lang);
+    A.media.voice(text, lang).then((u) => (u ? play(u, text, lang) : say(text, lang)));
     return true;
   }
   function say(text, lang) {
