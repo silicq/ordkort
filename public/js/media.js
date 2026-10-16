@@ -85,6 +85,29 @@
     return Array.isArray(data?.results) ? data.results : [];
   }
 
+  /* A deck's cover: a small square picture instead of the emoji. It is cut to a square and kept as a data: URL
+     inside the deck itself (a few kilobytes), so it syncs and goes with a shared deck like the title does. */
+  const COVER = 128;
+  const COVER_RE = /^data:image\/(?:jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/;
+  const isCover = (x) => typeof x === 'string' && x.length <= 40000 && COVER_RE.test(x);
+  async function cover(blob) {
+    const bmp = await createImageBitmap(blob);
+    const side = Math.min(bmp.width, bmp.height);
+    const canvas = document.createElement('canvas');
+    canvas.width = canvas.height = COVER;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(0, 0, COVER, COVER);
+    ctx.drawImage(bmp, (bmp.width - side) / 2, (bmp.height - side) / 2, side, side, 0, 0, COVER, COVER);
+    bmp.close?.();
+    return canvas.toDataURL('image/jpeg', 0.82);
+  }
+  const coverUrl = async (u) => cover(await fetchUrl(u));
+  // a shared deck's cover: a data: URL as it is, a web address fetched (through the site) and made small
+  const coverOf = async (x) => (isCover(x) ? x : /^https:\/\//.test(x || '') ? coverUrl(x).catch(() => '') : '');
+  // what stands for a deck: its cover, or its emoji
+  const face = (d, cls = 'deck-cover') => (isCover(d?.cover) ? A.h('img', { class: cls, src: d.cover, alt: '', title: d.coverBy || '' }) : (d?.emoji || '🗂️'));
+
   // pictures no card refers to any more, once in a while
   async function tidy() {
     try {
@@ -96,5 +119,5 @@
     } catch { /* next time */ }
   }
 
-  A.media = { add, addUrl, url, blob, el, search, tidy, _test: { shrink } };
+  A.media = { add, addUrl, url, blob, el, search, tidy, cover, coverUrl, coverOf, isCover, face, _test: { shrink } };
 })();

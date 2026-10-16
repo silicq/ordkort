@@ -1895,18 +1895,17 @@ dialog.modal::backdrop { background: rgba(20, 16, 10, 0.45); backdrop-filter: bl
 .pic-thumb:hover, .pic-thumb:focus-visible { border-color: var(--blue); }
 .pic-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .pic-thumb.loading { opacity: 0.5; }
-.pics { display: grid; gap: 12px; }
-.pics-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); gap: 8px; max-height: min(42vh, 360px); overflow: auto; padding: 2px; }
-.pics-tile { display: grid; gap: 2px; padding: 6px 6px 8px; border: 2px solid var(--line); border-radius: 14px; background: var(--card); text-align: start; cursor: pointer; min-width: 0; color: var(--ink); }
-.pics-tile:hover, .pics-tile:focus-visible { border-color: var(--blue-edge); }
-.pics-tile.on { border-color: var(--blue); background: var(--blue-soft); }
-.pics-tile.drop { border-style: dashed; border-color: var(--blue); }
-.pics-img { display: grid; place-items: center; aspect-ratio: 4 / 3; border-radius: 10px; overflow: hidden; background: var(--paper-2); color: var(--ink-3); margin-bottom: 4px; }
-.pics-tile.none .pics-img { border: 1.5px dashed var(--line-2); }
-.pics-term, .pics-tile small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.pics-term { font-size: 15px; }
-.pics-sel { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
-.pics-sel b { font-size: 18px; }
+.deck-cover { display: block; width: 100%; height: 100%; object-fit: cover; border-radius: inherit; }
+.deck-emoji .deck-cover { width: 44px; height: 44px; border-radius: 12px; box-shadow: 0 0 0 1px var(--line); }
+.pick-row .deck-emoji .deck-cover { width: 26px; height: 26px; border-radius: 7px; }
+.flash-deck .deck-cover { display: inline-block; width: 18px; height: 18px; border-radius: 5px; vertical-align: -4px; }
+.cover-btn { position: relative; padding: 0; border: 0; cursor: pointer; color: inherit; font: inherit; }
+.cover-btn:has(.deck-cover) { background: none; }
+.cover-btn:focus-visible { outline: 3px solid var(--blue); outline-offset: 3px; }
+.cover-edit { position: absolute; inset-inline-end: -6px; bottom: -6px; display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: var(--card); color: var(--ink-2); box-shadow: 0 0 0 1px var(--line-2), var(--shadow); opacity: 0.85; transition: opacity 0.15s; }
+.cover-btn:hover .cover-edit, .cover-btn:focus-visible .cover-edit { opacity: 1; color: var(--blue-ink); }
+.cover-preview { transform: none; }
+.cover-preview:has(.deck-cover) { background: none; }
 
 /* ---------- Anki import (js/anki.js) ---------- */
 .anki-box { display: grid; gap: 14px; }

@@ -355,8 +355,16 @@ export function cleanDeck(d) {
   return {
     title: str(d.title, 80), emoji: str(d.emoji, 8), level: LEVELS.includes(d.level) ? d.level : '',
     topic: typeof d.topic === 'string' && App.topics.get(d.topic) ? d.topic : '',
-    group: str(d.group, 12), target, native, words,
+    group: str(d.group, 12), target, native, words, ...cover(d),
   };
+}
+// a deck's cover: a small picture as a data: URL (made on the device) or an https address (from an AI through MCP)
+function cover(d) {
+  const c = typeof d.cover === 'string' ? d.cover : '';
+  const ok = (c.length <= 40000 && /^data:image\/(?:jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(c)) || (c.length <= 600 && /^https:\/\/[^\s]+$/.test(c));
+  if (!ok) return {};
+  const by = str(d.cover_by, 200);
+  return by ? { cover: c, cover_by: by } : { cover: c };
 }
 // kept for a year under a random 8-letter code (a deck, or a look made through MCP)
 export async function storeShare(env, data) {

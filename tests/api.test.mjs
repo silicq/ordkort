@@ -64,6 +64,26 @@ test('shared decks: create, open, unknown ids are gone, junk is cleaned', async 
   assert.equal((await call('share', { method: 'POST', body: { deck: { target: 'nb', native: 'en', words: [] } } })).status, 400);
 });
 
+test('a shared deck keeps its cover: a small data: URL or an https address, nothing else', async () => {
+  const words = [{ term: 'et brød', tr: 'bread' }];
+  let n = 0; // each share from its own address, so the limits of the other tests stay untouched
+  const share = async (cover) => {
+    const headers = { 'CF-Connecting-IP': `198.51.100.${++n}` };
+    const r = await call('share', { method: 'POST', body: { deck: { title: 'Mat', target: 'nb', native: 'en', words, cover, cover_by: 'Kari, CC0' } }, headers });
+    const { id } = await r.json();
+    return (await (await call('share/' + id, { headers })).json()).deck;
+  };
+  const jpeg = 'data:image/jpeg;base64,' + 'A'.repeat(4000);
+  assert.equal((await share(jpeg)).cover, jpeg);
+  assert.equal((await share(jpeg)).cover_by, 'Kari, CC0');
+  assert.equal((await share('https://example.org/bread.jpg')).cover, 'https://example.org/bread.jpg');
+  for (const bad of ['http://example.org/a.jpg', 'javascript:alert(1)', 'data:image/svg+xml;base64,PHN2Zz4=', 'data:image/jpeg;base64,' + 'A'.repeat(50000)]) {
+    const d = await share(bad);
+    assert.equal(d.cover, undefined, bad.slice(0, 30));
+    assert.equal(d.cover_by, undefined, 'no cover, no credit');
+  }
+});
+
 test('pairing codes can be taken exactly once', async () => {
   let r = await call('pair', { method: 'POST', body: { d: blob() } });
   const { id, ttl } = await r.json();
@@ -160,7 +180,7 @@ test('MCP: handshake, tools, and a version the client asked for', async () => {
 
 test('MCP: a deck with pictures and a look become links that open them', async () => {
   let r = await rpc({ jsonrpc: '2.0', id: 1, method: 'tools/call', params: { name: 'create_deck', arguments: {
-    title: 'Kjøkken', target: 'nb', native: 'en', level: 'A1',
+    title: 'Kjøkken', target: 'nb', native: 'en', level: 'A1', cover_url: 'https://example.org/kitchen.jpg', cover_credit: 'Ola, CC BY 4.0',
     cards: [{ term: 'en gaffel', translation: 'fork', image_url: 'https://example.org/fork.jpg', image_credit: 'Kari, CC BY 4.0' }, { term: 'en kniv', translation: 'knife' }, { term: '', translation: 'nothing' }],
   } } });
   const url = r.body.result.structuredContent.url;
@@ -171,6 +191,8 @@ test('MCP: a deck with pictures and a look become links that open them', async (
   assert.equal(deck.title, 'Kjøkken');
   assert.equal(deck.words[0].img_url, 'https://example.org/fork.jpg');
   assert.equal(deck.words[0].img_by, 'Kari, CC BY 4.0');
+  assert.equal(deck.cover, 'https://example.org/kitchen.jpg', 'the AI can give the deck a cover');
+  assert.equal(deck.cover_by, 'Ola, CC BY 4.0');
 
   r = await rpc({ jsonrpc: '2.0', id: 2, method: 'tools/call', params: { name: 'create_design', arguments: { name: 'Calm', front_html: '<b>{{term}}</b>', card_css: '.tpl b { color: teal; }' } } });
   const look = r.body.result.structuredContent.url;
