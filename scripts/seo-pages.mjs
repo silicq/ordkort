@@ -436,6 +436,11 @@ function teachersPage(ui) {
         <ol>${T.own.map((x) => `<li>${esc(x)}</li>`).join('')}</ol>
         <p>${esc(T.ownNote)}</p>
       </section>
+      ${T.printH ? `<section>
+        <h2 class="t">${esc(T.printH)}</h2>
+        <p>${esc(T.printP)}</p>
+        <p><a href="/print/ordkort-plakat-nb.pdf" download>${esc(T.printLink)}</a></p>
+      </section>` : ''}
       <section>
         <h2 class="t">${esc(T.privacyH)}</h2>
         ${T.privacy.map((p) => `<p>${esc(p)}</p>`).join('\n        ')}
