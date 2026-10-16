@@ -211,7 +211,9 @@
       refresh();
       const words = await A.ai.words({
         topic: d.topic || undefined,
-        custom: d.topic ? undefined : d.title || 'everyday words',
+        // phrases for a situation: a ready one goes by its English name, your own by its title
+        custom: d.topic ? undefined : (typeof d.phrases === 'string' ? d.phrases : d.title) || 'everyday words',
+        phrases: d.phrases ? true : undefined,
         level: d.level || A.store.settings.level,
         n,
       });

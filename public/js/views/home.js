@@ -104,18 +104,36 @@
     const s = A.store.settings;
     const have = new Set(decks.filter((d) => d.topic && d.level === s.level).map((d) => d.topic));
 
+    // your own topic: words for it, or phrases for a situation ("at the pharmacy")
+    let kind = 'words';
     const custom = h('input', { class: 'input', placeholder: t('cat.custom_ph'), maxlength: 80 });
+    const kindSel = A.segmented([{ value: 'words', label: t('cat.kind_words') }, { value: 'phrases', label: t('cat.kind_phrases') }], kind, (v) => {
+      kind = v;
+      custom.placeholder = t(v === 'phrases' ? 'cat.phrases_ph' : 'cat.custom_ph');
+    });
     const customForm = h('form', {
       class: 'custom-topic',
       onsubmit: (e) => {
         e.preventDefault();
         const v = custom.value.trim();
         if (!v) { custom.focus(); return; }
-        const d = A.store.addDeck({ title: v, emoji: '✨', group: 'custom', level: s.level });
+        const d = A.store.addDeck({ title: v, emoji: kind === 'phrases' ? '💬' : '✨', group: 'custom', level: s.level, ...(kind === 'phrases' ? { phrases: 1 } : {}) });
         A.go('#/deck/' + d.id);
         A.jobs.generate(d.id);
       },
     }, h('span', { class: 'custom-ico' }, icon('sparkle')), custom, h('button', { class: 'btn btn-primary', type: 'submit' }, t('cat.create')));
+    // ready situations: phrases asked for by their English name, so everybody shares one bank for each
+    const SITUATIONS = [['pharmacy', '💊', 'at the pharmacy'], ['cafe', '☕', 'ordering in a café or restaurant'], ['doctor', '🩺', 'at the doctor'],
+      ['shop', '🛒', 'shopping in a store'], ['transport', '🚌', 'taking a bus, train or taxi'], ['hotel', '🏨', 'checking in at a hotel'],
+      ['interview', '💼', 'a job interview'], ['meeting', '👋', 'meeting someone new'], ['phone', '📞', 'a phone call'], ['help', '🆘', 'asking for help or directions']];
+    const openSituation = ([id, emoji, en]) => {
+      const existing = A.store.decks().find((d) => d.phrases === en && d.level === s.level);
+      if (existing) { A.go('#/deck/' + existing.id); return; }
+      const d = A.store.addDeck({ title: t('sit.' + id), emoji, group: 'custom', level: s.level, phrases: en });
+      A.go('#/deck/' + d.id);
+      A.jobs.generate(d.id);
+    };
+    const haveSit = new Set(decks.filter((d) => typeof d.phrases === 'string' && d.level === s.level).map((d) => d.phrases));
 
     return h('section', { class: 'block catalog', id: 'catalog' },
       h('div', { class: 'block-head wrap' },
@@ -127,7 +145,12 @@
             A.segmented(['A1', 'A2', 'B1', 'B2', 'C1'], s.level, (v) => { A.store.set({ level: v }); A.refresh(); })),
           h('label', { class: 'ctl' }, h('span', null, t('cat.count')),
             A.segmented([10, 20, 30], s.batch, (v) => A.store.set({ batch: v }))))),
+      h('div', { class: 'row gap wrap custom-kind' }, kindSel),
       customForm,
+      h('div', { class: 'cat-group', style: '--tab: var(--t-custom)' },
+        h('h3', { class: 'cat-label' }, t('cat.situations')),
+        h('div', { class: 'chips' }, SITUATIONS.map((x) => h('button', { class: 'topic' + (haveSit.has(x[2]) ? ' have' : ''), type: 'button', onclick: () => openSituation(x) },
+          h('span', { class: 'topic-emoji' }, x[1]), h('span', null, t('sit.' + x[0])), haveSit.has(x[2]) ? icon('check', 16) : null)))),
       A.topics.groups.map((g) =>
         h('div', { class: 'cat-group', style: `--tab: var(--t-${g.id})` },
           h('h3', { class: 'cat-label' }, t('group.' + g.id)),

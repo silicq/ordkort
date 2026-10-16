@@ -36,7 +36,7 @@
               ? h('a', { class: 'btn btn-primary', href: `#/study/${id}?extra=10` }, icon('cards', 18), t('deck.study_more'))
               : o.total ? h('a', { class: 'btn btn-primary', href: `#/study/${id}?cram=1` }, icon('flip', 18), t('deck.cram')) : null,
           h('button', { class: 'btn btn-soft', type: 'button', disabled: !!job, onclick: () => A.jobs.generate(id) },
-            icon('sparkle', 18), t('deck.more', { n: s.batch })),
+            icon('sparkle', 18), t(d.phrases ? 'deck.more_phrases' : 'deck.more', { n: s.batch })),
           h('button', { class: 'btn btn-ghost', type: 'button', onclick: () => editCard(null, id) }, icon('plus', 18), t('deck.add_word')),
           h('span', { class: 'grow' }),
           h('button', { class: 'icon-btn', type: 'button', title: t('deck.tools'), 'aria-label': t('deck.tools'), onclick: () => A.deckTools.menu(d) }, icon('more')),
@@ -82,7 +82,7 @@
             h('h3', null, t('deck.empty')),
             h('p', { class: 'muted' }, t('deck.empty_hint')),
             h('div', { class: 'row gap center' },
-              h('button', { class: 'btn btn-primary', type: 'button', onclick: () => A.jobs.generate(id) }, icon('sparkle', 18), t('deck.more', { n: s.batch })),
+              h('button', { class: 'btn btn-primary', type: 'button', onclick: () => A.jobs.generate(id) }, icon('sparkle', 18), t(d.phrases ? 'deck.more_phrases' : 'deck.more', { n: s.batch })),
               h('button', { class: 'btn btn-ghost', type: 'button', onclick: () => editCard(null, id) }, icon('plus', 18), t('deck.add_word')))));
         return;
       }
@@ -113,7 +113,7 @@
   function wordReport(c) {
     const d = A.store.deck(c.deck);
     if (!d || d.manual || d.kind === 'mine' || !(d.topic || d.title) || !A.store.fromBank(c)) return null;
-    return A.reportBtn('word', { topic: d.topic || undefined, custom: d.topic ? undefined : d.title, level: d.level || 'A1', term: c.term });
+    return A.reportBtn('word', { topic: d.topic || undefined, custom: d.topic ? undefined : typeof d.phrases === 'string' ? d.phrases : d.title, phrases: d.phrases ? true : undefined, level: d.level || 'A1', term: c.term });
   }
 
   function pips(box) {

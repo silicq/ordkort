@@ -653,6 +653,7 @@ textarea.input { resize: vertical; min-height: 64px; line-height: 1.45; }
   border: 1.5px dashed var(--line-2);
   border-radius: 16px;
 }
+.custom-kind { margin-bottom: 10px; }
 .custom-topic:focus-within { border-style: solid; border-color: var(--blue); }
 .custom-topic .input { border: 0; background: transparent; box-shadow: none; padding: 10px 4px; }
 .custom-ico { color: var(--blue); display: flex; }
