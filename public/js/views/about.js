@@ -20,6 +20,7 @@
     ['look', 'palette'],
     ['anki', 'anki'],
     ['voice', 'speaker'],
+    ['library', 'globe'],
     ['mcp', 'plug'],
     ['third', 'globe'],
     ['free', 'grammar'],

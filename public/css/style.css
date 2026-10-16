@@ -1311,6 +1311,12 @@ dialog.modal::backdrop { background: rgba(20, 16, 10, 0.45); backdrop-filter: bl
 .about-links { margin: 8px 0 0; padding-inline-start: 18px; font-size: 14px; color: var(--ink-2); }
 .about-links li { margin-bottom: 6px; }
 .fsrs-ctl { display: grid; gap: 6px; justify-items: end; text-align: end; max-width: 260px; }
+.lib-tools { margin: 6px 0 18px; align-items: center; }
+.lib-tools .input { flex: 1 1 16em; min-width: 0; }
+.lib-deck .deck-meta { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lib-score { display: inline-flex; align-items: center; gap: 2px; color: var(--ink-2); font-size: 13px; }
+.lib-act { display: grid; gap: 8px; justify-items: center; margin: 4px 0 14px; }
+.lib-how { margin-top: 24px; }
 .mcp-url { margin: 12px 0; }
 .mcp-url .input { flex: 1; min-width: 0; }
 .mcp-how { margin-bottom: 12px; font-size: 14px; }

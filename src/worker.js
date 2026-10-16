@@ -8,6 +8,7 @@ import * as api from './api.js';
 import * as sync from './sync.js';
 import * as images from './images.js';
 import * as voice from './voice.js';
+import * as library from './library.js';
 import * as mcp from './mcp.js';
 import { warmOne } from './warm.js';
 
@@ -65,6 +66,15 @@ export default {
       if (name === 'share') {
         if (m === 'POST' && !id) return await api.shareCreate(request, env, key);
         if (m === 'GET' && id) return await api.shareGet(env, id);
+        if (m === 'DELETE' && id) return await library.removeShare(request, env, id);
+      }
+      if (name === 'library') {
+        if (m === 'GET' && !id) return await library.list(request, env);
+        if (m === 'POST' && !id) return await library.publish(request, env, key);
+        if (m === 'GET' && id === 'hidden') return await library.hidden(request, env);
+        if (m === 'GET' && id && !sub) return await library.get(env, id);
+        if (m === 'POST' && id && sub) return await library.act(request, env, key, id, sub);
+        if (m === 'DELETE' && id) return await library.remove(request, env, id);
       }
       if (name === 'pair') {
         if (m === 'POST' && !id) return await sync.pairCreate(request, env, key);

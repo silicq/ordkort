@@ -72,9 +72,13 @@ Ordkort is a lightweight site for learning almost any language from almost any o
   daily budget of characters; each word is fetched once for everybody. The device's voice remains a choice in Settings.
 - **Fitted to your memory**: Settings → *Fit to my memory* finds the FSRS weights from your own answers on the device
   (learnt on the earlier answers, kept only when they predict the later ones better than the defaults).
+- **A library of decks**: publish a deck for everybody learning the same pair of languages (Deck → ⋯ → *Publish
+  in the library*), find others' by title, sort by the best or the newest, vote and add. Before a deck is listed,
+  Llama Guard reads its words and looks at its cover; an unsafe deck is refused, and nothing is published while the
+  check cannot run. Three people's reports hide a deck until the site's owner looks; the publisher can take it down.
 - **Empty fields filled in**: an imported deck without examples or grammar, or with a translation that is not one,
   is completed by the AI 20 cards per request (one of the day's AI requests); words the shared bank already has
-  cost nothing, and only empty fields change.
+  cost nothing, and only empty fields change. A big deck asks first, and can be filled 10 words a day instead.
 - **Pictures on cards**: a free, openly licensed picture found by the word, one of your own, or a pasted one;
   kept on the device. The word is looked up in Wikidata in its own language, so "hus" finds the Wikimedia Commons
   picture of a house before Pixabay's (when a `PIXABAY_KEY` is set) and Openverse's, which is searched in English.
@@ -236,7 +240,8 @@ GitHub Actions runs them on every push and pull request.
 2. After the first deploy: Worker → **Settings** → **Variables and Secrets** → add the secret
    `GROQ_API_KEY` (and optionally `IP_SALT`, any long random string, and `PIXABAY_KEY`, a free
    [Pixabay API key](https://pixabay.com/api/docs/) that adds Pixabay to the picture search, and `GOOGLE_TTS_KEY`, a
-   Google Cloud Text-to-Speech key for a synthetic voice on cards with no recording).
+   Google Cloud Text-to-Speech key for a synthetic voice on cards with no recording, and `ADMIN_TOKEN`, a long random
+   string that lets the site's owner take down any deck in the library or shared by link).
 3. The D1 database `ordkort` is created automatically on the first deploy, its tables on the first request.
 
 From then on every push to `main` is deployed automatically.
@@ -253,6 +258,17 @@ npx wrangler secret put GROQ_API_KEY
 
 ```bash
 npx wrangler secret put PIXABAY_KEY   # optional
+```
+
+```bash
+npx wrangler secret put ADMIN_TOKEN   # optional: taking down decks
+```
+
+Taking a deck down, and the decks hidden by reports:
+
+```bash
+curl -X DELETE -H "X-Admin-Token: $ADMIN_TOKEN" https://YOUR-SITE/api/library/DECKID   # or /api/share/DECKID
+curl -H "X-Admin-Token: $ADMIN_TOKEN" https://YOUR-SITE/api/library/hidden
 ```
 
 ```bash

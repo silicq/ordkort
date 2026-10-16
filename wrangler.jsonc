@@ -30,6 +30,7 @@
   // The GROQ_API_KEY secret is set separately: npx wrangler secret put GROQ_API_KEY
   // Optional: npx wrangler secret put PIXABAY_KEY adds Pixabay to the picture search (src/images.js)
   // Optional: npx wrangler secret put GOOGLE_TTS_KEY gives cards without a recording a synthetic voice (src/voice.js)
+  // Optional: npx wrangler secret put ADMIN_TOKEN lets the site's owner take down decks (src/library.js)
   "vars": {
     "AI_PER_HOUR": "40",
     "AI_PER_DAY": "120",

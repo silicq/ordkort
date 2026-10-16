@@ -150,7 +150,8 @@
             A.go('#/deck/' + d.id);
           },
         }, icon('plus', 16), t('cat.empty')),
-        h('button', { class: 'link-btn', type: 'button', onclick: () => A.anki.pick() }, icon('anki', 16), t('anki.import'))));
+        h('button', { class: 'link-btn', type: 'button', onclick: () => A.anki.pick() }, icon('anki', 16), t('anki.import')),
+        h('a', { class: 'link-btn', href: '#/library' }, icon('globe', 16), t('lib.title_plain'))));
   }
 
   function openTopic(tp) {

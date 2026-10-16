@@ -11,8 +11,8 @@
     { id: 'grammar', href: '#/grammar', icon: 'grammar', label: 'nav.grammar' },
     { id: 'translate', href: '#/translate', icon: 'translate', label: 'nav.translate' },
   ];
-  const SECTION = { home: 'home', deck: 'home', study: 'home', dict: 'dict', grammar: 'grammar', translate: 'translate', settings: 'settings', about: 'settings', read: 'read', stats: 'home', insights: 'home', s: 'home', look: 'settings' };
-  const OPEN_BEFORE_SETUP = ['link', 'about', 's', 'look']; // available before the first-run setup
+  const SECTION = { home: 'home', deck: 'home', study: 'home', dict: 'dict', grammar: 'grammar', translate: 'translate', settings: 'settings', about: 'settings', read: 'read', stats: 'home', insights: 'home', s: 'home', look: 'settings', library: 'home', lib: 'home' };
+  const OPEN_BEFORE_SETUP = ['link', 'about', 's', 'look', 'lib']; // available before the first-run setup
 
   let current = null;
   let pendingRefresh = false;

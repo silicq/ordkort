@@ -88,3 +88,32 @@ export async function groq(env, { system, user, max = 2500, temperature = 0.35, 
   }
   throw new HttpError(503, 'busy');
 }
+
+/* Moderation: Llama Guard (on Groq) reads a text and, optionally, a picture, and says whether they are safe.
+   → { safe, cats } — cats: the hazard categories it named (S1…S14: violent crimes, sexual content, weapons of
+   mass harm, hate…). Throws (503) when it cannot answer: nothing is let through unchecked. */
+export async function guard(env, { text, image }) {
+  if (!env.GROQ_API_KEY) throw new HttpError(503, 'not_configured');
+  const model = env.GUARD_MODEL || 'meta-llama/llama-guard-4-12b';
+  const content = [{ type: 'text', text: String(text || '').slice(0, 6000) }];
+  if (image) content.push({ type: 'image_url', image_url: { url: image } });
+  for (let attempt = 0; attempt < 3; attempt++) {
+    let res, data;
+    try {
+      res = await fetch(URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${env.GROQ_API_KEY}` },
+        body: JSON.stringify({ model, temperature: 0, max_completion_tokens: 20, messages: [{ role: 'user', content }] }),
+        signal: AbortSignal.timeout(15000),
+      });
+      data = await res.json().catch(() => null);
+    } catch { await sleep(1000); continue; }
+    if (res.status === 429) { await sleep(Math.min(5000, retryDelay(res, data))); continue; }
+    if (!res.ok) break;
+    const out = String(data?.choices?.[0]?.message?.content || '').trim().toLowerCase();
+    if (out.startsWith('safe')) return { safe: true, cats: [] };
+    if (out.startsWith('unsafe')) return { safe: false, cats: (out.match(/s\d{1,2}/g) || []).map((c) => c.toUpperCase()) };
+    break;
+  }
+  throw new HttpError(503, 'busy');
+}

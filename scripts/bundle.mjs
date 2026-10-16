@@ -40,6 +40,7 @@ export const APP_SCRIPTS = [
   'js/views/about.js',
   'js/views/read.js',
   'js/views/share.js',
+  'js/views/library.js',
   'js/views/stats.js',
   'js/views/insights.js',
   'js/app.js',
