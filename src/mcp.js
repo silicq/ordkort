@@ -60,6 +60,11 @@ Keep text readable at all of these: sizes in px or em with clamp(), not large fi
 The face has a ruled paper background, a border and a padding of 16px 22px. To make the whole card yours, style
 \`.face.own\` (background, border, border-radius, padding, box-shadow) and \`.face.own .face-body\` (padding: 0), and
 restyle or hide \`.face.own .flash-tag\`. A root element in a template can use width: 100%; height: 100%.
+The sides' geometry is fixed for the flip: position, inset, size and transform of .flash-inner and .face are
+kept by the site whatever card_css says (a side with position: relative would hang under the card). Style their
+look, not their place; animate backgrounds, colours or shadows, not .face's transform.
+Reverse cards (asking for the word from its translation) use the same templates with the fields swapped: the
+front shows the translation in {{term}} (nothing that gives the word away), the back the word in {{translation}}.
 Prefix every card_css rule with \`.tpl\` or \`.face.own\`: card_css applies to the whole page.
 The back template shows the answer in every study mode (flip, choice, typing, listening, gaps); the front one is
 used for flip cards, since the other modes ask their question there. .face.own dresses both sides in every mode.

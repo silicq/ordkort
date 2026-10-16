@@ -853,4 +853,6 @@ globalThis.App.i18nData.nb = {
   'remind.denied': "Varsler er blokkert for nettstedet i nettleserens innstillinger.",
   'remind.background': "På: det kommer selv når appen er lukket.",
   'remind.tab': "På: det kommer mens nettstedet er åpent i en fane. Installer nettstedet som app (Chrome, Edge) for påminnelser når det er lukket.",
+  'look.side_front': "Forside",
+  'look.side_back': "Bakside",
 };

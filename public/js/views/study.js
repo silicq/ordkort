@@ -241,7 +241,7 @@
       h('span', { class: 'badge ' + (isNew ? 'new' : 'rev') }, t(isNew ? 'study.new' : 'study.review')),
       deck ? h('span', { class: 'flash-deck' }, A.media.face(deck), ' ', A.deckTitle(deck)) : null);
 
-    let frontBody;
+    let frontBody, ownFront = null;
     // a picture shows on the front only where it does not give the answer away: typing the word, or from your language
     if (S.mode === 'type') {
       frontBody = [A.media.el(c, 'flash-img'), h('div', { class: 'flash-ask' }, t('study.ask_type')), A.lt(c.tr, N, 'flash-word serif' + sizeOf(c.tr), 'div'),
@@ -257,10 +257,11 @@
         cz ? null : h('div', { class: 'flash-pron' }, `${c.tr}`)];
     } else if (cz) {
       frontBody = [A.media.el(c, 'flash-img'), h('div', { class: 'flash-ask' }, t('study.ask_gaps')), sentence(false)];
+    } else if (S.mode === 'flip' && (ownFront = A.look.render('front', c, undefined, !fwd))) {
+      // your own card template (Settings → Your own look) on flip cards, also those that ask for the word (reverse)
+      frontBody = [ownFront];
     } else if (fwd) {
-      // your own card template (Settings → Your own look), for flip cards from the language you learn
-      const own = S.mode === 'flip' && A.look.render('front', c);
-      frontBody = own ? [own] : [A.lt(c.term, T, 'flash-word serif' + sizeOf(c.term), 'div'),
+      frontBody = [A.lt(c.term, T, 'flash-word serif' + sizeOf(c.term), 'div'),
         pron ? (peek ? peekBtn(pron) : h('div', { class: 'flash-pron' }, pron)) : null, A.speakBtn(c.term, T, 'lg', c)];
     } else {
       frontBody = [A.media.el(c, 'flash-img'), A.lt(c.tr, N, 'flash-word serif' + sizeOf(c.tr), 'div'), c.pos ? h('div', { class: 'flash-pron' }, t('pos.' + c.pos)) : null];
@@ -274,7 +275,7 @@
       h('div', { class: 'face-body' }, frontBody),
       S.mode === 'flip' ? h('div', { class: 'face-hint' }, icon('flip', 15), t('study.tap')) : null);
 
-    const ownBack = dressed && A.look.render('back', c);
+    const ownBack = dressed && A.look.render('back', c, undefined, !fwd || S.mode === 'type');
     const back = h('div', { class: 'face back' + (dressed ? ' own' : '') },
       tag,
       cz ? h('div', { class: 'face-body' },

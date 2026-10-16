@@ -114,7 +114,7 @@
   /* A look someone else made is shown before it is used: its card CSS then must not reach the rest of the page
      (hide the buttons, cover the page, restyle "Cancel"). It is parsed and wrapped in @scope, so it styles only the
      sample cards; .look-preview itself is outside that scope and clips them (contain: paint in style.css).
-     @keyframes and @font-face cannot live in @scope and only give names, so they stay outside. */
+     @keyframes, @font-face and @property cannot live in @scope and only give names, so they stay outside. */
   /* The CSS is not parsed and written out again (the browser cannot write back a `background` with var() next to
      a background-clip of its own, and the gradient was lost): it is cut into its top-level blocks as written,
      reading strings, escapes and comments, and a brace that closes nothing is dropped, so no block can end the
@@ -140,7 +140,7 @@
   function scoped(css, root) {
     if (!css) return '';
     const all = blocks(css);
-    const named = (b) => /^@(-webkit-)?(keyframes|font-face)\b/i.test(b);
+    const named = (b) => /^@(-webkit-)?(keyframes|font-face|property)\b/i.test(b);
     return all.filter(named).join('\n') + `\n@scope (${root}) {\n${all.filter((b) => !named(b)).join('\n')}\n}`;
   }
 
@@ -174,14 +174,20 @@
 
   /* ---------- filling a template ---------- */
   const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-  function values(c) {
+  /* `ask`: the side of a card that asks for the word from its translation (reverse flip cards, typing). The template
+     then shows the translation where it shows the term: on the front nothing that gives the word away (no
+     pronunciation, forms, example or sound), and on the back the word in the template's big place. */
+  function values(c, ask = '') {
     const ex = A.store.example(c);
     const { gram, pron, forms } = A.store.shown(c);
     const deck = A.store.ready && A.store.deck(c.deck);
-    return {
+    const v = {
       term: c.term, translation: c.tr, pronunciation: pron, grammar: gram, forms, example: ex.text, example_translation: ex.tr,
       deck: deck ? A.deckTitle(deck) : '', image: c.img ? '1' : '', audio: '1',
     };
+    if (ask === 'front') return { ...v, term: c.tr, translation: '', pronunciation: '', grammar: '', forms: '', example: '', example_translation: '', audio: '' };
+    if (ask === 'back') return { ...v, term: c.tr, translation: c.term };
+    return v;
   }
   // the template → HTML: sections, then fields; {{image}} and {{audio}} become placeholders filled after
   function fill(tpl, v) {
@@ -207,13 +213,13 @@
   // whether your own look has a card template (then study cards wear .face.own in every mode)
   const has = (look = A.store.settings?.look) => !!(look && (String(look.front || '').trim() || String(look.back || '').trim()) && !off());
   // a side of a card from the template, as nodes for .face-body; null when the side has no template
-  function render(side, c, look = A.store.settings.look) {
+  function render(side, c, look = A.store.settings.look, ask = false) {
     const tpl = look?.[side];
     if (!tpl || !tpl.trim() || (look === A.store.settings?.look && off())) return null;
     const box = document.createElement('div');
     box.className = 'tpl tpl-' + side;
     fetchPics(look);
-    box.innerHTML = clean(fill(tpl, values(c)), new Set(addresses(look)));
+    box.innerHTML = clean(fill(tpl, values(c, ask ? side : '')), new Set(addresses(look)));
     box.querySelectorAll('[data-slot="image"]').forEach((s) => s.replaceWith(A.media.el(c, 'flash-img') || ''));
     // the card's picture: <img src="{{image}}"> and var(--card-image)
     const imgs = [...box.querySelectorAll('img[data-card-image]')];
@@ -223,7 +229,7 @@
       box.style.setProperty('--card-image', `url("${u}")`);
       imgs.forEach((i) => { i.src = u; i.removeAttribute('data-card-image'); });
     });
-    box.querySelectorAll('[data-slot="audio"]').forEach((s) => s.replaceWith(A.speakBtn(c.term, A.store.settings?.target || 'nb', '', c)));
+    box.querySelectorAll('[data-slot="audio"]').forEach((s) => s.replaceWith(ask && side === 'front' ? '' : A.speakBtn(c.term, A.store.settings?.target || 'nb', '', c)));
     return box;
   }
 
@@ -273,16 +279,20 @@
       const body = own || (name === 'front'
         ? [A.lt(sample.term, s.target, 'flash-word serif' + size(sample.term), 'div'), A.speakBtn(sample.term, s.target, 'lg')]
         : [sample.img ? A.media.el(sample, 'flash-img') : null, A.lt(sample.term, s.target, 'flash-small', 'div'), A.lt(sample.tr, s.native, 'flash-word serif' + size(sample.tr), 'div'), ex ? A.lt(ex, s.target, 'flash-ex serif', 'p') : null]);
-      const el = h('div', { class: 'look-side', style: `--w: ${W}px; --h: ${H}px` },
+      const el = h('div', { class: 'look-side is-' + name, style: `--w: ${W}px; --h: ${H}px`, onclick: () => flip(name === 'front' ? 'back' : 'front') },
         h('div', { class: 'flash look-flash in' }, h('div', { class: 'face' + (has(look) ? ' own' : '') + (name === 'back' ? ' back look-back' : ' front') },
           h('div', { class: 'flash-tag' }, h('span', { class: 'badge new' }, t('study.new'))),
           h('div', { class: 'face-body' }, body))));
       scaler?.observe(el);
       return el;
     };
+    // on a phone one side at a time, turned by the switch or by a tap on the card; side by side on wider screens
+    const sides = A.segmented([{ value: 'front', label: t('look.side_front') }, { value: 'back', label: t('look.side_back') }], 'front', (v) => { box.dataset.side = v; }, 'look-sides');
+    const flip = (v) => { box.dataset.side = v; sides.querySelectorAll('button').forEach((b, i) => { const on = (i === 0) === (v === 'front'); b.classList.toggle('on', on); b.setAttribute('aria-checked', String(on)); }); };
+    box.dataset.side = 'front';
     shown = look;
     previewCss();
-    box.replaceChildren(side('front'), side('back'));
+    box.replaceChildren(sides, side('front'), side('back'));
   }
   const unpreview = () => { shown = null; previewCss(); };
   const wear = (look) => { worn = look; apply(); };
@@ -388,7 +398,7 @@
   A.views.look = {
     render(root, [id]) {
       const { h, icon, t } = A;
-      const page = h('section', { class: 'link-page' }, h('div', { class: 'link-card share-open' }, A.loading(t('share.loading'))));
+      const page = h('section', { class: 'link-page' }, h('div', { class: 'link-card share-open look-open' }, A.loading(t('share.loading'))));
       root.append(page);
       A.ai.sharedDeck(id).then((d) => {
         if (!d || d.kind !== 'look') { location.replace('#/s/' + id); return; }
@@ -405,8 +415,8 @@
           h('h1', { class: 'display sm' }, d.name || t('look.title')),
           h('p', { class: 'muted' }, t('look.shared_d')),
           box,
-          look.site ? h('p', { class: 'muted small row gap center wrap' }, h('span', null, icon('info', 14), ' ', t('look.shared_site')), tryBtn) : null,
-          h('div', { class: 'row gap center wrap' },
+          look.site ? h('p', { class: 'muted small row gap center wrap look-note' }, h('span', null, icon('info', 14), ' ', t('look.shared_site')), tryBtn) : null,
+          h('div', { class: 'row gap center wrap look-go' },
             h('button', {
               class: 'btn btn-primary btn-lg', type: 'button',
               onclick: () => {

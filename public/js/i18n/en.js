@@ -853,4 +853,6 @@ globalThis.App.i18nData.en = {
   'remind.denied': "Notifications are blocked for this site in the browser's settings.",
   'remind.background': "On: it comes even when the app is closed.",
   'remind.tab': "On: it comes while the site is open in a tab. Install the site as an app (Chrome, Edge) for reminders when it is closed.",
+  'look.side_front': "Front",
+  'look.side_back': "Back",
 };

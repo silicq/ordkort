@@ -890,6 +890,17 @@ dialog.modal::backdrop { background: rgba(20, 16, 10, 0.45); backdrop-filter: bl
   box-shadow: 0 1px 0 var(--line-2), 0 28px 50px -30px rgba(40, 30, 10, 0.55);
 }
 .face.back { transform: rotateY(180deg); }
+/* The card's geometry holds whatever a look's card CSS says (position: relative on .face.own stacked the sides one
+   under the other, so the front shrank and the back hung below the card when it turned): both sides lie on each
+   other and the back is turned. Colours, borders, padding, shadows and animations of the look stay its own. */
+.flash .flash-inner.flash-inner { position: relative !important; width: 100% !important; height: 100% !important; transform-style: preserve-3d !important; }
+.flash:not(.flipped) .flash-inner.flash-inner { transform: none !important; }
+.flash.flipped .flash-inner.flash-inner { transform: rotateY(180deg) !important; }
+.flash .face.face { position: absolute !important; inset: 0 !important; margin: 0 !important; width: auto !important; height: auto !important;
+  backface-visibility: hidden !important; -webkit-backface-visibility: hidden !important; }
+.flash:not(.look-flash) .face.face.front { transform: none !important; }
+.flash:not(.look-flash) .face.face.back { transform: rotateY(180deg) !important; }
+.look-flash .face.face { transform: none !important; }
 .flash.failed .face.back { border-color: var(--red); }
 .flash.partial .face.back { border-color: var(--yellow); }
 .flash-tag { display: flex; align-items: center; justify-content: space-between; gap: 10px; height: 34px; font-size: 12.5px; color: var(--ink-2); }
@@ -901,6 +912,8 @@ dialog.modal::backdrop { background: rgba(20, 16, 10, 0.45); backdrop-filter: bl
    of a long word or a tall picture off for good */
 .face-body { flex: 1; min-height: 0; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 10px; padding: 18px 4px 8px; text-align: center; overflow: auto; overscroll-behavior: contain; }
 .face-body > *, .face-body > .tpl > * { flex-shrink: 0; }
+/* a scrollbar only as wide as a hint: a look's 3D tilts push its content a little past the edge */
+.face-body { overflow-x: hidden; scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--ink-3) 45%, transparent) transparent; }
 .face-body > :first-child, .face-body > .tpl:first-child > :first-child { margin-top: auto; }
 .face-body > :last-child, .face-body > .tpl:last-child > :last-child { margin-bottom: auto; }
 .flash-word { font-size: clamp(34px, 7vw, 56px); font-weight: 620; line-height: 1.1; letter-spacing: -0.02em; overflow-wrap: anywhere; max-width: 100%; }
@@ -1956,6 +1969,27 @@ dialog.modal::backdrop { background: rgba(20, 16, 10, 0.45); backdrop-filter: bl
 .look-preview { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 6px 0 4px; contain: paint; }
 /* a real card's size (--w × --h), scaled to the column by --z (set from its width in js/look.js) */
 .look-side { position: relative; min-width: 0; aspect-ratio: 480 / 430; }
+.look-sides { display: none; }
+/* a phone: one side at a time, so the page fits one screen; the switch (or a tap on the card) turns it */
+@media (max-width: 719px) {
+  .look-preview { grid-template-columns: 1fr; gap: 10px; }
+  .look-sides { display: inline-flex; justify-self: center; }
+  .look-preview[data-side="front"] .look-side.is-back, .look-preview[data-side="back"] .look-side.is-front { display: none; }
+  .look-side { cursor: pointer; }
+}
+/* the page of a look made for you: wide enough for two real-size sides on a computer, compact on a phone */
+.link-card.look-open { max-width: 940px; }
+@media (max-width: 560px) {
+  .link-page:has(.look-open) { min-height: 0; }
+  .link-card.look-open { padding: 18px 14px 20px; border-radius: 22px; }
+  .link-card.look-open .link-ico { display: none; }
+  .link-card.look-open .display { margin: 0 0 6px; font-size: 26px; }
+  .link-card.look-open > p { font-size: 14.5px; margin: 0 0 10px; }
+  .link-card.look-open .row { margin-top: 12px; }
+  .link-card.look-open .look-note > span { display: none; } /* the try-on button says it */
+  .link-card.look-open .look-go { flex-wrap: nowrap; }
+  .link-card.look-open .look-go .btn-lg { min-height: 48px; padding-inline: 16px; font-size: 15.5px; }
+}
 .look-preview .look-flash.flash { position: absolute; inset: auto; left: 0; top: 0; width: var(--w); height: var(--h); opacity: 1; transform: scale(var(--z, 0.5)); transform-origin: 0 0; cursor: default; }
 .look-flash .face { transform: none; }
 .look-flash .face.look-back { transform: none; }

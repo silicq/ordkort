@@ -849,4 +849,6 @@ globalThis.App.i18nData.zh = {
   'remind.denied': "浏览器设置中已禁止此网站的通知。",
   'remind.background': "已开启：即使应用关闭也会提醒。",
   'remind.tab': "已开启：网站在标签页中打开时会提醒。将网站安装为应用（Chrome、Edge）后，关闭时也能收到提醒。",
+  'look.side_front': "正面",
+  'look.side_back': "背面",
 };
