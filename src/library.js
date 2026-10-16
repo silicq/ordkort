@@ -1,8 +1,8 @@
 /* The library: decks people publish for everybody learning the same pair of languages.
 
    Publishing is a choice (a deck shared by link stays unlisted). Before a deck is listed, Llama Guard reads its
-   title and words and looks at its cover; an unsafe deck is refused, and when the check cannot run nothing is
-   published. Listed decks can be voted up or down, are counted when added, and can be reported: after
+   title and words and looks at its cover; an unsafe deck is refused, and when the words cannot be checked nothing
+   is published (a cover that cannot be looked at is left out). Listed decks can be voted up or down, are counted when added, and can be reported: after
    REPORTS_TO_HIDE reports from different people a deck is hidden until the site's owner looks at it.
    The publisher keeps a token that lets them take the deck down; the site's owner can take down any deck, or any
    deck shared by link, with the ADMIN_TOKEN secret.
@@ -23,41 +23,50 @@ const MIN_WORDS = 5;
 const token = () => randomCode(8) + randomCode(8) + randomCode(8);
 const isAdmin = (request, env) => !!env.ADMIN_TOKEN && safeEqual(request.headers.get('X-Admin-Token') || '', env.ADMIN_TOKEN);
 
-/* What Llama Guard reads: the title and every word, translation and example, in pieces it can take, and the
-   cover. → the categories it found unsafe, [] when all is well. */
+/* What the check reads: the title and every word, translation and example, in pieces it can take, and the
+   cover on its own. → { bad: the categories found unsafe ([] when all is well), cover: false when the cover could
+   not be looked at (it is then left out) }. */
 export async function check(env, deck) {
   const lines = [deck.title, ...deck.words.map((w) => [w.term, w.tr, w.ex, w.ex_tr].filter(Boolean).join(' — '))];
   const pieces = [];
   let cur = '';
   for (const l of lines) {
-    if (cur.length + l.length > 5000) { pieces.push(cur); cur = ''; }
+    if (cur.length + l.length > 12000) { pieces.push(cur); cur = ''; }
     cur += l + '\n';
   }
   if (cur) pieces.push(cur);
   const found = new Set();
-  for (const [i, text] of pieces.slice(0, 4).entries()) {
-    const r = await guard(env, { text: `A vocabulary deck for language learners:\n${text}`, image: i === 0 && deck.cover?.startsWith('data:') ? deck.cover : undefined });
-    r.cats.forEach((c) => found.add(c));
-    if (!r.safe && !r.cats.length) found.add('unsafe');
+  const note = (r) => { r.cats.forEach((c) => found.add(c)); if (!r.safe && !r.cats.length) found.add('unsafe'); };
+  for (const text of pieces) note(await guard(env, { text: `A vocabulary deck for language learners:\n${text}` }));
+  let cover = true;
+  if (deck.cover?.startsWith('data:')) {
+    try { note(await guard(env, { text: `The cover of a vocabulary deck called "${deck.title}".`, image: deck.cover })); }
+    catch (e) { if (e.status !== 503) throw e; cover = false; }
   }
-  return [...found];
+  return { bad: [...found], cover };
 }
+
+// pictures on the words: only from the free sources the site's own search uses, not any address someone pasted
+const PIC_HOSTS = /(^|\.)(wikimedia\.org|pixabay\.com|openverse\.org|staticflickr\.com)$/;
+const picOk = (u) => { try { const x = new URL(u); return x.protocol === 'https:' && PIC_HOSTS.test(x.hostname); } catch { return false; } };
 
 export async function publish(request, env, key) {
   const b = await readJSON(request, 400000);
   const deck = cleanDeck(b.deck || {});
   if (deck.cover && !deck.cover.startsWith('data:')) { delete deck.cover; delete deck.cover_by; } // only a cover made on the device
+  for (const w of deck.words) if (w.img_url && !picOk(w.img_url)) { delete w.img_url; delete w.img_by; }
   if (deck.words.length < MIN_WORDS) throw new HttpError(400, 'too_small');
   if (str(deck.title, 80).length < 3) throw new HttpError(400, 'no_title');
   await takeSimple(env, 'lib-pub', key, 10, 864e5);
-  const bad = await check(env, deck);
+  const { bad, cover } = await check(env, deck);
   if (bad.length) return json({ error: 'refused', cats: bad }, 422);
+  if (!cover) { delete deck.cover; delete deck.cover_by; }
   const own = token();
   for (let i = 0; i < 5; i++) {
     const id = randomCode(8);
     const r = await env.DB.prepare('INSERT OR IGNORE INTO library (id, target, native, title, level, n, d, owner, t) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)')
       .bind(id, deck.target, deck.native, deck.title, deck.level || '', deck.words.length, JSON.stringify(deck), await sha256(own), Date.now()).run();
-    if (r.meta.changes) return json({ id, token: own });
+    if (r.meta.changes) return json(cover ? { id, token: own } : { id, token: own, cover: false });
   }
   throw new HttpError(503, 'busy');
 }

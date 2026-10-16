@@ -689,7 +689,7 @@ textarea.input { resize: vertical; min-height: 64px; line-height: 1.45; }
 .topic.have { color: var(--ink-2); }
 .topic.have .ico { color: var(--green); }
 .topic.on { border-color: var(--blue); background: var(--blue-soft); box-shadow: 0 2px 0 var(--blue); }
-.manual { margin-top: 22px; padding-top: 14px; border-top: 1px dashed var(--line); }
+.manual { display: flex; flex-wrap: wrap; gap: 10px 28px; margin-top: 22px; padding-top: 14px; border-top: 1px dashed var(--line); }
 
 /* ---------- deck ---------- */
 /* a.back, not .back: the back of a flashcard is .face.back */

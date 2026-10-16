@@ -819,4 +819,5 @@ globalThis.App.i18nData.nb = {
   'lib.unpublished': "Fjernet fra biblioteket.",
   'about.library_h': "Kortstokkbiblioteket",
   'about.library_p': "Du kan publisere en kortstokk for alle som lærer de samme språkene; bare ordene og omslaget går, aldri fremgangen din. Før den vises, leser en KI-moderator (Llama Guard) ordene og ser på omslaget, og en utrygg kortstokk avvises. En kortstokk som tre personer melder, skjules til eieren av nettstedet har sett på den; din egen kan du ta ned når som helst fra menyen.",
+  'lib.no_cover': "Omslaget kunne ikke sjekkes nå, så kortstokken ble publisert uten det.",
 };

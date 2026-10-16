@@ -21,6 +21,8 @@ function d1() {
 }
 
 let verdict = 'safe';
+let pictures = 'ok'; // 'gone': Llama Guard is gone, and with it the only reader of pictures
+let policy = '{"safe": true}'; // what a model told the policy answers
 const seen = [];
 function fakeGuard() {
   const real = globalThis.fetch;
@@ -28,7 +30,11 @@ function fakeGuard() {
     const body = JSON.parse(opts.body);
     seen.push(body);
     if (verdict === 'down') return new Response('{}', { status: 500 });
-    return new Response(JSON.stringify({ choices: [{ message: { content: verdict } }] }));
+    if (body.model.includes('llama-guard')) {
+      if (pictures === 'gone') return new Response(JSON.stringify({ error: { code: 'model_decommissioned' } }), { status: 400 });
+      return new Response(JSON.stringify({ choices: [{ message: { content: verdict } }] }));
+    }
+    return new Response(JSON.stringify({ choices: [{ message: { content: policy } }] }));
   };
   return () => { globalThis.fetch = real; };
 }
@@ -48,10 +54,11 @@ test('a checked deck is listed for its pair, found by its title, and opens', asy
     assert.equal(s, 200);
     assert.match(pub.id, /^[0-9A-Z]{8}$/);
     assert.ok(pub.token.length >= 24, 'the publisher’s token to take it down');
-    const sent = seen.at(-1).messages[0].content;
-    assert.match(sent[0].text, /Kjøkkenet/);
-    assert.match(sent[0].text, /ord 7 — word 7/, 'the words are read');
-    assert.equal(sent[1].image_url.url, 'data:image/jpeg;base64,AAAA', 'and the cover is looked at');
+    const words = seen.at(-2).messages[0].content;
+    assert.match(words[0].text, /Kjøkkenet/);
+    assert.match(words[0].text, /ord 7 — word 7/, 'the words are read');
+    const look = seen.at(-1).messages[0].content;
+    assert.equal(look[1].image_url.url, 'data:image/jpeg;base64,AAAA', 'and the cover is looked at');
 
     await L.publish(req('library', { method: 'POST', body: deck('Familien') }), env, 'k1');
     let [, page] = await jsonOf(await L.list(req('library?target=nb&native=en'), env));
@@ -79,6 +86,32 @@ test('an unsafe deck is refused, and without the check nothing is published', as
     assert.equal(page.decks.length, 0);
     await assert.rejects(L.publish(req('library', { method: 'POST', body: { deck: { title: 'Tiny', target: 'nb', native: 'en', words: words(3) } } }), env, 'k2'), (e) => e.status === 400, 'too few words');
   } finally { restore(); }
+});
+
+test('without Llama Guard the words are read against the policy, and a cover nobody can look at is left out', async () => {
+  const restore = fakeGuard();
+  try {
+    pictures = 'gone';
+    policy = '{"safe": true}';
+    const from = seen.length;
+    const pics = words(8).map((w, i) => ({ ...w, img_url: i ? 'https://upload.wikimedia.org/a.jpg' : 'https://example.com/x.jpg' }));
+    const [s, pub] = await jsonOf(await L.publish(req('library', { method: 'POST', body: deck('Huset', { cover: 'data:image/jpeg;base64,AAAA', words: pics }) }), env, 'k5'));
+    assert.equal(s, 200);
+    assert.equal(pub.cover, false, 'the publisher is told the cover was left out');
+    const reader = seen.slice(from).find((b) => !b.model.includes('llama-guard'));
+    assert.match(reader.messages[0].content, /vocabulary decks/, 'a model told the policy read the words');
+    assert.match(reader.messages[1].content, /ord 7 — word 7/);
+    const [, got] = await jsonOf(await L.get(env, pub.id));
+    assert.equal(got.deck.cover, undefined);
+    assert.equal(got.deck.words[0].img_url, undefined, 'a picture from anywhere is dropped');
+    assert.equal(got.deck.words[1].img_url, 'https://upload.wikimedia.org/a.jpg', 'one from the site’s sources stays');
+
+    policy = '{"safe": false, "cats": ["S12"]}';
+    const [s2, r] = await jsonOf(await L.publish(req('library', { method: 'POST', body: deck('Bad 2') }), env, 'k5'));
+    assert.deepEqual([s2, r.cats], [422, ['S12']]);
+    policy = 'nonsense';
+    await assert.rejects(L.publish(req('library', { method: 'POST', body: deck('Unclear') }), env, 'k5'), (e) => e.status === 503 && /llama-guard-4-12b: 400 model_decommissioned/.test(e.extra.why));
+  } finally { restore(); pictures = 'ok'; policy = '{"safe": true}'; }
 });
 
 test('votes and adds count once a day per person; reports from three people hide a deck', async () => {
