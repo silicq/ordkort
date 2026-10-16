@@ -248,7 +248,7 @@ function wordPage(ui, w, live) {
   const U = UI[ui], e = DICT.get(w), f = RANK.get(w);
   const a = article(w, f.pos, null);
   const head = headword(w, f.pos, a);
-  const posLabel = [U.pos[f.pos], ...(f.pos === 'noun' && a ? a.g.map((g) => U.gender[g]) : [])].join(', ');
+  const posLabel = [U.pos[f.pos], ...(f.pos === 'noun' && a ? a.g.map((g) => U.gender[g]) : [])].join(U.comma || ', ');
   const tr = ui === 'nb' ? e.nb : e.tr[ui];
   const forms = keyForms(a, w);
   const table = formsTable(ui, a, w);

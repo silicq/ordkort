@@ -291,8 +291,8 @@ export const UI = {
      app's hand-made Arabic interface; the pages run right to left, the Norwegian in them left to right. The topic
      addresses are romanized by hand (slugs): Arabic letters have no plain ASCII form. */
   ar: {
-    learn: 'narwiji', noDict: true,
-    pos: POS.ar, gender: GENDER.ar, table: TABLE.ar, source: SOURCE,
+    learn: 'narwiji',
+    pos: POS.ar, gender: GENDER.ar, table: TABLE.ar, source: SOURCE, comma: '، ', // the Arabic comma between labels
     home: 'Ordkort', topicsHub: 'النرويجية حسب الموضوع', dictHub: 'القاموس النرويجي',
     topicsTitle: (n) => `كلمات نرويجية حسب الموضوع: ${arCount(n, 'قائمة', 'قائمتان', 'قوائم', 'قائمةً')} | Ordkort`,
     topicsH1: 'كلمات نرويجية حسب الموضوع',
@@ -324,7 +324,7 @@ export const UI = {
       p: 'الصق هذا الرمز في صفحة من موقع مدرستك أو مدوّنتك. البطاقات تعمل على الهاتف، بلا تسجيل وبلا إعلانات.',
     },
     wordTitle: (w) => `${w} — الترجمة من النرويجية، الصيغ والأمثلة`,
-    wordDesc: (w, pos, tr, forms) => `${w} — كلمة نرويجية (${pos}): ${tr}.${forms ? ` الصيغ: ${forms}.` : ''} أمثلة مع الترجمة ونصائح للمتعلّمين.`,
+    wordDesc: (w, pos, tr, forms) => `${w} — كلمة نرويجية (${pos}) معناها بالعربية: ${tr}.${forms ? ` الصيغ: ${forms}.` : ''} أمثلة مع الترجمة العربية ونصائح للمتعلّمين الناطقين بالعربية.`,
     ctaWord: (w) => `تعلّم «${w}» في Ordkort`,
     phH: 'عبارات مفيدة', plain: 'بنرويجية بسيطة', examplesH: 'أمثلة', noteH: 'من المفيد أن تعرف', formsH: 'الصيغ',
     officialH: 'في قاموس Bokmålsordboka', exprH: 'تعابير ثابتة', compoundsH: 'كلمات مركّبة', relatedH: 'كلمات قريبة', inTopicsH: 'في المواضيع',
