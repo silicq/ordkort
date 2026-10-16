@@ -28,6 +28,7 @@
 
   // AI limits (can be changed in the Cloudflare dashboard without touching the code).
   // The GROQ_API_KEY secret is set separately: npx wrangler secret put GROQ_API_KEY
+  // Optional: npx wrangler secret put PIXABAY_KEY adds Pixabay to the picture search (src/images.js)
   "vars": {
     "AI_PER_HOUR": "40",
     "AI_PER_DAY": "120",

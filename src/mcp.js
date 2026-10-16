@@ -84,7 +84,8 @@ wrap optional parts in {{#…}}.
   Ordkort fetches it once through its own server and shows it. At most 8 per look, each up to 5 MB, JPEG, PNG,
   WebP, GIF or AVIF (no SVG by address: use a data: URI for SVG). An address must be written out in full: one made
   from a field ({{term}}.jpg) is never loaded. Good for a background: \`body { background: url("https://…") center /
-  cover fixed; }\` in site_css. find_pictures gives openly licensed pictures; prefer upload.wikimedia.org ones.
+  cover fixed; }\` in site_css. find_pictures gives free pictures: use its image_url as it is (for Pixabay that is
+  the picture's page, which Ordkort turns into the picture; the picture addresses Pixabay gives last a day).
 
 ## The site (site_css)
 
@@ -232,7 +233,7 @@ const TOOLS = [
   {
     name: 'find_pictures', title: 'Find free pictures',
     description: 'Openly licensed pictures for a word: first the Wikimedia Commons picture of the Wikidata item the word '
-      + 'names (found in the word\'s own language, so "hus" in nb finds a house), then Openverse\'s, sorted so those '
+      + 'names (found in the word\'s own language, so "hus" in nb finds a house), then Pixabay\'s photos and drawings, then Openverse\'s, sorted so those '
       + 'whose title or tags hold the word come first. Give the bare word without its article, and its language. '
       + 'Each has an image_url to put on a card and a credit to show with it. Look at the credit: it names the picture.',
     inputSchema: {
@@ -351,7 +352,7 @@ async function callTool(name, a, env, key) {
       return fail('The picture sites (Wikimedia Commons, Openverse) are not answering right now. Try again in a minute. '
         + 'A design can do without them: CSS gradients and data: SVG patterns need no pictures by address.');
     }
-    const out = res.results.map((r) => ({ image_url: r.thumb, credit: `${r.by} · ${r.license}`, page: r.page }));
+    const out = res.results.map((r) => ({ image_url: r.url || r.thumb, credit: `${r.by} · ${r.license}`, page: r.page }));
     if (!out.length) return text('No pictures found. Try a simpler word, or its English translation with language "en".', { pictures: [] });
     return text(out.map((p, i) => `${i + 1}. ${p.image_url}\n   ${p.credit}`).join('\n'), { pictures: out });
   }

@@ -159,6 +159,7 @@
               h('li', null, h('a', { href: 'https://lexin.oslomet.no', target: '_blank', rel: 'noopener' }, 'Lexin'), ' — ', t('set.src_lexin')),
               h('li', null, h('a', { href: 'https://en.wiktionary.org', target: '_blank', rel: 'noopener' }, 'Wiktionary'), ' — ', t('set.src_wikt')),
               h('li', null, h('a', { href: 'https://commons.wikimedia.org', target: '_blank', rel: 'noopener' }, 'Wikimedia Commons'), ', ',
+                h('a', { href: 'https://pixabay.com', target: '_blank', rel: 'noopener' }, 'Pixabay'), ', ',
                 h('a', { href: 'https://openverse.org', target: '_blank', rel: 'noopener' }, 'Openverse'), ' — ', t('set.src_pics')),
               h('li', null, h('a', { href: 'https://groq.com', target: '_blank', rel: 'noopener' }, 'Groq'), ' — ', t('set.src_groq')))))),
         col(
