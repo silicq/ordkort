@@ -248,7 +248,7 @@
         gram ? h('div', { class: 'flash-pron' }, gram) : c.pos ? h('div', { class: 'flash-pron' }, t('pos.' + c.pos)) : null];
     } else if (S.mode === 'listen') {
       frontBody = [h('div', { class: 'flash-ask' }, t('study.ask_listen')),
-        h('button', { class: 'listen-big', type: 'button', 'aria-label': t('common.listen'), onclick: (e) => { e.stopPropagation(); A.speak(c.term, T, c); } }, icon('speaker', 40))];
+        h('button', { class: 'listen-big', type: 'button', 'aria-label': t('common.listen'), 'data-say': c.term, onclick: (e) => { e.stopPropagation(); A.speak(c.term, T, c); } }, icon('speaker', 40))];
     } else if (S.mode === 'cloze') {
       S.cloze = clozeOf(c);
       frontBody = [h('div', { class: 'flash-ask' }, t('study.ask_cloze')),
@@ -266,13 +266,16 @@
       frontBody = [A.media.el(c, 'flash-img'), A.lt(c.tr, N, 'flash-word serif' + sizeOf(c.tr), 'div'), c.pos ? h('div', { class: 'flash-pron' }, t('pos.' + c.pos)) : null];
     }
 
-    const front = h('div', { class: 'face front' + (frontBody[0]?.classList?.contains('tpl') ? ' own' : '') },
+    // a look with a template dresses every side in every mode (.face.own); the front's template is for flip cards only,
+    // since the other modes ask something there, and the back's shows the answer in all of them
+    const dressed = !cz && A.look.has();
+    const front = h('div', { class: 'face front' + (dressed ? ' own' : '') },
       tag.cloneNode(true),
       h('div', { class: 'face-body' }, frontBody),
       S.mode === 'flip' ? h('div', { class: 'face-hint' }, icon('flip', 15), t('study.tap')) : null);
 
-    const ownBack = !cz && S.mode === 'flip' && fwd && A.look.render('back', c);
-    const back = h('div', { class: 'face back' + (ownBack ? ' own' : '') },
+    const ownBack = dressed && A.look.render('back', c);
+    const back = h('div', { class: 'face back' + (dressed ? ' own' : '') },
       tag,
       cz ? h('div', { class: 'face-body' },
         A.media.el(c, 'flash-img'),

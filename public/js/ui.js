@@ -33,7 +33,7 @@
     settings: '<path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2.2"/><circle cx="9" cy="17" r="2.2"/>',
     sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"/>',
     moon: '<path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/>',
-    speaker: '<path d="M4 9.5v5h3.5L12 18V6L7.5 9.5z"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/>',
+    speaker: '<path d="M4 9.5v5h3.5L12 18V6L7.5 9.5z"/><path d="M15.5 9a4 4 0 0 1 0 6"/><path d="M18 6.5a7.5 7.5 0 0 1 0 11"/>',
     plus: '<path d="M12 5v14M5 12h14"/>',
     trash: '<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>',
     close: '<path d="M6 6l12 12M18 6 6 18"/>',
@@ -226,14 +226,38 @@
     w(36, 'data'); v.setUint32(40, n, true); b.fill(128, 44);
     return (silence = URL.createObjectURL(new Blob([b], { type: 'audio/wav' })));
   }
+  /* What a speaker button shows: a ring turning while the sound loads, waves while it plays. The state belongs to
+     the text being said, so every button for that text shows it, also when a card speaks by itself. */
+  let saying = null, stuck = 0;
+  function state(text, s) {
+    if (s === 'idle' && text !== saying) return;
+    saying = s === 'idle' ? null : text;
+    clearTimeout(stuck);
+    if (s === 'loading') stuck = setTimeout(() => state(text, 'idle'), 15000); // never spin for ever
+    for (const b of document.querySelectorAll('.speak, .listen-big')) {
+      const mine = s !== 'idle' && b.dataset.say === text;
+      b.classList.toggle('is-loading', mine && s === 'loading');
+      b.classList.toggle('is-playing', mine && s === 'playing');
+      if (mine && s === 'loading') b.setAttribute('aria-busy', 'true'); else b.removeAttribute('aria-busy');
+    }
+  }
+  let sounding = null; // the text the audio element is playing (not the moment of silence)
   function play(url, text, lang) {
-    player ||= new Audio();
+    if (!player) {
+      player = new Audio();
+      const real = () => player.src !== silence && sounding;
+      player.addEventListener('playing', () => { if (real()) state(sounding, 'playing'); });
+      player.addEventListener('ended', () => { if (real()) state(sounding, 'idle'); });
+      player.addEventListener('error', () => { if (real()) state(sounding, 'idle'); });
+    }
     synth?.cancel();
     player.pause();
+    if (url) sounding = text;
     player.src = url || quiet();
     return player.play().catch(() => { if (url) say(text, lang); });
   }
   function speak(text, lang, card) {
+    state(text, 'loading');
     if (card?.audio && A.media?.audio) {
       const ready = A.media.audioNow(card);
       if (ready) { play(ready, text, lang); return true; }
@@ -256,11 +280,14 @@
     // a word in another alphabet than its deck's (a Russian word in a Norwegian deck) is read in its own language
     if (!A.langs.fits(text, lang)) lang = A.langs.guess(text, [A.store?.settings?.native, A.store?.settings?.target]) || lang;
     const v = voiceFor(lang);
-    if (!v) { toast(A.t('tts.none', { lang: A.langs.name(lang) })); return false; }
+    if (!v) { state(text, 'idle'); toast(A.t('tts.none', { lang: A.langs.name(lang) })); return false; }
     const u = new SpeechSynthesisUtterance(String(text).replace(/[*_]/g, ''));
     u.voice = v;
     u.lang = v.lang;
     u.rate = 0.9;
+    sounding = null;
+    u.onstart = () => state(text, 'playing');
+    u.onend = u.onerror = () => state(text, 'idle');
     synth.cancel();
     synth.speak(u);
     return true;
@@ -268,7 +295,7 @@
   function speakBtn(text, lang, cls = '', card = null) {
     if (card?.audio) A.media?.audio(card); // ready by the time it is tapped
     return h('button', {
-      class: 'speak ' + cls, type: 'button', title: A.t('common.listen'), 'aria-label': A.t('common.listen'),
+      class: 'speak ' + cls, type: 'button', title: A.t('common.listen'), 'aria-label': A.t('common.listen'), 'data-say': text,
       onclick: (e) => { e.stopPropagation(); speak(text, lang, card); },
       onpointerdown: (e) => e.stopPropagation(),
     }, icon('speaker', cls.includes('lg') ? 22 : 18));

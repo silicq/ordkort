@@ -61,6 +61,8 @@ The face has a ruled paper background, a border and a padding of 16px 22px. To m
 \`.face.own\` (background, border, border-radius, padding, box-shadow) and \`.face.own .face-body\` (padding: 0), and
 restyle or hide \`.face.own .flash-tag\`. A root element in a template can use width: 100%; height: 100%.
 Prefix every card_css rule with \`.tpl\` or \`.face.own\`: card_css applies to the whole page.
+The back template shows the answer in every study mode (flip, choice, typing, listening, gaps); the front one is
+used for flip cards, since the other modes ask their question there. .face.own dresses both sides in every mode.
 Without a template the site draws its own card: .flash-word (the word, serif), .flash-small, .flash-pron,
 .flash-gram, .flash-ex (the example), .flash-img (the picture); these can be styled from site_css too.
 Around the card: .study (the screen), .study-top with .progress (the bar), .stack and .stack-bg (the pile behind),
@@ -72,6 +74,7 @@ Around the card: .study (the screen), .study-top with .progress (the bar), .stac
 {{audio}} — a round button that reads the word aloud (class "speak"); keep it at least 40 px.
 {{image}} — the card's picture (see Pictures).
 {{#field}}…{{/field}} shows its inside only when the card has that field; {{^field}}…{{/field}} only when it has not.
+Sections may sit inside each other: {{#example}}…{{#example_translation}}…{{/example_translation}}{{/example}}.
 Values are escaped text. Fields are not filled inside CSS. Many cards have no example, forms or picture: always
 wrap optional parts in {{#…}}.
 
@@ -91,7 +94,8 @@ wrap optional parts in {{#…}}.
 
 ### Colours: change the variables first
 
-Set them on :root. The site has a light and a dark theme: \`:root[data-theme="dark"]\` when the person chose dark,
+Set them on :root; card_css can use them too (also new variables of your own, such as an accent), and the
+preview lends them to the sample cards before anything is applied. The site has a light and a dark theme: \`:root[data-theme="dark"]\` when the person chose dark,
 and \`@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { … } }\` when they follow the system.
 A look that sets only light colours should either set dark ones too, or keep its colours to
 \`:root:not([data-theme="dark"])\` so the dark theme stays readable.

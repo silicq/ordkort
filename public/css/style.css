@@ -233,6 +233,11 @@ img, svg { flex-shrink: 0; }
   background: linear-gradient(transparent 60%, var(--marker) 60%, var(--marker) 92%, transparent 92%);
   padding: 0 0.06em;
 }
+/* the marker blends with the letters under it: a look that fills a heading's letters with a gradient (color:
+   transparent; background-clip: text) would otherwise have it paint over the highlighted word */
+.display em, .onb-hero h1 em { mix-blend-mode: multiply; }
+:root[data-theme='dark'] .display em, :root[data-theme='dark'] .onb-hero h1 em { mix-blend-mode: screen; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme='light']) .display em, :root:not([data-theme='light']) .onb-hero h1 em { mix-blend-mode: screen; } }
 .lede { font-size: 17.5px; color: var(--ink-2); max-width: 62ch; margin: 12px 0 0; text-wrap: pretty; }
 .muted { color: var(--ink-2); }
 .small { font-size: 13.5px; }
@@ -1728,6 +1733,25 @@ dialog.modal::backdrop { background: rgba(20, 16, 10, 0.45); backdrop-filter: bl
 .flash-ask { font: 700 12px/1.3 var(--font-ui); letter-spacing: 0.07em; text-transform: uppercase; color: var(--ink-3); }
 .listen-big { display: grid; place-items: center; width: 96px; height: 96px; border-radius: 50%; border: 2px solid var(--line-2); background: var(--blue-soft); color: var(--blue-ink); cursor: pointer; box-shadow: 0 4px 0 var(--line-2); }
 .listen-big:active { transform: translateY(2px); box-shadow: 0 2px 0 var(--line-2); }
+
+/* a speaker button while its sound loads (a ring turns round it) and while it plays (it glows, the arcs answer) */
+.speak, .listen-big { position: relative; }
+.speak.is-loading::after, .listen-big.is-loading::after {
+  content: ''; position: absolute; inset: -4px; border-radius: 50%; pointer-events: none;
+  border: 2px solid transparent; border-top-color: var(--blue); border-right-color: color-mix(in srgb, var(--blue) 45%, transparent);
+  animation: spk-spin 0.8s linear infinite;
+}
+.speak.is-loading svg, .listen-big.is-loading svg { opacity: 0.55; transition: opacity 0.2s; }
+.speak.is-playing, .listen-big.is-playing { background: var(--blue-soft); color: var(--blue-ink); animation: spk-glow 1.3s ease-out infinite; }
+.speak.is-playing svg path:nth-child(2), .listen-big.is-playing svg path:nth-child(2) { animation: spk-wave 0.9s ease-in-out infinite; }
+.speak.is-playing svg path:nth-child(3), .listen-big.is-playing svg path:nth-child(3) { animation: spk-wave 0.9s ease-in-out 0.22s infinite; }
+@keyframes spk-spin { to { transform: rotate(360deg); } }
+@keyframes spk-glow { from { box-shadow: 0 0 0 0 color-mix(in srgb, var(--blue) 40%, transparent); } to { box-shadow: 0 0 0 10px color-mix(in srgb, var(--blue) 0%, transparent); } }
+@keyframes spk-wave { 0%, 100% { opacity: 0.25; } 50% { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  .speak.is-loading::after, .listen-big.is-loading::after { animation-duration: 2.4s; }
+  .speak.is-playing, .listen-big.is-playing, .speak.is-playing svg path, .listen-big.is-playing svg path { animation: none; }
+}
 .cloze { max-width: 30ch; margin: 0; font-size: clamp(20px, 5vw, 26px); line-height: 1.5; }
 .cloze .gap { padding: 0 4px; color: var(--blue); font-weight: 700; }
 .goal-done { display: inline-flex; align-items: center; gap: 8px; margin: 10px 0 0; color: var(--green); font-weight: 600; }
