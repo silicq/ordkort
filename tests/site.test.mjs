@@ -383,3 +383,12 @@ test('filling in many cards: one request lists each card with its number and kee
   assert.match(p.user, /keep it exactly/);
   assert.ok(p.max >= 600 + 2 * 330);
 });
+
+test('a look cannot move the phone’s tab bar or pin it to the header', () => {
+  const css = read('public/css/style.css');
+  const guard = css.slice(css.indexOf('@layer guard'));
+  assert.ok(guard.length > 100, 'the guard layer is there, after the rest');
+  assert.match(guard, /html, body, #app, \.top, \.top-in \{[^}]*transform: none !important;[^}]*filter: none !important;/);
+  assert.match(guard, /@media \(max-width: 760px\)[\s\S]*\.top \{ backdrop-filter: none !important;[\s\S]*\.tabs \{[^}]*position: fixed !important; inset: auto 0 0 0 !important;/);
+  assert.doesNotMatch(css.slice(0, css.indexOf('@layer guard')), /@layer/, 'the guard is the only layer');
+});

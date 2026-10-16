@@ -217,6 +217,8 @@ test('MCP: a deck with pictures and a look become links that open them', async (
   assert.equal(r.body.result.isError, true, 'an unknown language is an error the AI can read');
   r = await rpc({ jsonrpc: '2.0', id: 6, method: 'tools/call', params: { name: 'create_design', arguments: { name: 'Loud', site_css: 'button, a { color: red !important; }' } } });
   assert.equal(r.body.result.structuredContent.notes.length, 1, 'wide selectors with !important are pointed out');
+  r = await rpc({ jsonrpc: '2.0', id: 8, method: 'tools/call', params: { name: 'create_design', arguments: { name: 'Blur', site_css: 'header.top { backdrop-filter: blur(8px); }\n.tabs { position: absolute; top: 0; }' } } });
+  assert.equal(r.body.result.structuredContent.notes.length, 2, 'what would move the phone’s tab bar is pointed out');
   r = await rpc({ jsonrpc: '2.0', id: 7, method: 'tools/call', params: { name: 'design_guide' } });
   assert.match(r.body.result.content[0].text, /var\(--card-image\)/);
   r = await rpc({ jsonrpc: '2.0', id: 4, method: 'tools/call', params: { name: 'create_design', arguments: { name: 'Empty' } } });
