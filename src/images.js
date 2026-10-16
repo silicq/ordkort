@@ -12,7 +12,8 @@ import { cacheGet, cacheSet } from './db.js';
 import { takeSimple } from './limits.js';
 import { HttpError, json, readJSON, str, sha256 } from './util.js';
 
-const UA = 'Ordkort (https://ordkort.com; a free language-learning site)';
+// Wikimedia asks for a User-Agent that names the tool and how to reach its makers
+const UA = 'Ordkort/1.0 (https://ordkort.com; https://github.com/silicq/ordkort) language-learning flashcards';
 const MONTH = 30 * 864e5;
 const MAX_BYTES = 5 * 1024 * 1024;
 const TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/avif'];
@@ -36,6 +37,7 @@ const NOT_A_THING = new Set([
   'Q105543609', 'Q1002697', 'Q15632617', 'Q95074', 'Q21191270', 'Q7889', 'Q1344', 'Q3305213',
 ]);
 const WD = 'https://www.wikidata.org/w/api.php';
+export const OV_PAGE = 20;
 const COMMONS = 'https://commons.wikimedia.org/w/api.php';
 
 async function getJSON(url, ms = 6000) {
@@ -105,8 +107,9 @@ export function relevant(r, q) {
 }
 
 async function openverse(q) {
-  // licences that allow changes: the picture is shrunk and re-encoded on the device
-  const url = `https://api.openverse.org/v1/images/?q=${encodeURIComponent(q)}&page_size=40&mature=false&license_type=modification`;
+  // licences that allow changes: the picture is shrunk and re-encoded on the device.
+  // Without a key Openverse gives at most 20 at a time and refuses a larger page_size.
+  const url = `https://api.openverse.org/v1/images/?q=${encodeURIComponent(q)}&page_size=${OV_PAGE}&mature=false&license_type=modification`;
   const res = await fetch(url, { headers: { 'User-Agent': UA, Accept: 'application/json' }, signal: AbortSignal.timeout(8000) }).catch(() => null);
   if (!res?.ok) return null;
   const data = await res.json().catch(() => null);
@@ -128,7 +131,7 @@ export async function find(env, key, query, lang) {
   const q = str(bare(query), 80);
   if (!q) throw new HttpError(400, 'empty');
   const L = typeof lang === 'string' && /^[a-z]{2,3}$/.test(lang) ? lang : 'en';
-  const k = 'img2:' + (await sha256(L + '\n' + q.toLowerCase())).slice(0, 32);
+  const k = 'img3:' + (await sha256(L + '\n' + q.toLowerCase())).slice(0, 32);
   const hit = await cacheGet(env.DB, k, MONTH);
   if (hit) return hit;
   await takeSimple(env, 'imgq', key, 60, 36e5);
@@ -142,7 +145,7 @@ export async function find(env, key, query, lang) {
   const seen = new Set();
   const out = { results: [...wd, ...(ov || [])].filter((r) => !seen.has(r.thumb) && seen.add(r.thumb)).slice(0, 18) };
   if (en !== q) out.en = en;
-  await cacheSet(env.DB, k, out);
+  if (ov) await cacheSet(env.DB, k, out); // when Openverse did not answer, the next search tries it again
   return out;
 }
 

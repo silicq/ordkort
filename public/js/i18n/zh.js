@@ -643,6 +643,7 @@ globalThis.App.i18nData.zh = {
   'card.pic_hint': "来自维基共享资源和 Openverse 的免费开放授权图片。用单词本身、用它自己的语言搜索：专为这个词义挑选的图片排在最前。",
   'card.pic_searching': "正在找图片…",
   'card.pic_none': "没有找到图片。换个更简单的词，或者用译文试试。",
+  'card.pic_busy': "图片网站暂时没有响应。请一分钟后再试，或使用你自己的图片。",
   'card.pic_failed': "无法添加这张图片，请换一张。",
   'card.pic_by': "图片：{by}",
   'anki.import': "从 Anki 导入（.apkg）",

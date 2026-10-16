@@ -243,7 +243,10 @@
             b.classList.remove('loading');
           },
         }, h('img', { src: '/api/img?u=' + encodeURIComponent(r.thumb), alt: r.by, loading: 'lazy' }))));
-      } catch (e) { say(A.ai.errorText(e)); }
+      } catch (e) {
+        // the search asks picture sites, not the AI: "the AI is busy" would only confuse
+        say(['network', 'offline'].includes(e.kind) ? A.ai.errorText(e) : t('card.pic_busy'));
+      }
     }
     const el = h('div', { class: 'pic-search' },
       h('form', { class: 'row gap', onsubmit: (e) => { e.preventDefault(); find(); } }, q, h('button', { class: 'btn btn-soft btn-sm', type: 'submit', 'aria-label': t('card.pic_find') }, icon('search', 16))),

@@ -647,6 +647,7 @@ globalThis.App.i18nData.nb = {
   'card.pic_hint': "Gratis bilder med åpne lisenser fra Wikimedia Commons og Openverse. Søk på selve ordet, på sitt eget språk: bildet som er valgt for akkurat den betydningen, kommer først.",
   'card.pic_searching': "Leter etter bilder…",
   'card.pic_none': "Fant ingen bilder. Prøv et enklere ord eller oversettelsen.",
+  'card.pic_busy': "Bildetjenestene svarer ikke akkurat nå. Prøv igjen om et minutt, eller bruk et eget bilde.",
   'card.pic_failed': "Kunne ikke legge til dette bildet. Prøv et annet.",
   'card.pic_by': "Bilde: {by}",
   'anki.import': "Importer fra Anki (.apkg)",
