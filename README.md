@@ -68,9 +68,10 @@ Ordkort is a lightweight site for learning almost any language from almost any o
   pictures. CSV in and out, and sharing a deck by link or QR code — only the words, never your progress.
 - **Pictures on cards**: a free, openly licensed picture found by the word, one of your own, or a pasted one;
   kept on the device. The word is looked up in Wikidata in its own language, so "hus" finds the Wikimedia Commons
-  picture of a house before Openverse's, which is then searched in English. A deck's *Pictures* screen gives every
-  word its picture in one place, and several files dropped at once go to the words they are named after
-  (`hus.jpg` → "et hus").
+  picture of a house before Openverse's, which is then searched in English.
+- **Deck covers**: a small square picture instead of a deck's emoji (tap the emoji): found by the topic, your own,
+  or pasted. It is kept in the deck as a 128-px JPEG, so it syncs and goes with the deck when you share it; an AI
+  can give one through MCP (`cover_url`).
 - **Your own look**: a card template in HTML and CSS (`{{term}}`, `{{image}}`, `{{#example}}…{{/example}}`…) with
   ready ones to start from and a live preview, and CSS for the whole site. Scripts never run.
 - **Remembering better**: two answers or four (Again / Hard / Good / Easy), your own target retention, words
@@ -109,7 +110,7 @@ when you agree. It never sees or changes your cards.
 | `ready_words` | Words from the shared bank for a topic and level, checked against dictionaries |
 | `find_pictures` | Openly licensed pictures for a word in its language: the Wikidata item's Commons picture first, then Openverse's, with their credits |
 | `design_guide` | Everything an AI needs to restyle the site: how a look is applied and cleaned, the card's structure, fields, pictures, fonts, every CSS variable, the parts of each screen (with body classes per screen), light and dark themes, what not to do, a whole example and a checklist |
-| `create_deck` | A deck of up to 500 cards, pictures by URL included → a link that adds it |
+| `create_deck` | A deck of up to 500 cards, pictures and a cover by URL included → a link that adds it |
 | `create_design` | A card template in HTML/CSS and site CSS → a link that shows it, lets you try it on the whole site, and applies it; notes back what will not work as meant |
 
 Scripts in a design never run. Pictures a design names by https address (a background photo, say) are fetched

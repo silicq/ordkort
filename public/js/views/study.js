@@ -225,7 +225,7 @@
 
     const tag = h('div', { class: 'flash-tag' },
       h('span', { class: 'badge ' + (isNew ? 'new' : 'rev') }, t(isNew ? 'study.new' : 'study.review')),
-      deck ? h('span', { class: 'flash-deck' }, `${deck.emoji || ''} ${A.deckTitle(deck)}`) : null);
+      deck ? h('span', { class: 'flash-deck' }, A.media.face(deck), ' ', A.deckTitle(deck)) : null);
 
     let frontBody;
     // a picture shows on the front only where it does not give the answer away: typing the word, or from your language

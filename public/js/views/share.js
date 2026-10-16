@@ -87,6 +87,7 @@
     try {
       const id = await A.ai.shareDeck({
         title: A.deckTitle(d), emoji: d.emoji, level: d.level, topic: d.topic, group: d.group,
+        cover: A.media.isCover(d.cover) ? d.cover : undefined, cover_by: A.media.isCover(d.cover) ? d.coverBy : undefined,
         target: s.target, native: s.native,
         // a picture goes with the deck only by its web address: a photo of your own stays on your device
         words: cards.map((c) => ({ term: c.term, tr: c.tr, pos: c.pos, gram: c.gram, forms: c.forms, pron: c.pron, ex: c.ex, ex_tr: c.exTr, img_url: c.imgUrl || undefined, img_by: c.imgUrl ? c.imgBy : undefined })),
@@ -132,7 +133,10 @@
         const T = deck.target, N = deck.native;
         const other = s && s.native !== N;
         A.put(card,
-          h('div', { class: 'deck-hero-emoji', style: `--tab: var(--t-${deck.group || 'custom'})` }, deck.emoji || '🗂️'),
+          h('div', { class: 'deck-hero-emoji', style: `--tab: var(--t-${deck.group || 'custom'})` },
+            A.media.isCover(deck.cover) ? h('img', { class: 'deck-cover', src: deck.cover, alt: '' })
+              : /^https:\/\//.test(deck.cover || '') ? h('img', { class: 'deck-cover', src: '/api/img?u=' + encodeURIComponent(deck.cover), alt: '' })
+                : deck.emoji || '🗂️'),
           h('h1', { class: 'display sm' }, deck.title || t('deck.untitled')),
           h('p', { class: 'muted' }, [A.langs.name(T) + ' → ' + A.langs.name(N), deck.level, A.tn('n_words', deck.words.length)].filter(Boolean).join(' · ')),
           other ? h('p', { class: 'callout' }, icon('info', 18), h('span', null, t('share.other_lang', { lang: A.langs.name(N) }))) : null,
@@ -146,6 +150,8 @@
                 const d = A.store.addDeck({ title: deck.title, emoji: deck.emoji || '🗂️', group: deck.group || 'custom', level: deck.level, manual: true });
                 const n = A.store.addCards(d.id, deck.words.map((w) => ({ ...w, src: 'share' })));
                 if (!n) { A.store.deleteDeck(d.id); A.toast(t('csv.none_new')); A.go('#/'); return; }
+                // the cover comes along: as it is, or fetched and made small when it is a web address
+                A.media.coverOf(deck.cover).then((cover) => { if (cover) { A.store.updateDeck(d.id, { cover, coverBy: deck.cover_by || undefined }); A.refresh(); } });
                 A.toast(t('csv.added', { n }), 'ok');
                 A.go('#/deck/' + d.id);
               },

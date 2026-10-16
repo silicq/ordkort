@@ -89,7 +89,7 @@
     return h('a', { class: 'deck', href: '#/deck/' + d.id, style: `--tab: var(--t-${d.group || 'custom'})` },
       h('i', { class: 'deck-paper', 'aria-hidden': 'true' }),
       h('div', { class: 'deck-top' },
-        h('span', { class: 'deck-emoji' }, d.emoji || '🗂️'),
+        h('span', { class: 'deck-emoji' }, A.media.face(d)),
         d.level ? h('span', { class: 'deck-level' }, d.level) : null),
       h('div', { class: 'deck-title' }, A.deckTitle(d)),
       h('div', { class: 'deck-meta' }, job ? h('span', { class: 'gen' }, h('i', { class: 'spin' }), job.label) : tn('n_words', o.total)),

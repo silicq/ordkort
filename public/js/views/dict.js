@@ -274,7 +274,7 @@
           h('span', { class: 'deck-emoji' }, '📌'), h('span', null, t('deck.mine')), h('small', { class: 'muted' }, t('dict.pick_default'))),
         ...decks.filter((d) => d.kind !== 'mine').map((d) =>
           h('button', { class: 'pick-row', type: 'button', onclick: () => { result = d.id; m.close(); } },
-            h('span', { class: 'deck-emoji' }, d.emoji || '🗂️'), h('span', null, A.deckTitle(d)), h('small', { class: 'muted' }, d.level || ''))),
+            h('span', { class: 'deck-emoji' }, A.media.face(d)), h('span', null, A.deckTitle(d)), h('small', { class: 'muted' }, d.level || ''))),
       ];
       const m = A.modal({ title: t('dict.pick_deck'), body: h('div', { class: 'pick-list' }, rows), onClose: () => resolve(result) });
     });
