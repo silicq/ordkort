@@ -143,7 +143,8 @@
         h('button', {
           class: 'link-btn', type: 'button',
           onclick: async () => {
-            const name = await A.prompt(t('cat.empty_title'), { placeholder: t('cat.empty_ph'), ok: t('cat.create') });
+            // a name already typed into the topic field above is not asked for again
+            const name = custom.value.trim() || await A.prompt(t('cat.empty_title'), { placeholder: t('cat.empty_ph'), ok: t('cat.create') });
             if (!name) return;
             const d = A.store.addDeck({ title: name, emoji: '📝', group: 'custom', manual: true });
             A.go('#/deck/' + d.id);

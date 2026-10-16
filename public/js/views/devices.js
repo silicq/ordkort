@@ -105,7 +105,7 @@
         btn.disabled = false;
       }
     };
-    input.addEventListener('keydown', (e) => { if (e.key === 'Enter') go(); });
+    input.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); go(); } });
     btn.addEventListener('click', go);
     const m = A.modal({
       title: t('sync.enter_title'),

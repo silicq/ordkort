@@ -176,7 +176,7 @@
       let result = null;
       const input = h('input', { class: 'input', placeholder, value });
       const done = () => { result = input.value.trim() || null; m.close(); };
-      input.addEventListener('keydown', (e) => { if (e.key === 'Enter') done(); });
+      input.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); done(); } });
       const m = modal({
         title,
         body: input,

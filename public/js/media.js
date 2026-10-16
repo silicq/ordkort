@@ -79,9 +79,9 @@
     return img;
   }
 
-  // free pictures for a word (Openverse, through the site)
-  async function search(q) {
-    const { data } = await A.ai.api('images', { q });
+  // free pictures for a word in the language lang (Wikidata/Commons, then Openverse, through the site)
+  async function search(q, lang) {
+    const { data } = await A.ai.api('images', { q, lang });
     return Array.isArray(data?.results) ? data.results : [];
   }
 

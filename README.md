@@ -66,8 +66,11 @@ Ordkort is a lightweight site for learning almost any language from almost any o
 - **Anki both ways**: import an `.apkg` from any Anki (the current format too) with its pictures and, if you want,
   its progress; export your decks as an `.apkg` Anki opens, with progress (FSRS memory state included) and
   pictures. CSV in and out, and sharing a deck by link or QR code — only the words, never your progress.
-- **Pictures on cards**: a free, openly licensed picture found by the word (Openverse), one of your own, or a
-  pasted one; kept on the device.
+- **Pictures on cards**: a free, openly licensed picture found by the word, one of your own, or a pasted one;
+  kept on the device. The word is looked up in Wikidata in its own language, so "hus" finds the Wikimedia Commons
+  picture of a house before Openverse's, which is then searched in English. A deck's *Pictures* screen gives every
+  word its picture in one place, and several files dropped at once go to the words they are named after
+  (`hus.jpg` → "et hus").
 - **Your own look**: a card template in HTML and CSS (`{{term}}`, `{{image}}`, `{{#example}}…{{/example}}`…) with
   ready ones to start from and a live preview, and CSS for the whole site. Scripts never run.
 - **Remembering better**: two answers or four (Again / Hard / Good / Easy), your own target retention, words
@@ -102,8 +105,8 @@ when you agree. It never sees or changes your cards.
 | `list_languages` | The 60 languages and their codes |
 | `list_topics` | The built-in topics and their ids |
 | `ready_words` | Words from the shared bank for a topic and level, checked against dictionaries |
-| `find_pictures` | Openly licensed pictures (Openverse) with their credits |
-| `design_guide` | How a card is built, the template fields, pictures, and the site's CSS variables and parts |
+| `find_pictures` | Openly licensed pictures for a word in its language: the Wikidata item's Commons picture first, then Openverse's, with their credits |
+| `design_guide` | Everything an AI needs to restyle the site: how a look is applied and cleaned, the card's structure, fields, pictures, fonts, every CSS variable, the parts of each screen (with body classes per screen), light and dark themes, what not to do, a whole example and a checklist |
 | `create_deck` | A deck of up to 500 cards, pictures by URL included → a link that adds it |
 | `create_design` | A card template in HTML/CSS and site CSS → a link that shows it, lets you try it on the whole site, and applies it; notes back what will not work as meant |
 
@@ -245,7 +248,7 @@ npm run deploy
   the first time someone imports or exports. The only third-party
   request from the browser is the open ordbokene.no API for Norwegian. The server looks words up in
   Wiktionary (only the word, with a User-Agent as Wikimedia asks) and caches the answers for 30 days.
-  Pictures for cards are searched (Openverse) and fetched by the server too, so the visitor’s IP never reaches
+  Pictures for cards are searched (Wikidata, Wikimedia Commons, Openverse) and fetched by the server too, so the visitor’s IP never reaches
   other sites: https only, raster images of at most 5 MB, under an hourly limit per person.
 - Worker request logs are off. Limit counters, link codes and abandoned sync copies are deleted
   by a daily scheduled task.
@@ -273,5 +276,6 @@ Official Norwegian dictionary data: [ordbokene.no](https://ordbokene.no) (Språk
 University of Bergen). AI: [Groq](https://groq.com). Fonts: Geologica, Literata, Readex Pro,
 Noto Naskh Arabic — SIL Open Font License 1.1. QR codes: a port of Project Nayuki’s QR Code generator
 (MIT License). Anki packages: [sql.js](https://github.com/sql-js/sql.js) (SQLite in WebAssembly, MIT) and
-[fzstd](https://github.com/101arrowz/fzstd) (MIT). Pictures: [Openverse](https://openverse.org), each with its
-own licence and credit.
+[fzstd](https://github.com/101arrowz/fzstd) (MIT). Pictures: [Wikimedia Commons](https://commons.wikimedia.org)
+(found through [Wikidata](https://www.wikidata.org)) and [Openverse](https://openverse.org), each with its own
+licence and credit.

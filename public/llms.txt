@@ -8,6 +8,8 @@ Ordkort offers ready word lists for 29 topics and CEFR levels A1–C1 (generated
 
 Ordkort is an MCP server at https://ordkort.com/mcp (Streamable HTTP, no key). An assistant can list languages and topics, take checked words from the shared bank, find openly licensed pictures, and create a deck (with pictures) or a card design. Each returns a link the person opens to add it; the server never sees anyone's cards. Docs: https://github.com/silicq/ordkort#mcp
 
+To restyle the site, call design_guide first: it describes how a look is applied (site_css for every screen, card_css with front_html/back_html for the study cards), the CSS variables for colours and fonts (light and dark themes), the parts of each screen with a body class per screen (view-home, view-study…), the card's fields ({{term}}, {{image}}, {{#example}}…{{/example}}), pictures by https address (at most 8, fetched through the site), what is removed (scripts, handlers, @import, outside fonts) and a whole example. Then create_design returns a link that previews the look and applies it if the person agrees.
+
 ## Pages about the site
 
 - [English](https://ordkort.com/en/)
