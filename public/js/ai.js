@@ -60,6 +60,12 @@
     return data;
   }
 
+  // up to 20 cards at once: [{ term, tr, ex }] → the same number of filled-in words (null where none came back)
+  async function fillMany(words) {
+    const { data } = await api('fillmany', { ...pair(), level: S().level, words });
+    return Array.isArray(data?.words) ? data.words : [];
+  }
+
   async function lookup(q, { force, signal } = {}) {
     const s = S();
     const key = `dict:${s.target}:${s.native}:${q.toLowerCase()}`;
@@ -134,5 +140,5 @@
     return A.t('err.' + (e?.kind || 'server'));
   };
 
-  A.ai = { api, words, fill, lookup, wikt, chapter, ask, translate, uiPart, limits, report, gloss, check, shareDeck, sharedDeck, errorText, AIError, quota: null };
+  A.ai = { api, words, fill, fillMany, lookup, wikt, chapter, ask, translate, uiPart, limits, report, gloss, check, shareDeck, sharedDeck, errorText, AIError, quota: null };
 })();

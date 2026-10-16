@@ -108,16 +108,35 @@
   // what stands for a deck: its cover, or its emoji
   const face = (d, cls = 'deck-cover') => (isCover(d?.cover) ? A.h('img', { class: cls, src: d.cover, alt: '', title: d.coverBy || '' }) : (d?.emoji || '🗂️'));
 
-  // pictures no card refers to any more, once in a while
+  /* A card's own recording (from an Anki deck): kept as it is in IndexedDB under 'a' + a hash of its bytes, on this
+     device only, like a photo of your own. The speaker button plays it instead of the system's voice. */
+  const AUDIO_MAX = 3 * 1024 * 1024;
+  async function addAudio(blob) {
+    if (!blob || !/^audio\//.test(blob.type) || blob.size > AUDIO_MAX) throw new Error('not a recording');
+    const name = 'a' + (await hashOf(blob)).slice(1);
+    await A.idb.mediaPut(name, blob);
+    return name;
+  }
+  async function audio(c) {
+    if (!c?.audio) return null;
+    if (urls.has(c.audio)) return urls.get(c.audio);
+    const b = await A.idb.mediaGet(c.audio).catch(() => null);
+    if (!b) return null;
+    const u = URL.createObjectURL(b);
+    urls.set(c.audio, u);
+    return u;
+  }
+
+  // pictures and recordings no card refers to any more, once in a while
   async function tidy() {
     try {
       const used = new Set();
       for (const p of Object.values(JSON.parse(localStorage.getItem(A.config.storageKey) || '{}').pairs || {})) {
-        for (const c of Object.values(p.cards || {})) if (c.img) used.add(c.img);
+        for (const c of Object.values(p.cards || {})) { if (c.img) used.add(c.img); if (c.audio) used.add(c.audio); }
       }
       for (const k of await A.idb.mediaKeys()) if (!used.has(k)) await A.idb.mediaDel(k);
     } catch { /* next time */ }
   }
 
-  A.media = { add, addUrl, url, blob, el, search, tidy, cover, coverUrl, coverOf, isCover, face, _test: { shrink } };
+  A.media = { add, addUrl, url, blob, el, search, tidy, addAudio, audio, cover, coverUrl, coverOf, isCover, face, _test: { shrink } };
 })();

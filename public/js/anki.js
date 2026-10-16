@@ -22,6 +22,8 @@
 
   const TYPES = { jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', gif: 'image/gif', webp: 'image/webp', avif: 'image/avif', svg: '' };
   const typeOf = (name) => TYPES[String(name).split('.').pop().toLowerCase()];
+  const SOUNDS = { mp3: 'audio/mpeg', ogg: 'audio/ogg', oga: 'audio/ogg', opus: 'audio/ogg', wav: 'audio/wav', m4a: 'audio/mp4', mp4: 'audio/mp4', aac: 'audio/aac', webm: 'audio/webm', flac: 'audio/flac' };
+  const soundType = (name) => SOUNDS[String(name).split('.').pop().toLowerCase()];
 
   /* ---------- import ---------- */
   function pick() {
@@ -72,6 +74,9 @@
     const into = h('span');
     const other = h('p', { class: 'callout', hidden: true });
     const keep = h('input', { type: 'checkbox', class: 'switch', role: 'switch', checked: true });
+    // empty fields (no example, no grammar, a translation that is not one) filled in by the AI after the import
+    const fill = h('input', { type: 'checkbox', class: 'switch', role: 'switch', checked: true });
+    const fillHint = h('small');
     const preview = h('ul', { class: 'share-preview' });
     const go = h('button', { class: 'btn btn-primary', type: 'button' });
     const targetSel = A.langSelect(target, { exclude: [s.native], onChange: (v) => { target = v; labels(); sample(); } });
@@ -83,7 +88,10 @@
     function sample() {
       const all = A.apkg.words(pkg, maps, { withSchedule: false }).flatMap((g) => g.words);
       preview.replaceChildren(...all.slice(0, 6).map((w) => h('li', null, A.lt(w.term, target, 'serif'), ' — ', A.lt(w.tr, s.native), w.ex ? h('small', { class: 'muted d-block' }, w.ex) : null)));
-      go.textContent = t('anki.go', { n: new Set(all.map((w) => A.store.norm(w.term))).size }); // a word met twice is one card
+      const n = new Set(all.map((w) => A.store.norm(w.term))).size; // a word met twice is one card
+      go.textContent = t('anki.go', { n });
+      const empty = all.filter((w) => !w.ex || w.tr.length < 2).length;
+      fillHint.textContent = t('anki.fill_d', { req: Math.ceil(Math.min(n, empty || n) / A.fill.BATCH) });
       go.disabled = !all.length;
       // translations that look like another language than the person's own: say so, it is their choice
       const off = Object.keys(maps).map((mid) => langs[mid][maps[mid].tr]).find((l) => l && l !== s.native);
@@ -111,12 +119,13 @@
 
     const decks = new Set(pkg.cards.map((c) => c.did)).size;
     A.put(box,
-      h('p', { class: 'muted' }, t('anki.summary', { notes: pkg.notes.length, decks, pics: pkg.media.size })),
+      h('p', { class: 'muted' }, t('anki.summary', { notes: pkg.notes.length, decks, pics: [...pkg.media.keys()].filter(typeOf).length, sounds: [...pkg.media.keys()].filter(soundType).length })),
       h('div', { class: 'set-row' }, h('div', { class: 'set-label' }, h('b', null, t('anki.target')), h('small', null, t('anki.target_d'))), h('div', { class: 'set-ctl' }, targetSel)),
       h('p', { class: 'callout' }, icon('info', 18), into),
       types,
       other,
       h('label', { class: 'set-row' }, h('span', { class: 'set-label' }, h('b', null, t('anki.keep')), h('small', null, t('anki.keep_d'))), keep),
+      h('label', { class: 'set-row' }, h('span', { class: 'set-label' }, h('b', null, t('anki.fill')), fillHint), fill),
       h('h3', null, t('anki.preview')), preview,
       h('div', { class: 'row gap' }, go));
     labels();
@@ -132,6 +141,7 @@
         A.toast(res.added ? t('anki.imported', { n: res.added, decks: res.decks }) : t('anki.nothing'), res.added ? 'ok' : '');
         A.go('#/');
         A.route();
+        if (fill.checked) (async () => { for (const id of res.ids) await A.fill.run(id); })(); // one deck after another
       } catch (e) {
         console.error(e);
         A.toast(t('anki.bad_file'), 'error');
@@ -145,6 +155,7 @@
   async function add(pkg, maps, { keep, name }) {
     const groups = A.apkg.words(pkg, maps, { withSchedule: keep });
     let added = 0, decks = 0;
+    const ids = [];
     for (const g of groups) {
       const leaf = g.path[g.path.length - 1];
       const title = (leaf === 'Default' ? name : leaf) || name || 'Anki';
@@ -154,6 +165,9 @@
         const bytes = w.imgName && pkg.media.get(w.imgName);
         const type = bytes && typeOf(w.imgName);
         if (type) { try { word.img = await A.media.add(new Blob([bytes], { type })); } catch { /* a picture the browser cannot read */ } }
+        const sound = w.audioName && pkg.media.get(w.audioName);
+        const st = sound && soundType(w.audioName);
+        if (st) { try { word.audio = await A.media.addAudio(new Blob([sound], { type: st })); } catch { /* too big */ } }
         words.push(word);
       }
       // the same word twice ("dry" — сухой, "dry" — сушить) is one card with both translations
@@ -164,6 +178,7 @@
         if (!had) { one.set(k, w); continue; }
         if (!had.tr.split('; ').includes(w.tr)) had.tr = (had.tr + '; ' + w.tr).slice(0, 300);
         had.img ||= w.img;
+        had.audio ||= w.audio;
         had.ex ||= w.ex;
         had.ex_tr ||= w.ex_tr;
         if (w.sched && (!had.sched || w.sched.s > had.sched.s)) had.sched = w.sched;
@@ -172,10 +187,11 @@
       words.push(...one.values());
       const deck = A.store.addDeck({ title: title.slice(0, 80), emoji: '📥', group: 'custom', manual: true });
       const before = new Set(A.store.cards(deck.id).map((c) => c.id));
-      const n = A.store.addCards(deck.id, words.map((w) => ({ term: w.term, tr: w.tr, ex: w.ex, ex_tr: w.ex_tr, pron: w.pron, img: w.img, src: 'anki' })));
+      const n = A.store.addCards(deck.id, words.map((w) => ({ term: w.term, tr: w.tr, ex: w.ex, ex_tr: w.ex_tr, pron: w.pron, img: w.img, audio: w.audio, src: 'anki' })));
       if (!n) { A.store.deleteDeck(deck.id); continue; }
       added += n;
       decks++;
+      ids.push(deck.id);
       // progress: the new cards of this deck, found by their word
       const byTerm = new Map(words.map((w) => [A.store.norm(w.term), w]));
       const patches = [];
@@ -190,7 +206,7 @@
       }
       A.store.updateCards(patches);
     }
-    return { added, decks };
+    return { added, decks, ids };
   }
 
   /* ---------- export ---------- */
@@ -205,6 +221,10 @@
       for (const dk of decks) {
         const cards = A.store.cards(dk.id).sort((a, b) => a.created - b.created);
         for (const c of cards) {
+          if (c.audio && !media.has(c.audio)) {
+            const b = await A.idb.mediaGet(c.audio).catch(() => null);
+            if (b) media.set(c.audio, { bytes: new Uint8Array(await b.arrayBuffer()), type: b.type });
+          }
           if (!c.img || media.has(c.img)) continue;
           const blob = await A.media.blob(c);
           if (blob) media.set(c.img, new Uint8Array(await blob.arrayBuffer()));

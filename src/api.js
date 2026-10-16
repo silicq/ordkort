@@ -184,6 +184,61 @@ export async function fill(request, env, key) {
   }
 }
 
+/* ---------- many cards at once (an imported deck with empty fields) ----------
+   Up to 20 cards in one request, which counts as one generation. A word the shared bank already has, or one
+   someone filled in before (the same word and translation), costs nothing: it comes from there. */
+const FILL_MAX = 20;
+const fillKey = async (target, native, w) => 'fill1:' + (await sha256([target, native, norm(w.term), norm(w.tr)].join('\n'))).slice(0, 32);
+export async function fillMany(request, env, key) {
+  const b = await readJSON(request, 20000);
+  const { target, native } = pairOf(b);
+  const level = LEVELS.includes(b.level) ? b.level : 'A1';
+  const items = arr(b.words, FILL_MAX).map((w) => ({ term: str(w?.term, 80), tr: str(w?.tr, 120), ex: str(w?.ex, 300) }));
+  if (!items.length || items.some((w) => !w.term && !w.tr)) throw new HttpError(400, 'empty');
+  const out = new Array(items.length).fill(null);
+  const keys = await Promise.all(items.map((w) => fillKey(target, native, w)));
+  // 1. filled before
+  await Promise.all(keys.map(async (k, i) => { out[i] = (await cacheGet(env.DB, k)) || null; }));
+  // 2. the shared bank, for a word with no example of its own (the bank's example would not be the card's)
+  const ask = items.map((w, i) => i).filter((i) => !out[i]);
+  const bankable = ask.filter((i) => items[i].term && !items[i].ex);
+  if (bankable.length) {
+    const norms = [...new Set(bankable.map((i) => norm(items[i].term)))];
+    const rows = (await env.DB.prepare(`SELECT norm, data FROM words WHERE norm IN (${norms.map(() => '?').join(',')}) AND grp >= ? AND grp < ?`)
+      .bind(...norms, `${target}:${native}:`, `${target}:${native};`).all()).results || [];
+    const bank = new Map(rows.map((r) => [r.norm, JSON.parse(r.data)]));
+    for (const i of bankable) {
+      const w = bank.get(norm(items[i].term));
+      if (w) out[i] = { ...w, tr: items[i].tr && items[i].tr.length > 1 ? items[i].tr : w.tr };
+    }
+  }
+  // 3. the AI, for the rest, all in one request
+  const rest = ask.filter((i) => !out[i]);
+  if (!rest.length) return json({ words: out }, 200, quotaHeaders(null));
+  const quota = await takeAI(env, key);
+  try {
+    const raw = await groq(env, P.fillManyPrompt({ target, native, level, items: rest.map((i) => items[i]) }));
+    const got = arr(raw?.words, FILL_MAX);
+    const made = [];
+    got.forEach((r, j) => {
+      const at = Number.isInteger(r?.i) && r.i >= 0 && r.i < rest.length ? r.i : j; // by its number, or by its place
+      const i = rest[at];
+      if (i === undefined || out[i]) return;
+      const w = P.aiWord(r, target);
+      if (!w.term || !w.tr) return;
+      out[i] = w;
+      made.push([i, w]);
+    });
+    if (!made.length) throw new HttpError(502, 'parse');
+    await checkWords(env, target, made.map(([, w]) => w));
+    await Promise.all(made.map(([i, w]) => cacheSet(env.DB, keys[i], w)));
+    return json({ words: out }, 200, quotaHeaders(quota));
+  } catch (e) {
+    await quota.refund();
+    throw e;
+  }
+}
+
 /* ---------- dictionary entry (grounded in ordbokene.no for Norwegian, in Wiktionary for other languages) ---------- */
 export async function lookup(request, env, key) {
   const b = await readJSON(request, 4000);

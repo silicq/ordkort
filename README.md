@@ -63,9 +63,13 @@ Ordkort is a lightweight site for learning almost any language from almost any o
   meaning in that context and add it to your cards.
 - **Statistics and a daily goal**: streak, reviews over 30 days, a 14-day forecast, words by stage,
   the words you forget most.
-- **Anki both ways**: import an `.apkg` from any Anki (the current format too) with its pictures and, if you want,
-  its progress; export your decks as an `.apkg` Anki opens, with progress (FSRS memory state included) and
-  pictures. CSV in and out, and sharing a deck by link or QR code — only the words, never your progress.
+- **Anki both ways**: import an `.apkg` from any Anki (the current format too) with its pictures, its recordings
+  (the speaker button then plays the card's own audio) and, if you want, its progress; export your decks as an
+  `.apkg` Anki opens, with progress (FSRS memory state included), pictures and recordings. CSV in and out, and
+  sharing a deck by link or QR code — only the words, never your progress.
+- **Empty fields filled in**: an imported deck without examples or grammar, or with a translation that is not one,
+  is completed by the AI 20 cards per request (one of the day's AI requests); words the shared bank already has
+  cost nothing, and only empty fields change.
 - **Pictures on cards**: a free, openly licensed picture found by the word, one of your own, or a pasted one;
   kept on the device. The word is looked up in Wikidata in its own language, so "hus" finds the Wikimedia Commons
   picture of a house before Pixabay's (when a `PIXABAY_KEY` is set) and Openverse's, which is searched in English.

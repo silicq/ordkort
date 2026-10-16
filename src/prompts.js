@@ -82,6 +82,24 @@ JSON shape: ${cardShape(target)}`;
   return { system: SYSTEM(target), user, max: 1500, temperature: 0.2, effort: 'medium' };
 }
 
+/* Many cards at once (an Anki deck with empty or wrong fields): one request for up to 20. `items` hold what the
+   card has; the model completes the rest, keeps what is right and repairs a translation that is plainly not one. */
+export function fillManyPrompt({ target, native, level, items }) {
+  const T = nameOf(target), N = nameOf(native);
+  const list = items.map((w, i) => JSON.stringify({ i, term: w.term, tr: w.tr, ...(w.ex ? { ex: w.ex } : {}) })).join('\n');
+  const user = `Complete ${items.length} flashcards for a ${N} speaker learning ${T}. Each line is one card as the learner has it:
+${list}
+For every card:
+- Keep "term" as it is unless it has a typo or lacks the article a noun needs; then write it correctly.
+- Keep "tr" when it is a real ${N} translation of the term. When it is empty, a single letter, a placeholder or not ${N}, write a proper one.
+- When "ex" is given, keep it exactly and translate it in "ex_tr"; otherwise write a new example.
+
+${cardRules(target, T, N, level)}
+
+Reply with every card, in the same order, with its "i". JSON shape: {"words":[${cardShape(target).replace('{', '{"i":0,')}]}`;
+  return { system: SYSTEM(target), user, max: Math.min(7500, 600 + items.length * 330), temperature: 0.2, effort: 'medium' };
+}
+
 export function lookupPrompt({ target, native, q, ground, source = 'official' }) {
   const T = nameOf(target), N = nameOf(native);
   // Wiktionary lists no idioms here and only key forms, so it grounds what it has without limiting the rest

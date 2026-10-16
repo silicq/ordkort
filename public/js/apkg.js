@@ -181,6 +181,12 @@
     try { return decodeURIComponent(src); } catch { return src; }
   }
 
+  // the first recording in a field: [sound:hus.mp3]
+  function soundOf(html) {
+    const m = /\[sound:([^\]]+)\]/.exec(String(html || ''));
+    return m ? m[1].trim() : '';
+  }
+
   const GUESS = [
     ['exTr', /(example|sentence|eksempel|пример|приклад|beispiel|exemple|ejemplo).*(transl|meaning|english|перевод|переклад|overs)|(transl|перевод).*(example|sentence|пример)/i],
     ['ex', /example|sentence|eksempel|пример|приклад|beispiel|exemple|ejemplo|frase/i],
@@ -219,7 +225,8 @@
   }
 
   /* The notes of a package as Ordkort words, grouped by deck. maps: {note type id: guess(...)} (the person's choice);
-     → [{ path: [...], words: [{ term, tr, ex, ex_tr, pron, imgName, sched, sus }] }] */
+     → [{ path: [...], words: [{ term, tr, ex, ex_tr, pron, imgName, audioName, sched, sus }] }]
+     The recording is the first one in the note outside the example fields (those read the sentence, not the word). */
   function words(pkg, maps, { now = Date.now(), withSchedule = true } = {}) {
     const firstCard = new Map();
     for (const c of pkg.cards) if (!firstCard.has(c.nid)) firstCard.set(c.nid, c);
@@ -236,6 +243,7 @@
       groups.get(key).words.push({
         term: term.slice(0, 200), tr: tr.slice(0, 300), ex: text(f(m.ex)).slice(0, 300), ex_tr: text(f(m.exTr)).slice(0, 300), pron: text(f(m.pron)).slice(0, 100),
         imgName: n.fields.map(imgOf).find(Boolean) || '',
+        audioName: n.fields.map((x, i) => (i === m.ex || i === m.exTr ? '' : soundOf(x))).find(Boolean) || '',
         sched: withSchedule ? schedule(c, pkg.crt, now) : null,
         sus: !!(withSchedule && c && c.queue === -1),
       });
@@ -245,11 +253,11 @@
 
   /* ---------- writing ---------- */
   const esc = (s) => String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-  const FIELDS = ['Term', 'Translation', 'Pronunciation', 'Grammar', 'Forms', 'Example', 'Example translation', 'Picture'];
+  const FIELDS = ['Term', 'Translation', 'Pronunciation', 'Grammar', 'Forms', 'Example', 'Example translation', 'Picture', 'Audio'];
   const CSS = '.card { font-family: system-ui, sans-serif; font-size: 22px; text-align: center; color: #1d1a16; background: #fffdf8; }\n'
     + '.term { font: 600 1.6em Georgia, serif; } .small { font-size: 0.7em; color: #5a5347; } .ex { margin-top: 1em; font-style: italic; }\n'
     + 'img { max-width: 90%; max-height: 300px; border-radius: 12px; }\n.nightMode.card { color: #f2ece1; background: #1e1b16; } .nightMode .small { color: #bdb4a4; }';
-  const QFMT = '<div class="term">{{Term}}</div>\n<div class="small">{{Pronunciation}}</div>';
+  const QFMT = '<div class="term">{{Term}}</div>\n<div class="small">{{Pronunciation}}</div>\n{{Audio}}';
   const AFMT = '{{FrontSide}}\n\n<hr id=answer>\n\n{{Translation}}\n<div class="small">{{Grammar}} {{Forms}}</div>\n'
     + '{{#Example}}<div class="ex">{{Example}}<div class="small">{{Example translation}}</div></div>{{/Example}}\n{{Picture}}';
   const SCHEMA = [
@@ -268,7 +276,9 @@
   const GUID = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!#$%&()*+,-./:;<=>?@[]^_`{|}~';
   const guid = () => Array.from(crypto.getRandomValues(new Uint8Array(10)), (b) => GUID[b % GUID.length]).join('');
 
-  /* decks: [{ name: 'Ordkort::Norsk::Mat', cards: [Ordkort cards] }], media: Map(name → bytes) → .apkg bytes */
+  const EXT = { 'audio/mpeg': 'mp3', 'audio/ogg': 'ogg', 'audio/wav': 'wav', 'audio/x-wav': 'wav', 'audio/mp4': 'm4a', 'audio/aac': 'aac', 'audio/webm': 'webm', 'audio/flac': 'flac' };
+  /* decks: [{ name: 'Ordkort::Norsk::Mat', cards: [Ordkort cards] }], media: Map(name → bytes, or → { bytes, type }
+     for a recording) → .apkg bytes */
   async function write(decks, media, { SQL, now = Date.now() }) {
     const db = new SQL.Database();
     try {
@@ -296,11 +306,18 @@
       db.run('INSERT INTO col VALUES (1, ?, ?, ?, 11, 0, 0, 0, ?, ?, ?, ?, ?)',
         [crt, now, now, JSON.stringify(conf), JSON.stringify({ [mid]: model }), JSON.stringify(deckJson), JSON.stringify(dconf), '{}']);
 
-      const files = new Map(); // picture name → number in the zip
+      const files = new Map(); // file name in the package → name on the device
       const nameOf = (img) => {
         if (!img || !media.has(img)) return '';
         const file = img + '.jpg';
         if (!files.has(file)) files.set(file, img);
+        return file;
+      };
+      const soundName = (a) => {
+        const m = a && media.get(a);
+        if (!m?.bytes) return '';
+        const file = a + '.' + (EXT[m.type] || 'mp3');
+        if (!files.has(file)) files.set(file, a);
         return file;
       };
       let id = now, pos = 0;
@@ -308,7 +325,8 @@
         for (const c of d.cards) {
           const nid = ++id, cid = ++id;
           const pic = nameOf(c.img);
-          const flds = [c.term, c.tr, c.pron, c.gram, c.forms, c.ex, c.exTr].map(esc).concat(pic ? `<img src="${pic}">` : '').join('\x1f');
+          const snd = soundName(c.audio);
+          const flds = [c.term, c.tr, c.pron, c.gram, c.forms, c.ex, c.exTr].map(esc).concat(pic ? `<img src="${pic}">` : '', snd ? `[sound:${snd}]` : '').join('\x1f');
           const csum = parseInt((await sha1hex(c.term)).slice(0, 8), 16);
           db.run('INSERT INTO notes VALUES (?, ?, ?, ?, -1, ?, ?, ?, ?, 0, ?)', [nid, guid(), mid, secs, ' ordkort ', flds, c.term, csum, '']);
           const review = c.box > 0 && c.s > 0;
@@ -322,11 +340,11 @@
       }
       const list = {};
       const out = [['collection.anki2', db.export(), true]];
-      [...files.keys()].forEach((file, n) => { list[n] = file; out.push([String(n), media.get(files.get(file)), false]); });
+      [...files.keys()].forEach((file, n) => { const m = media.get(files.get(file)); list[n] = file; out.push([String(n), m.bytes || m, false]); });
       out.push(['media', enc.encode(JSON.stringify(list)), false]);
       return zip(out);
     } finally { db.close(); }
   }
 
-  A.apkg = { read, write, words, guess, text, imgOf, schedule, unzip, zip, crc32 };
+  A.apkg = { read, write, words, guess, text, imgOf, soundOf, schedule, unzip, zip, crc32 };
 })();

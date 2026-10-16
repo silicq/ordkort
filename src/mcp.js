@@ -149,6 +149,16 @@ to style one screen only: \`.view-study main { … }\`.
 Common parts: .page-head, .display (big serif headings), .lede, .muted, .chips, .pill, .badge, .input, .select,
 .seg (segmented choices), .meter, .empty.
 
+### Phones
+
+Below 760 px wide the tabs (.tabs) leave the header and become a bar fixed to the bottom of the screen (with room
+left for it under the page); the header keeps the logo and the buttons. Ordkort keeps this layout whatever a look
+says: transform, filter, backdrop-filter, perspective, contain and container-type on html, body, #app or the header
+are ignored (they would pin the bar to the header), and the bar's position and size cannot be changed. Restyle the
+bar's colours (\`.tabs\`, \`.tab\`, \`.tab.active .ico\`), not its place. Many phones are 360 px wide: no fixed widths,
+large paddings or min-widths that do not fit there; use max-width: 100%, clamp() and flex-wrap. On a computer a
+wide row of tabs scrolls instead of pushing the buttons out, so keep .tab paddings modest.
+
 ### Do not
 
 - Use wide selectors such as button, a, div, [class*="card"] or header with !important: they hit every control
@@ -167,7 +177,7 @@ Common parts: .page-head, .display (big serif headings), .lede, .muted, .chips, 
       :root[data-theme="dark"] { --paper: #101615; --paper-2: #1a2321; --card: #17201e; --ink: #e8f0ee;
               --blue: #2bb3a4; --blue-ink: #8fe0d6; --blue-edge: #1b7f74; --blue-soft: #133a35; }
       @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { /* the same as the dark rule */ } }
-      header.top { backdrop-filter: blur(8px); }
+      header.top { background: color-mix(in srgb, var(--paper) 85%, transparent); }
       .deck { border-radius: var(--radius); }
     card_css:
       .face.own { background: var(--card); border: 1px solid var(--line-2); border-radius: 24px; padding: 18px; }
@@ -188,7 +198,7 @@ Common parts: .page-head, .display (big serif headings), .lede, .muted, .chips, 
 
 1. Light and dark both readable? 2. Every rule of card_css starts with .tpl or .face.own? 3. Optional fields
 wrapped in {{#…}}? 4. No more than 8 pictures by address, all https, written out in full? 5. No wide selectors with
-!important? Then call it, read the notes it sends back, fix what matters with a new create_design, and give the
+!important? 6. Does it fit a phone 360 px wide (no fixed widths, nothing on the header's place)? Then call it, read the notes it sends back, fix what matters with a new create_design, and give the
 person the link.`;
 
 const INSTRUCTIONS = `Ordkort (${SITE}) is a free site for learning vocabulary with flashcards and spaced repetition. `
@@ -316,6 +326,12 @@ export function designNotes(look) {
   if (/(src\s*=\s*|url\()\s*['"]?http:\/\//i.test(all)) notes.push('Pictures over http:// are not loaded; use https://.');
   if (/@import/i.test(all)) notes.push('@import is removed; put all the CSS in card_css and site_css.');
   if (/<script|\son\w+\s*=/i.test(look.front + look.back)) notes.push('Scripts and event handlers are removed from templates.');
+  // what keeps the tab bar at the bottom of a phone's screen wins over these (the guard layer in css/style.css)
+  const css = look.site + '\n' + look.css;
+  if (/(^|[\s,}])(html|body|#app|header(\.top)?|\.top|\.top-in)\s*[,{][^}]*(transform|filter|backdrop-filter|perspective|contain|container-type|will-change)\s*:/im.test(css)) {
+    notes.push('transform, filter, backdrop-filter, perspective and contain on html, body, #app or the header are ignored: they would pin the phone\'s tab bar to the header.');
+  }
+  if (/\.tabs\s*[,{][^}]*\b(position|top|bottom|inset)\s*:/im.test(css)) notes.push('The place of the tabs cannot be changed: on a phone they are a bar at the bottom of the screen. Restyle their colours instead.');
   if (/\[class\*=|(^|[\s,}])(button|a|header|nav|input|div|span)\s*[,{][^}]*!important/im.test(look.site + '\n' + look.css)) {
     notes.push('Wide selectors with !important (button, a, header, [class*=…]) restyle every control on the site, the audio button and toggles too; use the variables and classes from design_guide.');
   }

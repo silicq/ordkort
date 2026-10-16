@@ -6,6 +6,8 @@ const SCHEMA = [
   'CREATE TABLE IF NOT EXISTS cache (k TEXT PRIMARY KEY, v TEXT NOT NULL, t INTEGER NOT NULL)',
   // Word bank by topic: an "endless dictionary" that grows with every request.
   'CREATE TABLE IF NOT EXISTS words (id INTEGER PRIMARY KEY AUTOINCREMENT, grp TEXT NOT NULL, norm TEXT NOT NULL, data TEXT NOT NULL, UNIQUE(grp, norm))',
+  // A word of the bank by its spelling, whatever its topic (filling in many cards at once looks there first).
+  'CREATE INDEX IF NOT EXISTS words_norm ON words (norm)',
   // Limit counters. Keys are IP hashes with a salt that changes daily; they live two days at most.
   'CREATE TABLE IF NOT EXISTS hits (k TEXT PRIMARY KEY, n INTEGER NOT NULL, exp INTEGER NOT NULL)',
   // One-time device link codes: encrypted on the device, live for 3 minutes.

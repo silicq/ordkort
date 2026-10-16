@@ -515,7 +515,7 @@ textarea.input { resize: vertical; min-height: 64px; line-height: 1.45; }
   color: var(--ink-3);
   font-size: 13px;
 }
-.foot-links { display: flex; gap: 18px; }
+.foot-links { display: flex; flex-wrap: wrap; gap: 6px 18px; }
 .foot-links a { color: var(--ink-2); text-decoration: none; }
 .foot-links a:hover { text-decoration: underline; }
 
@@ -699,6 +699,8 @@ a.back:hover { color: var(--ink); }
 .deck-hero { display: flex; align-items: center; gap: 18px; margin-bottom: 20px; }
 .deck-hero-emoji { display: grid; place-items: center; width: 78px; height: 78px; flex-shrink: 0; border-radius: 22px; background: var(--tab); font-size: 40px; box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.07); transform: rotate(-3deg); }
 .deck-hero-text p { margin: 6px 0 0; }
+.fill-banner.callout.plain { align-items: center; flex-wrap: wrap; margin-top: 20px; }
+.fill-banner .grow { flex: 1 1 16em; }
 .gen-banner { display: flex; align-items: center; gap: 10px; margin-top: 20px; padding: 12px 16px; border-radius: 14px; background: var(--blue-soft); color: var(--blue-ink); font-weight: 550; font-size: 14.5px; }
 
 .list-head { display: flex; align-items: center; flex-wrap: wrap; gap: 12px 18px; margin: 32px 0 12px; }
@@ -1930,3 +1932,30 @@ dialog.modal::backdrop { background: rgba(20, 16, 10, 0.45); backdrop-filter: bl
 .look-edit code { font-size: 12.5px; overflow-wrap: anywhere; }
 textarea.input.code { font: 13px/1.5 ui-monospace, SFMono-Regular, Consolas, monospace; }
 @media (max-width: 640px) { .look-preview { grid-template-columns: 1fr; } }
+
+/* ---------- what a look cannot break (js/look.js) ----------
+   A look's CSS comes after this file and wins over it, as it should. These few rules keep the site usable whatever
+   a look says. They sit in a cascade layer and are !important: an important rule in a layer wins even over a look's
+   own !important. Kept to layout only: colours, fonts and backgrounds stay the look's to change. */
+@layer guard {
+  /* fixed parts (the tab bar on a phone, messages) are placed against the screen: an ancestor with a transform, a
+     filter or containment would make them stick to it instead (the tab bar ends up over the header) */
+  html, body, #app, .top, .top-in {
+    transform: none !important; filter: none !important; perspective: none !important;
+    contain: none !important; container-type: normal !important; will-change: auto !important;
+  }
+  /* the header holds what it has: the tabs give way (and scroll), the logo and the buttons keep their size */
+  .top-in { min-width: 0 !important; }
+  .tabs { min-width: 0 !important; overflow-x: auto; scrollbar-width: none; }
+  .tabs::-webkit-scrollbar { display: none; }
+  .brand, .top-actions { flex-shrink: 0 !important; }
+
+  @media (max-width: 760px) {
+    .top { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
+    .tabs {
+      position: fixed !important; inset: auto 0 0 0 !important; z-index: 60 !important;
+      margin: 0 !important; width: auto !important; max-width: none !important; height: auto !important; transform: none !important;
+    }
+    .tab { flex: 1 1 0 !important; min-width: 0 !important; padding-inline: 2px !important; }
+  }
+}

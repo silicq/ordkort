@@ -6,7 +6,7 @@ import { existsSync, readdirSync } from 'node:fs';
 import vm from 'node:vm';
 import { ROOT, read } from './helpers.mjs';
 import { str, int, norm, isCode, randomCode, safeEqual } from '../src/util.js';
-import { cleanGloss, cleanWord } from '../src/prompts.js';
+import { cleanGloss, cleanWord, fillManyPrompt } from '../src/prompts.js';
 
 /* ---------- interface translations ---------- */
 
@@ -370,4 +370,25 @@ test('every class the design guide names is one the site really has', async () =
   for (const v of _test.DESIGN_GUIDE.match(/--[a-z][a-z0-9-]+/g)) {
     if (!['--card-image', '--bg', '--fg', '--edge'].includes(v)) assert.match(css, new RegExp(`${v}:`), v);
   }
+});
+
+test('filling in many cards: one request lists each card with its number and keeps a given example', () => {
+  const p = fillManyPrompt({ target: 'nb', native: 'ru', level: 'A2', items: [
+    { term: 'Hun er ikke så ung som hun ser ut.', tr: 'y', ex: '' },
+    { term: 'et hus', tr: 'дом', ex: 'Vi bor i et hus.' },
+  ] });
+  assert.match(p.user, /\{"i":0,"term":"Hun er ikke så ung som hun ser ut\.","tr":"y"\}/);
+  assert.match(p.user, /"i":1,"term":"et hus","tr":"дом","ex":"Vi bor i et hus\."/);
+  assert.match(p.user, /\{"words":\[\{"i":0,"term":""/, 'the answer keeps the numbers');
+  assert.match(p.user, /keep it exactly/);
+  assert.ok(p.max >= 600 + 2 * 330);
+});
+
+test('a look cannot move the phone’s tab bar or pin it to the header', () => {
+  const css = read('public/css/style.css');
+  const guard = css.slice(css.indexOf('@layer guard'));
+  assert.ok(guard.length > 100, 'the guard layer is there, after the rest');
+  assert.match(guard, /html, body, #app, \.top, \.top-in \{[^}]*transform: none !important;[^}]*filter: none !important;/);
+  assert.match(guard, /@media \(max-width: 760px\)[\s\S]*\.top \{ backdrop-filter: none !important;[\s\S]*\.tabs \{[^}]*position: fixed !important; inset: auto 0 0 0 !important;/);
+  assert.doesNotMatch(css.slice(0, css.indexOf('@layer guard')), /@layer/, 'the guard is the only layer');
 });
