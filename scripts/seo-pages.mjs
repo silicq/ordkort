@@ -363,7 +363,7 @@ function topicPage(ui, id, live) {
           <li><div class="w">${link ? `<a href="${link}">${term}</a>` : term}${x.tr ? ` <span class="w-tr">${esc(x.tr)}</span>` : ''}</div>${f ? `<div class="w-forms"${nbA}>${esc(f)}</div>` : ''}<div class="w-ex"><span${nbA}>${esc(x.ex)}</span>${x.exTr ? ` <span class="ex-tr">${esc(x.exTr)}</span>` : ''}</div></li>`;
   }).join('')}
         </ul>
-${usesOrdbok ? `        <p class="t source">${esc(UI[ui].table.forms)}: <a href="https://ordbokene.no" rel="noopener">${esc(U.source)}</a></p>\n` : ''}${ankiLinks(ui, id, live)}      </section>
+${usesOrdbok ? `        <p class="t source">${esc(UI[ui].table.forms)}: <a href="https://ordbokene.no" rel="noopener">${esc(U.source)}</a></p>\n` : ''}${ankiLinks(ui, id, live)}${embedBlock(ui, id)}      </section>
 ${sameGroup.length ? `      <nav class="t more" aria-label="${esc(U.otherTopics(t(ui, 'group.' + tp.group)))}">
         <h2>${esc(U.otherTopics(t(ui, 'group.' + tp.group)))}</h2>
         <ul class="chips">${sameGroup.map((x) => `<li><a href="${topicPath(ui, x)}">${App.topics.get(x).emoji} ${esc(t(ui, 'topic.' + x))}</a></li>`).join('')}</ul>
@@ -391,6 +391,63 @@ function ankiLinks(ui, id, live) {
   const own = id ? `<a href="${deckPath(ui, id)}" download>${esc(U.ankiTopic)}</a>` : '';
   return `        <p class="t links">${own}<a href="${deckPath(ui)}" download>${esc(U.ankiAll(live.topics[ui].size))}</a></p>
         <p class="t source">${esc(U.ankiNote)}</p>
+`;
+}
+
+/* ---------- cards for other sites ---------- */
+
+// a topic's cards in a frame on any site: /embed/<ui>/<topic>/, with the script and look in public/widget/
+export const embedPath = (ui, id) => `/embed/${ui}/${id}/`;
+// what a teacher pastes: the frame, and a plain link to the topic under it
+function embedCode(ui, id) {
+  const name = t(ui, 'topic.' + id);
+  return `<iframe src="${abs(embedPath(ui, id))}" title="${esc(UI[ui].embed.title(name))}" width="100%" height="380" style="border:0;max-width:560px" loading="lazy"></iframe>\n`
+    + `<p><a href="${abs(topicPath(ui, id))}">${esc(UI[ui].topicH1(name))}</a> · Ordkort</p>`;
+}
+function embedBlock(ui, id) {
+  const E = UI[ui].embed;
+  if (!E) return '';
+  return `        <details class="t embed"><summary>${esc(E.h)}</summary>
+          <p class="t">${esc(E.p)}</p>
+          <pre class="code"><code>${esc(embedCode(ui, id))}</code></pre>
+        </details>
+`;
+}
+
+function embedPage(ui, id) {
+  const E = UI[ui].embed, L = lang(ui), name = t(ui, 'topic.' + id), home = abs(topicPath(ui, id));
+  const words = topicWords(ui, id).filter((x) => x.tr).map((x) => ({ term: x.term, tr: x.tr, forms: keyForms(x.a, x.lemma) || '', ex: x.ex || '', exTr: x.exTr || '' }));
+  // the words travel as data the script reads: "<" written as <, so nothing in them can close the element
+  const data = JSON.stringify(words).replace(/</g, '\u003c');
+  return `<!doctype html>
+<html lang="${L.htmlLang}" dir="${L.rtl ? 'rtl' : 'ltr'}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>${esc(E.title(name))}</title>
+  <meta name="robots" content="noindex">
+  <link rel="canonical" href="${home}">
+  <link rel="stylesheet" href="/css/fonts.css">
+  <link rel="stylesheet" href="/widget/embed.css">
+  <script src="/widget/embed.js" defer></script>
+</head>
+<body>
+  <main class="w">
+    <header><b>${esc(name)}</b><span id="n">1 / ${words.length}</span></header>
+    <button class="card" id="card" type="button">
+      <span class="front"><span class="term" id="term" lang="nb">${esc(words[0].term)}</span><span class="hint">${esc(E.flip)}</span></span>
+      <span class="back"><span class="tr" id="tr"></span><span class="forms" id="forms" lang="nb"></span><span class="ex" id="ex" lang="nb"></span><span class="extr" id="extr"></span></span>
+    </button>
+    <nav>
+      <button type="button" id="prev" aria-label="${esc(E.prev)}" title="${esc(E.prev)}">←</button>
+      <button type="button" id="shuffle">${esc(E.shuffle)}</button>
+      <button type="button" id="next" aria-label="${esc(E.next)}" title="${esc(E.next)}">→</button>
+    </nav>
+    <footer><a href="${home}" target="_blank" rel="noopener">${esc(E.more)} →</a></footer>
+  </main>
+  <script type="application/json" id="data">${data}</script>
+</body>
+</html>
 `;
 }
 
@@ -456,6 +513,12 @@ function teachersPage(ui) {
         <h2 class="t">${esc(T.printH)}</h2>
         <p>${esc(T.printP)}</p>
         <p><a href="/print/ordkort-plakat-nb.pdf" download>${esc(T.printLink)}</a></p>
+      </section>` : ''}
+      ${U.embed ? `<section>
+        <h2 class="t">${esc(U.embed.h)}</h2>
+        <p>${esc(U.embed.p)}</p>
+        <iframe class="embed-demo" src="${embedPath(ui, 'greetings')}" title="${esc(U.embed.title(t(ui, 'topic.greetings')))}" loading="lazy"></iframe>
+        <pre class="code"><code>${esc(embedCode(ui, 'greetings'))}</code></pre>
       </section>` : ''}
       <section>
         <h2 class="t">${esc(T.privacyH)}</h2>
@@ -546,7 +609,9 @@ export function build() {
     for (const f of FREQ) if (live.words[ui].has(f.w)) add(ui, wordPage(ui, f.w, live));
   }
   for (const ui of UIS) if (TEACH[ui]) add(ui, teachersPage(ui));
-  return { pages, sitemaps: sitemaps(entries), thin: [...thin].map(([k, n]) => `${k} (${n})`), live };
+  const embeds = new Map(); // the cards for other sites: not in the sitemap, not indexed
+  for (const ui of UIS) if (UI[ui].embed) for (const id of TOPIC_IDS) if (live.topics[ui].has(id)) embeds.set(embedPath(ui, id).slice(1) + 'index.html', embedPage(ui, id));
+  return { pages, embeds, sitemaps: sitemaps(entries), thin: [...thin].map(([k, n]) => `${k} (${n})`), live };
 }
 
 /* ---------- sitemap ---------- */
@@ -575,19 +640,19 @@ ${[...out.keys()].map((f) => `  <sitemap><loc>${SITE}/${f}</loc></sitemap>`).joi
 }
 
 // folders this script owns: removed before writing, so a page that is no longer published disappears
-export const OWNED = UIS.flatMap((ui) => [`${ui}/${UI[ui].learn}/`, `${ui}/ordbok/`]);
+export const OWNED = [...UIS.flatMap((ui) => [`${ui}/${UI[ui].learn}/`, `${ui}/ordbok/`]), 'embed/'];
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
-  const { pages, sitemaps: maps, thin, live } = build();
+  const { pages, embeds, sitemaps: maps, thin, live } = build();
   const pub = fileURLToPath(PUBLIC);
   for (const d of OWNED) rmSync(pub + d, { recursive: true, force: true });
   for (const f of readdirSync(pub)) if (/^sitemap-\d+\.xml$/.test(f)) rmSync(pub + f);
-  for (const [p, html] of pages) {
+  for (const [p, html] of [...pages, ...embeds]) {
     mkdirSync(pub + p.replace(/[^/]+$/, ''), { recursive: true });
     writeFileSync(pub + p, html);
   }
   for (const [f, xml] of maps) writeFileSync(pub + f, xml);
   const n = (ui) => `${ui}: ${live.topics[ui].size} topics, ${live.words[ui].size} words`;
-  console.log(`${pages.size} pages (${UIS.map(n).join('; ')}) + ${[...maps.keys()].join(', ')}`);
+  console.log(`${pages.size} pages (${UIS.map(n).join('; ')}) + ${[...maps.keys()].join(', ')} + ${embeds.size} cards for other sites`);
   if (thin.length) console.log(`not published, under ${MIN_WORDS} words of their own: ${thin.join(', ')}`);
 }

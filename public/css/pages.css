@@ -138,3 +138,11 @@ footer a { color: var(--ink-2); }
 /* cards lift off the paper like the ones on the pages about the site */
 .words li, .topics li, .pager a, .forms { box-shadow: var(--shadow); }
 .topics li:hover, .pager a:hover { border-color: var(--line-2); }
+
+/* the cards for other sites: the code to copy, and a live example on the pages for teachers */
+.embed { margin: 18px 0 0; }
+.embed summary { cursor: pointer; font-weight: 600; color: var(--blue-ink); }
+.embed p { margin: 10px 0 0; color: var(--ink-2); }
+.code { margin: 10px 0 0; padding: 12px 14px; overflow-x: auto; white-space: pre-wrap; word-break: break-all; font: 13px/1.5 ui-monospace, Consolas, monospace;
+  background: var(--card); border: 1px solid var(--line); border-radius: 12px; }
+.embed-demo { display: block; width: 100%; max-width: 560px; height: 380px; margin: 14px 0 0; border: 0; border-radius: 14px; }

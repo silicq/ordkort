@@ -136,7 +136,7 @@ test('the pages about the site are up to date, linked to each other and readable
 /* ---------- Norwegian topics and words (scripts/seo-pages.mjs) ---------- */
 
 test('the topic and word pages on disk are exactly what the generator writes, with nothing left over', () => {
-  for (const [f, html] of built.pages) {
+  for (const [f, html] of [...built.pages, ...built.embeds]) {
     assert.ok(existsSync(new URL('public/' + f, ROOT)), `public/${f} is missing: run npm run seo`);
     assert.equal(read('public/' + f), html, `public/${f} is out of date: run npm run seo`);
   }
@@ -149,7 +149,7 @@ test('the topic and word pages on disk are exactly what the generator writes, wi
     }
   };
   for (const d of S.OWNED) if (existsSync(new URL('public/' + d, ROOT))) walk(d);
-  assert.deepEqual(onDisk.filter((f) => !built.pages.has(f)), []);
+  assert.deepEqual(onDisk.filter((f) => !built.pages.has(f) && !built.embeds.has(f)), []);
   assert.ok(seoPages.length > 2000, `only ${seoPages.length} pages`);
   for (const ui of ['en', 'ru', 'uk', 'nb']) {
     assert.equal(built.live.topics[ui].size, 29, `${ui}: every topic has a page`);
@@ -176,6 +176,27 @@ test('the topic pages offer their Anki decks, and the decks on disk are what scr
   assert.equal(Object.values(pkg.decks).filter((d) => d.length === 2).length, built.live.topics.pl.size);
   const hus = pkg.notes.find((n) => n.fields[0] === 'et hus');
   assert.deepEqual(hus.fields.slice(0, 7), ['et hus', 'dom', '', 'rzeczownik', 'huset, hus, husene', 'De bor i et rødt hus.', 'Mieszkają w czerwonym domu.']);
+});
+
+test('the cards for other sites: one frame per topic, framable anywhere, not indexed, linked from their topic', () => {
+  const headers = read('public/_headers');
+  const rule = headers.slice(headers.indexOf('/embed/*'));
+  assert.match(rule, /! Content-Security-Policy/);
+  assert.match(rule, /! X-Frame-Options/);
+  assert.match(rule, /frame-ancestors \*/);
+  assert.doesNotMatch(rule.split('frame-ancestors')[0], /'unsafe-inline'/, 'the frame runs no inline script or style');
+  for (const ui of ['en', 'ru', 'uk', 'pl']) assert.equal([...built.embeds.keys()].filter((f) => f.startsWith(`embed/${ui}/`)).length, built.live.topics[ui].size);
+  for (const [f, html] of built.embeds) {
+    assert.match(html, /<meta name="robots" content="noindex">/, f);
+    assert.doesNotMatch(html, /<script>|style="/, `${f}: the frame's own rules allow no inline script or style`);
+    const words = JSON.parse(one(html, /<script type="application\/json" id="data">([^<]*)<\/script>/));
+    assert.ok(words.length >= 10 && words.every((w) => w.term && w.tr), f);
+    const home = one(html, /<link rel="canonical" href="([^"]+)">/);
+    const topic = built.pages.get(fileOf(pathOf(home)));
+    assert.ok(topic, `${f}: its topic page is published`);
+    assert.ok(topic.includes(SITE + '/' + f.replace(/index\.html$/, '')), `${f}: the topic page gives the code with this frame`);
+  }
+  assert.ok(!read('public/sitemap.xml').includes('/embed/'));
 });
 
 test('every page has its own title, description, canonical address and a single h1', () => {

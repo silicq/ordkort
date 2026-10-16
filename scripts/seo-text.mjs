@@ -84,6 +84,12 @@ export const UI = {
     ankiRoot: 'Norwegian by topic (ordkort.com)', ankiTopic: 'Download as an Anki deck', ankiAll: (n) => `All ${n} topics as one Anki deck`,
     ankiNote: 'The .apkg file opens in Anki on a computer, AnkiDroid and AnkiMobile. Free, like everything here.',
     ankiDesc: (n) => `${n} Norwegian words with English translations, forms and an example sentence. Made by Ordkort, free flashcards in the browser:`,
+    // the cards to put on another site (/embed/<ui>/<topic>/, public/widget/); a language without it gets none
+    embed: {
+      title: (t) => `${t} in Norwegian: flashcards`, flip: 'Tap the card to see the translation', prev: 'Previous word', next: 'Next word',
+      shuffle: 'Shuffle', more: 'Learn these words in Ordkort', h: 'Put these flashcards on your site',
+      p: 'Paste this code into a page of your school site or blog. The cards work on phones, with no sign-in and no ads.',
+    },
     wordTitle: (w) => `${w} – Norwegian to English: meaning, forms, examples`,
     wordDesc: (w, pos, tr, forms) => `${w} (Norwegian ${pos}): ${tr}.${forms ? ` Forms: ${forms}.` : ''} Example sentences with translations and notes for learners.`,
     ctaWord: (w) => `Learn “${w}” in Ordkort`,
@@ -122,6 +128,11 @@ export const UI = {
     ankiRoot: 'Норвежский по темам (ordkort.com)', ankiTopic: 'Скачать колоду для Anki', ankiAll: (n) => `Все ${n} ${plural(n, 'тема', 'темы', 'тем')} одной колодой для Anki`,
     ankiNote: 'Файл .apkg открывается в Anki на компьютере, в AnkiDroid и AnkiMobile. Бесплатно, как и всё здесь.',
     ankiDesc: (n) => `${n} ${plural(n, 'норвежское слово', 'норвежских слова', 'норвежских слов')} с переводом на русский, формами и примером. Сделано в Ordkort — бесплатные карточки в браузере:`,
+    embed: {
+      title: (t) => `${t} по-норвежски: карточки`, flip: 'Нажмите на карточку, чтобы увидеть перевод', prev: 'Предыдущее слово', next: 'Следующее слово',
+      shuffle: 'Перемешать', more: 'Учить эти слова в Ordkort', h: 'Карточки для вашего сайта',
+      p: 'Вставьте этот код на страницу школьного сайта или блога. Карточки работают на телефоне, без регистрации и рекламы.',
+    },
     wordTitle: (w) => `${w} — перевод с норвежского, формы и примеры`,
     wordDesc: (w, pos, tr, forms) => `${w} — норвежское слово (${pos}): ${tr}.${forms ? ` Формы: ${forms}.` : ''} Примеры с переводом и советы для изучающих.`,
     ctaWord: (w) => `Учить «${w}» в Ordkort`,
@@ -160,6 +171,11 @@ export const UI = {
     ankiRoot: 'Норвезька за темами (ordkort.com)', ankiTopic: 'Завантажити колоду для Anki', ankiAll: (n) => `Усі ${n} ${plural(n, 'тема', 'теми', 'тем')} однією колодою для Anki`,
     ankiNote: 'Файл .apkg відкривається в Anki на комп’ютері, в AnkiDroid і AnkiMobile. Безкоштовно, як і все тут.',
     ankiDesc: (n) => `${n} ${plural(n, 'норвезьке слово', 'норвезькі слова', 'норвезьких слів')} з перекладом українською, формами й прикладом. Зроблено в Ordkort — безкоштовні картки в браузері:`,
+    embed: {
+      title: (t) => `${t} норвезькою: картки`, flip: 'Натисніть на картку, щоб побачити переклад', prev: 'Попереднє слово', next: 'Наступне слово',
+      shuffle: 'Перемішати', more: 'Вчити ці слова в Ordkort', h: 'Картки для вашого сайту',
+      p: 'Вставте цей код на сторінку шкільного сайту чи блогу. Картки працюють на телефоні, без реєстрації та реклами.',
+    },
     wordTitle: (w) => `${w} — переклад з норвезької, форми й приклади`,
     wordDesc: (w, pos, tr, forms) => `${w} — норвезьке слово (${pos}): ${tr}.${forms ? ` Форми: ${forms}.` : ''} Приклади з перекладом і поради для тих, хто вчить мову.`,
     ctaWord: (w) => `Вчити «${w}» в Ordkort`,
@@ -235,6 +251,11 @@ export const UI = {
     ankiRoot: 'Norweski według tematów (ordkort.com)', ankiTopic: 'Pobierz jako talię Anki', ankiAll: (n) => `Wszystkie ${n} ${plural(n, 'temat', 'tematy', 'tematów', 'pl')} w jednej talii Anki`,
     ankiNote: 'Plik .apkg otwiera się w Anki na komputerze, w AnkiDroid i AnkiMobile. Za darmo, jak wszystko tutaj.',
     ankiDesc: (n) => `${n} ${plural(n, 'norweskie słowo', 'norweskie słowa', 'norweskich słów', 'pl')} z tłumaczeniem na polski, formami i przykładem. Przygotowane przez Ordkort — darmowe fiszki w przeglądarce:`,
+    embed: {
+      title: (t) => `${t} po norwesku: fiszki`, flip: 'Kliknij kartę, aby zobaczyć tłumaczenie', prev: 'Poprzednie słowo', next: 'Następne słowo',
+      shuffle: 'Przetasuj', more: 'Ucz się tych słów w Ordkort', h: 'Fiszki na twoją stronę',
+      p: 'Wklej ten kod na stronę szkoły albo bloga. Fiszki działają na telefonie, bez rejestracji i reklam.',
+    },
     wordTitle: (w) => `${w} — tłumaczenie z norweskiego, formy i przykłady`,
     wordDesc: (w, pos, tr, forms) => `${w} — słowo norweskie (${pos}): ${tr}.${forms ? ` Formy: ${forms}.` : ''} Przykłady z tłumaczeniem i wskazówki dla uczących się.`,
     ctaWord: (w) => `Ucz się „${w}” w Ordkort`,
