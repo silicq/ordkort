@@ -297,7 +297,7 @@ test('structured data: a DefinedTerm for each word, an ItemList for each topic, 
 test('the static pages stay out of the offline cache, and the Worker still runs only for the API and MCP', () => {
   const sw = read('public/sw.js');
   assert.match(sw, /if \(req\.mode === 'navigate' && !app\) return;/, 'pages other than the app are not cached by the service worker');
-  assert.match(read('wrangler.jsonc'), /"run_worker_first": \["\/api\/\*", "\/mcp", "\/mcp\/\*", "\/\.well-known\/ai-catalog\.json"\]/);
+  assert.match(read('wrangler.jsonc'), /"run_worker_first": \["\/api\/\*", "\/mcp", "\/mcp\/\*", "\/\.well-known\/ai-catalog\.json", "\/\.well-known\/mcp-registry-auth"\]/);
   // the pages about the site link to both Norwegian hubs
   for (const [code, learn] of [['en', 'norwegian'], ['ru', 'norvezhskij'], ['uk', 'norvezka'], ['nb', 'norsk']]) {
     const html = read(`public/${code}/index.html`);

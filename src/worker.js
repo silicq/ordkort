@@ -42,6 +42,9 @@ export default {
         return await mcp.handle(request, env, key);
       } catch (e) { return errorResponse(e); }
     }
+    if (url.pathname === '/.well-known/mcp-registry-auth') {
+      return new Response(mcp.REGISTRY_AUTH, { headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'public, max-age=3600' } });
+    }
     // how AI clients find the MCP server: a catalog of what the site offers agents, and the server's card
     if (url.pathname === '/.well-known/ai-catalog.json' || url.pathname === '/mcp/server-card') {
       if (request.method !== 'GET' && request.method !== 'HEAD') return new Response(null, { status: 405, headers: { Allow: 'GET, HEAD' } });

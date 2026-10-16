@@ -474,6 +474,10 @@ export function serverCard() {
     tools: TOOLS.map(({ name, title, description, inputSchema, annotations }) => ({ name, title, description, inputSchema, annotations })),
   };
 }
+// proof for the official MCP Registry that whoever publishes com.ordkort/* holds this key (server.json; the private
+// half never leaves the publisher's machine)
+export const REGISTRY_AUTH = 'v=MCPv1; k=ed25519; p=xnBXbvtS6/LtEMIhisb6Rl47Z/8UY1DqBpUCWMiI8g4=';
+
 export function aiCatalog() {
   return {
     specVersion: '1.0',

@@ -11,7 +11,7 @@
   "assets": {
     "directory": "./public",
     "binding": "ASSETS",
-    "run_worker_first": ["/api/*", "/mcp", "/mcp/*", "/.well-known/ai-catalog.json"]
+    "run_worker_first": ["/api/*", "/mcp", "/mcp/*", "/.well-known/ai-catalog.json", "/.well-known/mcp-registry-auth"]
   },
 
   // The database is created automatically on the first deploy (wrangler ≥ 4.45), the schema on the first request
