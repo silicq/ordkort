@@ -358,10 +358,16 @@
     }
     return ids.slice(0, state.settings.sessionSize);
   }
-  /* FSRS-4.5 (Free Spaced Repetition Scheduler, the algorithm used by Anki) with default weights.
+  /* FSRS-4.5 (Free Spaced Repetition Scheduler, the algorithm used by Anki), with default weights or the person's own.
      Each card keeps stability s (days until recall drops to 90%) and difficulty d (1–10).
      `box` is still derived from s so that stages and progress bars keep working. */
-  const FW = [0.4872, 1.4003, 3.7145, 13.8206, 5.1618, 1.2298, 0.8975, 0.031, 1.6474, 0.1367, 1.0461, 2.1072, 0.0793, 0.3246, 1.587, 0.2272, 2.8755];
+  const DEFAULT_W = [0.4872, 1.4003, 3.7145, 13.8206, 5.1618, 1.2298, 0.8975, 0.031, 1.6474, 0.1367, 1.0461, 2.1072, 0.0793, 0.3246, 1.587, 0.2272, 2.8755];
+  // the person's own weights when they fitted them to their answers (js/fsrs.js, Settings), the defaults otherwise
+  let FW = DEFAULT_W;
+  const useWeights = () => {
+    const w = state.settings?.fsrs?.w;
+    FW = Array.isArray(w) && w.length === 17 && w.every(Number.isFinite) ? w : DEFAULT_W;
+  };
   const DECAY = -0.5, FACTOR = 19 / 81;
   const retention = () => Math.min(0.97, Math.max(0.7, state.settings?.retention || 0.9));
   const clampD = (d) => Math.min(10, Math.max(1, d));
@@ -381,6 +387,7 @@
   /* grade: 1 = again, 2 = hard (also the right word in a wrong form: remembered, but due sooner),
      3 = good, 4 = easy. With two answers it follows from ok/hard: a brand-new word someone already knows is easy. */
   function schedule(c, ok, now, hard = false, grade = 0) {
+    useWeights();
     const wasNew = c.box === 0 && !c.s;
     if (!c.s && c.box > 0) { c.s = LEGACY_S[c.box]; c.d = 5; } // cards from the old Leitner scheduler
     const g = grade >= 1 && grade <= 4 ? grade : !ok ? 1 : hard ? 2 : wasNew ? 4 : 3;

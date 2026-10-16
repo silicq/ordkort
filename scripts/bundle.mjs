@@ -18,6 +18,7 @@ export const APP_SCRIPTS = [
   'js/topics.js',
   'js/idb.js',
   'js/media.js',
+  'js/fsrs.js',
   'js/store.js',
   'js/ai.js',
   'js/ordbok.js',
