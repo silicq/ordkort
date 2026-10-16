@@ -3,7 +3,7 @@
 // Wikidata, Commons and Openverse are small fakes here: no network.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { find, bare, relevant, wikidata } from '../src/images.js';
+import { find, bare, relevant, wikidata, OV_PAGE } from '../src/images.js';
 
 const DB = { prepare: () => ({ bind: () => ({ first: async () => null, run: async () => ({}) }) }) };
 const env = { DB };
@@ -38,6 +38,8 @@ function fake() {
     } else if (u.host === 'commons.wikimedia.org') {
       body = { query: { pages: { 1: { title: 'File:Old house.jpg', imageinfo: [{ url: 'https://upload.example/Old_house.jpg', thumburl: 'https://upload.example/640px-Old_house.jpg', descriptionurl: 'https://commons.example/File:Old_house.jpg', extmetadata: { Artist: { value: '<a href="x">Kari Nordmann</a>' }, LicenseShortName: { value: 'CC BY-SA 4.0' } } }] } } } };
     } else if (u.host === 'api.openverse.org') {
+      // as the real API does without a key
+      if (+p.page_size > 20) return { ok: false, status: 401, json: async () => ({ detail: 'page_size' }) };
       body = { results: OPENVERSE };
     }
     return { ok: true, json: async () => body };
@@ -93,4 +95,22 @@ test('a word Wikidata does not know is searched as it is', async () => {
     assert.equal(f.calls.find((c) => c.host === 'api.openverse.org').q, 'lobster pot');
     assert.ok(results.every((r) => r.thumb.startsWith('https://ov.example/')));
   } finally { f.restore(); }
+});
+
+test('Openverse is asked for no more than it gives without a key', () => {
+  assert.ok(OV_PAGE <= 20);
+});
+
+test('when Openverse does not answer, Wikidata’s picture still comes, and nothing is cached', async () => {
+  const f = fake();
+  const writes = [];
+  const db = { prepare: (sql) => ({ bind: (...a) => ({ first: async () => null, run: async () => { if (/INSERT INTO cache/.test(sql)) writes.push(a); return {}; } }) }) };
+  const real = globalThis.fetch;
+  globalThis.fetch = async (url) => (new URL(url).host === 'api.openverse.org' ? { ok: false, status: 503, json: async () => ({}) } : real(url));
+  try {
+    const { results } = await find({ DB: db }, 'k', 'hus', 'nn'); // not 'nb': that one is in the in-memory cache since the test above
+    assert.equal(results.length, 1);
+    assert.equal(writes.length, 0);
+    await assert.rejects(find({ DB: db }, 'k', 'lobster trap', 'en'), (e) => e.status === 503, 'nothing at all: busy');
+  } finally { globalThis.fetch = real; f.restore(); }
 });

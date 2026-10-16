@@ -647,6 +647,7 @@ globalThis.App.i18nData.en = {
   'card.pic_hint': "Free, openly licensed pictures from Wikimedia Commons and Openverse. Search for the word itself, in its own language: the picture chosen for its meaning comes first.",
   'card.pic_searching': "Looking for pictures…",
   'card.pic_none': "No pictures for this. Try a simpler word, or the translation.",
+  'card.pic_busy': "The picture sites are not answering right now. Try again in a minute, or use a picture of your own.",
   'card.pic_failed': "This picture could not be added. Try another one.",
   'card.pic_by': "Picture: {by}",
   'anki.import': "Import from Anki (.apkg)",

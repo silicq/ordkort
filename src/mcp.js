@@ -345,7 +345,12 @@ async function callTool(name, a, env, key) {
   }
   if (name === 'find_pictures') {
     let res;
-    try { res = await images.find(env, key, a.query, str(a.language, 8) || 'en'); } catch (e) { return fail(`No pictures: ${e.code || e.message}`); }
+    try { res = await images.find(env, key, a.query, str(a.language, 8) || 'en'); } catch (e) {
+      if (e.code === 'slow_down') return fail('Too many picture searches from here for now. Wait a while and try again.');
+      if (e.code === 'empty') return fail('Give a word to look for.');
+      return fail('The picture sites (Wikimedia Commons, Openverse) are not answering right now. Try again in a minute. '
+        + 'A design can do without them: CSS gradients and data: SVG patterns need no pictures by address.');
+    }
     const out = res.results.map((r) => ({ image_url: r.thumb, credit: `${r.by} · ${r.license}`, page: r.page }));
     if (!out.length) return text('No pictures found. Try a simpler word, or its English translation with language "en".', { pictures: [] });
     return text(out.map((p, i) => `${i + 1}. ${p.image_url}\n   ${p.credit}`).join('\n'), { pictures: out });
