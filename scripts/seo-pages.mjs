@@ -16,6 +16,7 @@ import '../public/js/i18n/en.js';
 import '../public/js/i18n/ru.js';
 import '../public/js/i18n/uk.js';
 import '../public/js/i18n/nb.js';
+import '../public/js/i18n/ar.js';
 
 export const SITE = 'https://ordkort.com';
 export const MIN_WORDS = 150;
@@ -110,7 +111,8 @@ const clean = (s) => String(s || '').replace(/(?<![\p{L}])([\p{L}]+(?:_[\p{L}]+)
 /* ---------- pages and their addresses ---------- */
 
 export const topicsHubPath = (ui) => `/${ui}/${UI[ui].learn}/`;
-export const topicPath = (ui, id) => `/${ui}/${UI[ui].learn}/${slug(translit(t(ui, 'topic.' + id), ui))}/`;
+// the topic's name in the address, transliterated, or romanized by hand where a script has no ASCII form (Arabic)
+export const topicPath = (ui, id) => `/${ui}/${UI[ui].learn}/${UI[ui].slugs?.[id] ?? slug(translit(t(ui, 'topic.' + id), ui))}/`;
 const dictHubPath = (ui) => `/${ui}/ordbok/${LEARN}/`;
 const wordPath = (ui, w) => `/${ui}/ordbok/${LEARN}/${slug(w)}/`;
 // the Anki decks of the topics, made by scripts/anki-decks.mjs: one per topic, and one with them all
@@ -119,8 +121,8 @@ const abs = (p) => SITE + p;
 // into the app with the language pair of the page: the first-run setup starts from it (public/js/views/onboarding.js)
 const invite = (ui) => (ui === LEARN ? `learn=${LEARN}` : `from=${ui}&amp;learn=${LEARN}`);
 const lang = (ui) => Landing.PAGES[ui];
-// where each language's translation stands in an example: [nb, en, ru, uk, pl]
-const EX = { en: 1, ru: 2, uk: 3, pl: 4 };
+// where each language's translation stands in an example: [nb, en, ru, uk, pl, ar]
+const EX = { en: 1, ru: 2, uk: 3, pl: 4, ar: 5 };
 // a link to the dictionary, if this interface language has one (Polish does not yet)
 const dictA = (ui, label) => (UI[ui].noDict ? '' : `<a href="${dictHubPath(ui)}">${esc(label)}</a>`);
 
@@ -246,7 +248,7 @@ function wordPage(ui, w, live) {
   const U = UI[ui], e = DICT.get(w), f = RANK.get(w);
   const a = article(w, f.pos, null);
   const head = headword(w, f.pos, a);
-  const posLabel = [U.pos[f.pos], ...(f.pos === 'noun' && a ? a.g.map((g) => U.gender[g]) : [])].join(', ');
+  const posLabel = [U.pos[f.pos], ...(f.pos === 'noun' && a ? a.g.map((g) => U.gender[g]) : [])].join(U.comma || ', ');
   const tr = ui === 'nb' ? e.nb : e.tr[ui];
   const forms = keyForms(a, w);
   const table = formsTable(ui, a, w);
@@ -419,6 +421,9 @@ function embedPage(ui, id) {
   const words = topicWords(ui, id).filter((x) => x.tr).map((x) => ({ term: x.term, tr: x.tr, forms: keyForms(x.a, x.lemma) || '', ex: x.ex || '', exTr: x.exTr || '' }));
   // the words travel as data the script reads: "<" written as <, so nothing in them can close the element
   const data = JSON.stringify(words).replace(/</g, '\u003c');
+  // Norwegian runs left to right on a right-to-left page, and the arrows point the way the cards go
+  const nb = L.rtl ? 'lang="nb" dir="ltr"' : 'lang="nb"';
+  const [back, on] = L.rtl ? ['→', '←'] : ['←', '→'];
   return `<!doctype html>
 <html lang="${L.htmlLang}" dir="${L.rtl ? 'rtl' : 'ltr'}">
 <head>
@@ -433,17 +438,17 @@ function embedPage(ui, id) {
 </head>
 <body>
   <main class="w">
-    <header><b>${esc(name)}</b><span id="n">1 / ${words.length}</span></header>
+    <header><b>${esc(name)}</b><span id="n"${L.rtl ? ' dir="ltr"' : ''}>1 / ${words.length}</span></header>
     <button class="card" id="card" type="button">
-      <span class="front"><span class="term" id="term" lang="nb">${esc(words[0].term)}</span><span class="hint">${esc(E.flip)}</span></span>
-      <span class="back"><span class="tr" id="tr"></span><span class="forms" id="forms" lang="nb"></span><span class="ex" id="ex" lang="nb"></span><span class="extr" id="extr"></span></span>
+      <span class="front"><span class="term" id="term" ${nb}>${esc(words[0].term)}</span><span class="hint">${esc(E.flip)}</span></span>
+      <span class="back"><span class="tr" id="tr"></span><span class="forms" id="forms" ${nb}></span><span class="ex" id="ex" ${nb}></span><span class="extr" id="extr"></span></span>
     </button>
     <nav>
-      <button type="button" id="prev" aria-label="${esc(E.prev)}" title="${esc(E.prev)}">←</button>
+      <button type="button" id="prev" aria-label="${esc(E.prev)}" title="${esc(E.prev)}">${back}</button>
       <button type="button" id="shuffle">${esc(E.shuffle)}</button>
-      <button type="button" id="next" aria-label="${esc(E.next)}" title="${esc(E.next)}">→</button>
+      <button type="button" id="next" aria-label="${esc(E.next)}" title="${esc(E.next)}">${on}</button>
     </nav>
-    <footer><a href="${home}" target="_blank" rel="noopener">${esc(E.more)} →</a></footer>
+    <footer><a href="${home}" target="_blank" rel="noopener">${esc(E.more)} ${on}</a></footer>
   </main>
   <script type="application/json" id="data">${data}</script>
 </body>
