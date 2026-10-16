@@ -7,7 +7,7 @@
    No account, no key; tool calls count against a per-client hourly limit like the rest of the API. */
 import { App } from './shared.js';
 import { takeSimple } from './limits.js';
-import { HttpError, str, arr, int } from './util.js';
+import { HttpError, str, arr, int, readText } from './util.js';
 import { cleanDeck, storeShare, bankWords } from './api.js';
 import * as images from './images.js';
 
@@ -384,7 +384,8 @@ async function callTool(name, a, env, key) {
         })),
       });
     } catch (e) { return fail(e.code === 'empty' ? 'The deck has no cards with both a term and a translation.' : `Cannot make that deck: ${e.code || e.message}. Check the language codes.`); }
-    const id = await storeShare(env, deck);
+    await takeSimple(env, 'share', key, 20, 36e5);
+    const id = await storeShare(env, key, deck);
     const url = `${SITE}/#/s/${id}`;
     return text(`The deck "${deck.title}" (${deck.words.length} cards) is ready. Opening this link adds it to the person's cards: ${url}\n${POWERED}`, { url, cards: deck.words.length });
   }
@@ -395,7 +396,9 @@ async function callTool(name, a, env, key) {
       css: String(a.card_css || '').slice(0, 20000), site: String(a.site_css || '').slice(0, 20000),
     };
     if (!look.front && !look.back && !look.css && !look.site) return fail('The design is empty: give at least a template or some CSS.');
-    const id = await storeShare(env, look);
+    // a link is kept for a year: the same small hourly allowance as decks shared from the site
+    await takeSimple(env, 'share', key, 20, 36e5);
+    const id = await storeShare(env, key, look);
     const url = `${SITE}/#/look/${id}`;
     const notes = designNotes(look);
     return text(`The look "${look.name}" is ready. Opening this link shows it and applies it if the person agrees: ${url}`
@@ -438,8 +441,8 @@ export async function handle(request, env, key) {
   if (request.method !== 'POST') {
     return new Response(JSON.stringify({ name: 'ordkort', mcp: `${SITE}/mcp`, transport: 'streamable-http', docs: 'https://github.com/silicq/ordkort#mcp' }), { status: 405, headers: { ...HEADERS, Allow: 'POST' } });
   }
-  const raw = await request.text();
-  if (raw.length > MAX_BODY) return new Response(JSON.stringify({ jsonrpc: '2.0', id: null, error: { code: -32600, message: 'Too large' } }), { status: 413, headers: HEADERS });
+  const raw = await readText(request, MAX_BODY).catch(() => null);
+  if (raw === null) return new Response(JSON.stringify({ jsonrpc: '2.0', id: null, error: { code: -32600, message: 'Too large' } }), { status: 413, headers: HEADERS });
   let body;
   try { body = JSON.parse(raw); } catch { return new Response(JSON.stringify({ jsonrpc: '2.0', id: null, error: { code: -32700, message: 'Parse error' } }), { status: 400, headers: HEADERS }); }
   const list = Array.isArray(body) ? body.slice(0, 20) : [body];

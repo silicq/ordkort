@@ -27,11 +27,31 @@ export function errorResponse(e) {
   return json({ error: 'internal' }, 500);
 }
 
+/* A body read as a stream and cut off at maxBytes: a body without Content-Length (chunked) never sits whole in memory */
+export async function readBytes(body, maxBytes) {
+  if (!body) return new Uint8Array(0);
+  const reader = body.getReader();
+  const parts = [];
+  let size = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    size += value.byteLength;
+    if (size > maxBytes) { reader.cancel().catch(() => {}); throw new HttpError(413, 'too_large'); }
+    parts.push(value);
+  }
+  const out = new Uint8Array(size);
+  let at = 0;
+  for (const p of parts) { out.set(p, at); at += p.byteLength; }
+  return out;
+}
+export async function readText(request, maxBytes) {
+  if (Number(request.headers.get('content-length') || 0) > maxBytes) throw new HttpError(413, 'too_large');
+  return new TextDecoder().decode(await readBytes(request.body, maxBytes));
+}
+
 export async function readJSON(request, maxBytes) {
-  const len = Number(request.headers.get('content-length') || 0);
-  if (len > maxBytes) throw new HttpError(413, 'too_large');
-  const text = await request.text();
-  if (text.length > maxBytes) throw new HttpError(413, 'too_large');
+  const text = await readText(request, maxBytes);
   try {
     const v = JSON.parse(text);
     if (!v || typeof v !== 'object' || Array.isArray(v)) throw new Error('shape');

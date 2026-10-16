@@ -68,11 +68,22 @@
       });
   }
 
-  const DROP = 'script, iframe, frame, frameset, object, embed, applet, link, meta, base, form, input, button, textarea, select, style, noscript, template';
-  // `allowed`: the https pictures this look may show (they come from the template itself, see above)
+  // math and the old raw-text elements are where HTML read twice can come out different from what was cleaned
+  const DROP = 'script, iframe, frame, frameset, object, embed, applet, link, meta, base, form, input, button, textarea, select, style, noscript, template, math, noembed, noframes, xmp, plaintext, title';
+  // `allowed`: the https pictures this look may show (they come from the template itself, see above).
+  // The result is read again by innerHTML, so it is cleaned until reading it again changes nothing
   function clean(html, allowed = new Set()) {
+    let out = cleanOnce(String(html || '').slice(0, MAX), allowed);
+    for (let i = 0; i < 3; i++) {
+      const again = cleanOnce(out, allowed);
+      if (again === out) return out;
+      out = again;
+    }
+    return '';
+  }
+  function cleanOnce(html, allowed) {
     const t = document.createElement('template');
-    t.innerHTML = String(html || '').slice(0, MAX);
+    t.innerHTML = html;
     t.content.querySelectorAll(DROP).forEach((n) => n.remove());
     for (const el of t.content.querySelectorAll('*')) {
       for (const a of [...el.attributes]) {
@@ -99,6 +110,26 @@
       if (/^https:\/\//i.test(u)) { const b = pics.get(u); return b ? `url("${b}")` : 'none'; }
       return /^(javascript|vbscript|https?):|^\/\//i.test(u) ? 'none' : m;
     });
+
+  /* A look someone else made is shown before it is used: its card CSS then must not reach the rest of the page
+     (hide the buttons, cover the page, restyle "Cancel"). It is parsed and wrapped in @scope, so it styles only the
+     sample cards; .look-preview itself is outside that scope and clips them (contain: paint in style.css).
+     @keyframes and @font-face cannot live in @scope and only give names, so they stay outside. */
+  function scoped(css, root) {
+    if (!css || typeof CSSStyleSheet !== 'function') return '';
+    try {
+      const sheet = new CSSStyleSheet();
+      sheet.replaceSync(css);
+      const rules = [...sheet.cssRules];
+      const named = (r) => /^@(-webkit-)?(keyframes|font-face)\b/i.test(r.cssText);
+      return rules.filter(named).map((r) => r.cssText).join('\n')
+        + `\n@scope (${root}) {\n${rules.filter((r) => !named(r)).map((r) => r.cssText).join('\n')}\n}`;
+    } catch { return ''; }
+  }
+
+  /* ?nolook in the address turns your own look off for that visit: the way back to Settings → Reset when a look
+     has hidden the controls */
+  const off = () => typeof location === 'object' && /[?&]nolook\b/.test(String(location.search) + String(location.hash));
 
   /* ---------- filling a template ---------- */
   const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -128,7 +159,7 @@
   // a side of a card from the template, as nodes for .face-body; null when the side has no template
   function render(side, c, look = A.store.settings.look) {
     const tpl = look?.[side];
-    if (!tpl || !tpl.trim()) return null;
+    if (!tpl || !tpl.trim() || (look === A.store.settings?.look && off())) return null;
     const box = document.createElement('div');
     box.className = 'tpl tpl-' + side;
     fetchPics(look);
@@ -154,7 +185,7 @@
   function apply() {
     const waiting = later();
     if (waiting && A.store.ready && !A.framed) { A.store.set({ look: waiting }); try { localStorage.removeItem(LATER); } catch {} }
-    const look = worn || A.store.settings?.look || waiting || {};
+    const look = worn || (off() ? {} : A.store.settings?.look || waiting || {});
     fetchPics(look);
     const css = [look.site || '', look.css ? `.flash .face-body .tpl { display: contents; }\n${look.css}` : ''].map(cleanCss).join('\n').trim();
     let el = document.getElementById('user-look');
@@ -176,7 +207,7 @@
     let st = document.getElementById('user-look-preview');
     if (!shown) { st?.remove(); return; }
     if (!st) { st = document.createElement('style'); st.id = 'user-look-preview'; document.head.append(st); }
-    st.textContent = shown.css ? `.look-preview .face-body .tpl { display: contents; }\n${cleanCss(shown.css)}` : '';
+    st.textContent = shown.css ? `.look-preview .face-body .tpl { display: contents; }\n${scoped(cleanCss(shown.css), '.look-side')}` : '';
   };
   arrived.add(() => { apply(); previewCss(); });
   const scaler = typeof ResizeObserver === 'function' ? new ResizeObserver((all) => {
@@ -352,5 +383,5 @@
   }
   arrived.add(tryOn);
 
-  A.look = { PRESETS, SITE, FIELDS, render, apply, clean, cleanCss, fill, card, preview, unpreview, wear, addresses, MAX };
+  A.look = { PRESETS, SITE, FIELDS, render, apply, clean, cleanCss, scoped, fill, card, preview, unpreview, wear, addresses, MAX };
 })();

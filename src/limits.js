@@ -53,6 +53,34 @@ export async function aiLeft(env, key) {
   return { left: Math.max(0, perDay - used), limit: perDay };
 }
 
+/* Room in the database. Sync copies and their files, link codes, shared and published decks, voices are stored
+   for anyone, without an account, so a script could fill D1 to its size limit in an hour and break the site for
+   everybody. Every write that makes the database bigger takes its bytes from a daily allowance per fingerprint
+   (enough for one person's whole set of pictures and recordings) and from one for the whole site. */
+const MB = 1024 * 1024;
+export function takeStore(env, key, bytes) {
+  const perDay = (Number(env.STORE_PER_DAY_MB) || 100) * MB, site = (Number(env.STORE_SITE_DAY_MB) || 1000) * MB;
+  return takeDaily(env, 'st', key, bytes, perDay, site, 'storage_full');
+}
+
+/* The library's check: every piece of a deck is one request to the moderating models, which share Groq's daily
+   tokens with everything else. A big deck is up to a hundred of them, so they are counted too — per fingerprint
+   and for the whole site, apart from the AI limits people see. */
+export function takeGuard(env, key, n) {
+  return takeDaily(env, 'gd', key, n, Number(env.GUARD_PER_DAY) || 60, Number(env.GUARD_SITE_DAY) || 400, 'budget');
+}
+
+// `amount` from a daily allowance per fingerprint and one for the whole site; nothing is taken when either is spent
+async function takeDaily(env, name, key, amount, perDay, site, siteCode) {
+  if (amount <= 0) return;
+  const db = env.DB, kk = `${name}:${key}:${today()}`, kg = `${name}:g:${today()}`;
+  const [k, g] = await Promise.all([bump(db, kk, 26 * HOUR, amount), bump(db, kg, 26 * HOUR, amount)]);
+  if (k > perDay || g > site) {
+    await Promise.all([bump(db, kk, 26 * HOUR, -amount), bump(db, kg, 26 * HOUR, -amount)]).catch(() => {});
+    throw new HttpError(429, g > site ? siteCode : 'slow_down');
+  }
+}
+
 /* A simple counter for sync and link codes (protection against guessing) */
 export async function takeSimple(env, name, key, limit, ttlMs) {
   const n = await bump(env.DB, `${name}:${key}:${Math.floor(Date.now() / ttlMs)}`, ttlMs * 2);
