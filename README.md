@@ -74,7 +74,7 @@ Ordkort is a lightweight site for learning almost any language from almost any o
   (learnt on the earlier answers, kept only when they predict the later ones better than the defaults).
 - **A library of decks**: publish a deck for everybody learning the same pair of languages (Deck → ⋯ → *Publish
   in the library*), find others' by title, sort by the best or the newest, vote and add. Before a deck is listed,
-  Llama Guard reads its words and looks at its cover; an unsafe deck is refused, and nothing is published while the
+  a model told the library's policy reads its words and one that sees pictures looks at its cover; an unsafe deck is refused, and nothing is published while the
   check cannot run. Three people's reports hide a deck until the site's owner looks; the publisher can take it down.
 - **Cards with gaps and fields of your own**: mark a gap as in Anki (`Jeg {{bor}} i Oslo`, `{{c1::bor::verb}}`) and
   the card is studied as a gap; any card can carry up to eight named fields. Anki cloze notes and a note's other

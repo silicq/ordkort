@@ -90,18 +90,25 @@ export async function groq(env, { system, user, max = 2500, temperature = 0.35, 
   throw new HttpError(503, 'busy');
 }
 
-/* Moderation. Llama Guard (on Groq) reads a text and looks at a picture, and says whether they are safe.
-   → { safe, cats } — cats: the hazard categories it named (S1…S14: violent crimes, sexual content, weapons of
-   mass harm, hate…). When Llama Guard cannot answer (gone, over its limit), the text is read against the same
-   categories by a model told the policy (gpt-oss-safeguard, then the site's own models); a picture has no such
-   second reader. Throws (503, with what went wrong) when nothing can answer: nothing is let through unchecked. */
-const GUARD = 'meta-llama/llama-guard-4-12b';
+/* Moderation: is a text, or a picture, fine for a public library of decks? → { safe, cats } — cats: the hazard
+   categories found (S1…S14 as Llama Guard named them: violent crimes, sexual content, weapons, hate…).
+   A model told the policy reads the text (gpt-oss-safeguard first, then the site's own models); a text too long for
+   the plan's per-minute limit is read in halves. A picture is looked at by a model that sees pictures (Qwen).
+   GUARD_MODEL may name a Llama Guard to ask first. Throws (503, with what went wrong) when nothing can answer:
+   nothing is let through unchecked. */
 const POLICY_MODELS = ['openai/gpt-oss-safeguard-20b'];
+const VISION_MODELS = ['qwen/qwen3.8-27b', 'qwen/qwen3.6-27b', 'meta-llama/llama-4-scout-17b-16e-instruct'];
 const POLICY = `You moderate a public library of vocabulary decks for language learners. Decide whether the deck may be listed.
 Ordinary vocabulary is fine even when it names sensitive things: body parts, illnesses, medicine and pills, alcohol, police, crime, war, weapons, death, swear words in a lesson about them.
 It is NOT fine when the deck as a whole is sexually explicit or pornographic (S12), sexualises minors (S4), promotes or explains buying, making or using illegal drugs (S2), explains making weapons or explosives (S9), incites violence or terrorism (S1), is hateful or harassing towards a group or a person (S10), encourages self-harm (S11), or shares private data about a real person (S7).
+When a picture is given, judge the picture: nudity or sexual content (S12), anything sexual involving minors (S4), gore or cruelty (S1), drug use or drug sale (S2), hate symbols (S10) are not fine; an ordinary photo or drawing is.
 Answer only JSON: {"safe": true} or {"safe": false, "cats": ["S12"]}.`;
 
+const verdict = (a) => {
+  if (a?.safe === true) return { safe: true, cats: [] };
+  if (a?.safe === false) return { safe: false, cats: (Array.isArray(a.cats) ? a.cats : []).map(String).filter((c) => /^S\d{1,2}$/.test(c)) };
+  return null;
+};
 const reasonOf = (model, res, data) => `${model.split('/').pop()}: ${res ? res.status : 'network'}${data?.error?.code ? ' ' + data.error.code : ''}`;
 
 async function llamaGuard(env, model, content, why) {
@@ -127,22 +134,40 @@ async function llamaGuard(env, model, content, why) {
   return null;
 }
 
+// the text against the policy; halves when it does not fit the per-minute limit
+async function readText(env, text, why, depth = 0) {
+  try {
+    const r = verdict(await groq(env, { system: POLICY, user: text, max: 800, temperature: 0, models: [...POLICY_MODELS, ...siteModels(env)] }));
+    if (r) return r;
+    why.push('policy: odd answer');
+  } catch (e) {
+    if (e.code === 'too_long' && text.length > 600 && depth < 5) {
+      const cut = Math.max(text.lastIndexOf('\n', text.length / 2), 1);
+      const [a, b] = [await readText(env, text.slice(0, cut), why, depth + 1), await readText(env, text.slice(cut), why, depth + 1)];
+      if (a && b) return { safe: a.safe && b.safe, cats: [...new Set([...a.cats, ...b.cats])] };
+      return null;
+    }
+    why.push('policy: ' + (e.code || 'error'));
+  }
+  return null;
+}
+
 export async function guard(env, { text, image }) {
   if (!env.GROQ_API_KEY) throw new HttpError(503, 'not_configured');
   const why = [];
-  const model = env.GUARD_MODEL || GUARD;
-  if (image) {
-    const r = await llamaGuard(env, model, [{ type: 'text', text: String(text || 'A cover picture for a vocabulary deck.').slice(0, 2000) }, { type: 'image_url', image_url: { url: image } }], why);
+  const content = [{ type: 'text', text: String(text || (image ? 'A cover picture for a vocabulary deck.' : '')).slice(0, image ? 2000 : 15000) }];
+  if (image) content.push({ type: 'image_url', image_url: { url: image } });
+  if (env.GUARD_MODEL) {
+    const r = await llamaGuard(env, env.GUARD_MODEL, content, why);
     if (r) return r;
-    throw new HttpError(503, 'busy', { why: why.join('; ') });
   }
-  const r = await llamaGuard(env, model, [{ type: 'text', text: String(text || '').slice(0, 15000) }], why);
+  let r = null;
+  if (image) {
+    try {
+      r = verdict(await groq(env, { system: POLICY, user: content, max: 800, temperature: 0, models: env.GUARD_VISION_MODELS ? String(env.GUARD_VISION_MODELS).split(',').map((x) => x.trim()) : VISION_MODELS }));
+      if (!r) why.push('vision: odd answer');
+    } catch (e) { why.push('vision: ' + (e.code || 'error')); }
+  } else r = await readText(env, content[0].text, why);
   if (r) return r;
-  try {
-    const a = await groq(env, { system: POLICY, user: String(text || '').slice(0, 15000), max: 1500, temperature: 0, models: [...POLICY_MODELS, ...siteModels(env)] });
-    if (a?.safe === true) return { safe: true, cats: [] };
-    if (a?.safe === false) return { safe: false, cats: (Array.isArray(a.cats) ? a.cats : []).map(String).filter((c) => /^S\d{1,2}$/.test(c)) };
-    why.push('policy: odd answer');
-  } catch (e) { why.push('policy: ' + (e.code || 'error')); }
   throw new HttpError(503, 'busy', { why: why.join('; ') });
 }
