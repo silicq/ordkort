@@ -1,6 +1,10 @@
 /* Pictures for cards.
-   search — free, openly licensed images for a word, from Openverse (api.openverse.org). The answers are kept in the
-            shared cache for 30 days, so a word someone looked up before costs Openverse nothing.
+   search — free, openly licensed images for a word. Openverse alone answers by matching the words of titles and
+            descriptions, so "hus" or "ключ" bring photos of anything that mentions them. So first the word is looked
+            up in Wikidata, in its own language: the item it names ("hus" → house) has a picture on Wikimedia Commons
+            chosen by people for exactly that meaning, and an English name. Openverse is then asked in English, and
+            its answers are sorted so that pictures whose title or tags hold the word come first. The answers are
+            kept in the shared cache for 30 days, so a word someone looked up before costs nobody anything.
    proxy  — fetches one picture for the browser, which then shrinks it and keeps it on the device. The page may load
             nothing from other sites (CSP), and the person's IP never reaches them. Only https, only raster images
             (no SVG), at most 5 MB, under a per-person hourly limit. */
@@ -13,37 +17,131 @@ const MONTH = 30 * 864e5;
 const MAX_BYTES = 5 * 1024 * 1024;
 const TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/avif'];
 
-const license = (r) => `${r.license === 'cc0' || r.license === 'pdm' ? r.license.toUpperCase() : 'CC ' + String(r.license || '').toUpperCase()} ${r.license_version || ''}`.trim();
+const ovLicense = (r) => `${r.license === 'cc0' || r.license === 'pdm' ? r.license.toUpperCase() : 'CC ' + String(r.license || '').toUpperCase()} ${r.license_version || ''}`.trim();
 
 export async function search(request, env, key) {
   const b = await readJSON(request, 2000);
-  return json(await find(env, key, b.q));
+  return json(await find(env, key, b.q, b.lang));
 }
 
-// { results: [{ thumb, by, license, page }] } for a word or phrase (also used by the MCP server)
-export async function find(env, key, query) {
-  const q = str(query, 80);
+// an article or "to" in front of a word only gets in the way of a search
+export const bare = (x) => String(x || '').trim().replace(/^(?:(?:en|ei|et|ein|eine|eit|der|die|das|le|la|les|el|los|las|il|lo|gli|un|une|una|uno|the|an?|to|å|att)\s+|l['’])/i, '');
+
+/* Items that are not what a learner's word means: a person, a name, a work, a place, a page about pages.
+   Wikidata's "instance of" (P31) tells them apart; the item for "house" is a class, not an instance of these. */
+const NOT_A_THING = new Set([
+  'Q5', 'Q4167410', 'Q4167836', 'Q13442814', 'Q101352', 'Q202444', 'Q12308941', 'Q11879590', 'Q11424', 'Q482994', 'Q7366', 'Q134556',
+  'Q7725634', 'Q571', 'Q47461344', 'Q5398426', 'Q215380', 'Q4830453', 'Q43229', 'Q783794', 'Q13406463', 'Q11266439', 'Q17442446',
+  'Q532', 'Q486972', 'Q515', 'Q1549591', 'Q3957', 'Q747074', 'Q15284', 'Q23397', 'Q8502', 'Q4022', 'Q2221906', 'Q1093829', 'Q3024240',
+  'Q105543609', 'Q1002697', 'Q15632617', 'Q95074', 'Q21191270', 'Q7889', 'Q1344', 'Q3305213',
+]);
+const WD = 'https://www.wikidata.org/w/api.php';
+const COMMONS = 'https://commons.wikimedia.org/w/api.php';
+
+async function getJSON(url, ms = 6000) {
+  const res = await fetch(url, { headers: { 'User-Agent': UA, Accept: 'application/json' }, signal: AbortSignal.timeout(ms) }).catch(() => null);
+  if (!res?.ok) return null;
+  return res.json().catch(() => null);
+}
+const plainText = (html) => String(html || '').replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#0?39;/g, "'").replace(/\s+/g, ' ').trim();
+
+/* The word in its language → up to 3 items that mean it, each with a Commons file and an English name.
+   wbsearchentities finds items by their name or other names in that language (and in English, which every
+   language falls back to); only those whose name is the word itself are kept. */
+export async function wikidata(q, lang) {
+  const uselang = lang && /^[a-z]{2,3}$/.test(lang) ? lang : 'en';
+  const found = await getJSON(`${WD}?action=wbsearchentities&format=json&type=item&limit=8&search=${encodeURIComponent(q)}&language=${uselang}&uselang=${uselang}`);
+  const want = q.toLowerCase();
+  const ids = (Array.isArray(found?.search) ? found.search : [])
+    .filter((e) => /^Q\d+$/.test(e.id || '') && String(e.match?.text || e.label || '').toLowerCase() === want)
+    .map((e) => e.id).slice(0, 5);
+  if (!ids.length) return [];
+  const data = await getJSON(`${WD}?action=wbgetentities&format=json&props=claims|labels&languages=en&ids=${ids.join('|')}`, 8000);
+  const out = [];
+  for (const id of ids) {
+    const e = data?.entities?.[id];
+    if (!e?.claims) continue;
+    const kinds = (e.claims.P31 || []).map((c) => c.mainsnak?.datavalue?.value?.id);
+    if (kinds.some((k) => NOT_A_THING.has(k))) continue;
+    const file = e.claims.P18?.find((c) => c.rank !== 'deprecated')?.mainsnak?.datavalue?.value;
+    out.push({ id, file: typeof file === 'string' ? file : '', en: e.labels?.en?.value || '' });
+  }
+  return out.slice(0, 3);
+}
+
+// Commons files → pictures with a thumbnail, an author and a licence
+async function commons(files) {
+  if (!files.length) return [];
+  const titles = files.map((f) => 'File:' + f).join('|');
+  const data = await getJSON(`${COMMONS}?action=query&format=json&prop=imageinfo&iiprop=url|extmetadata&iiurlwidth=640`
+    + `&iiextmetadatafilter=Artist|LicenseShortName|ObjectName&titles=${encodeURIComponent(titles)}`);
+  const pages = Object.values(data?.query?.pages || {});
+  const byTitle = new Map(pages.map((p) => [String(p.title || '').replace(/^File:/, '').replace(/_/g, ' '), p]));
+  return files.map((f) => {
+    const p = byTitle.get(f.replace(/_/g, ' '));
+    const ii = p?.imageinfo?.[0];
+    const thumb = ii?.thumburl || ii?.url;
+    if (!thumb || !/^https:\/\//.test(thumb) || /\.svg$/i.test(ii.url || '') && !ii.thumburl) return null;
+    const m = ii.extmetadata || {};
+    const who = plainText(m.Artist?.value);
+    return {
+      thumb,
+      by: str([`“${plainText(m.ObjectName?.value) || f.replace(/\.\w+$/, '')}”`, who].filter(Boolean).join(', '), 160),
+      license: str(plainText(m.LicenseShortName?.value) || 'Wikimedia Commons', 40),
+      page: str(ii.descriptionurl || '', 400),
+    };
+  }).filter(Boolean);
+}
+
+// does a picture's title or one of its tags hold the word? (whole words; "house" is in "Old house", not in "Lighthouse")
+export function relevant(r, q) {
+  const words = q.toLowerCase().split(/\s+/).filter(Boolean);
+  if (!words.length) return false;
+  const has = (s) => {
+    const text = ' ' + String(s || '').toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ') + ' ';
+    return words.every((w) => new RegExp(`\\s${w.replace(/[^\p{L}\p{N}]/gu, '')}(s|es|er|en|e)?\\s`, 'u').test(text));
+  };
+  return has(r.title) || (Array.isArray(r.tags) && r.tags.some((t) => has(t?.name)));
+}
+
+async function openverse(q) {
+  // licences that allow changes: the picture is shrunk and re-encoded on the device
+  const url = `https://api.openverse.org/v1/images/?q=${encodeURIComponent(q)}&page_size=40&mature=false&license_type=modification`;
+  const res = await fetch(url, { headers: { 'User-Agent': UA, Accept: 'application/json' }, signal: AbortSignal.timeout(8000) }).catch(() => null);
+  if (!res?.ok) return null;
+  const data = await res.json().catch(() => null);
+  const all = (Array.isArray(data?.results) ? data.results : []).filter((r) => r.thumbnail && /^https:\/\//.test(r.thumbnail));
+  // the ones that are about the word first; the rest only when there are too few of those
+  const good = all.filter((r) => relevant(r, q));
+  const list = good.length >= 6 ? good : [...good, ...all.filter((r) => !good.includes(r)).slice(0, 6 - good.length)];
+  return list.map((r) => ({
+    thumb: r.thumbnail,
+    by: str([r.title ? `“${r.title}”` : '', r.creator ? `${r.creator}` : ''].filter(Boolean).join(', '), 160),
+    license: ovLicense(r),
+    page: str(r.foreign_landing_url || '', 400),
+  }));
+}
+
+/* { results: [{ thumb, by, license, page }] } for a word or phrase in the language `lang` (also used by the MCP
+   server): first the pictures of the Wikidata items the word names, then Openverse's, asked in English. */
+export async function find(env, key, query, lang) {
+  const q = str(bare(query), 80);
   if (!q) throw new HttpError(400, 'empty');
-  const k = 'img1:' + (await sha256(q.toLowerCase())).slice(0, 32);
+  const L = typeof lang === 'string' && /^[a-z]{2,3}$/.test(lang) ? lang : 'en';
+  const k = 'img2:' + (await sha256(L + '\n' + q.toLowerCase())).slice(0, 32);
   const hit = await cacheGet(env.DB, k, MONTH);
   if (hit) return hit;
   await takeSimple(env, 'imgq', key, 60, 36e5);
-  // licences that allow changes: the picture is shrunk and re-encoded on the device
-  const url = `https://api.openverse.org/v1/images/?q=${encodeURIComponent(q)}&page_size=18&mature=false&license_type=modification`;
-  const res = await fetch(url, { headers: { 'User-Agent': UA, Accept: 'application/json' }, signal: AbortSignal.timeout(8000) }).catch(() => null);
-  if (!res?.ok) throw new HttpError(503, 'busy');
-  const data = await res.json().catch(() => null);
-  const out = {
-    results: (Array.isArray(data?.results) ? data.results : [])
-      .filter((r) => r.thumbnail && /^https:\/\//.test(r.thumbnail))
-      .slice(0, 18)
-      .map((r) => ({
-        thumb: r.thumbnail,
-        by: str([r.title ? `“${r.title}”` : '', r.creator ? `${r.creator}` : ''].filter(Boolean).join(', '), 160),
-        license: license(r),
-        page: str(r.foreign_landing_url || '', 400),
-      })),
-  };
+  const items = await wikidata(q, L).catch(() => []);
+  const en = L === 'en' ? q : (items.find((i) => i.en)?.en || q);
+  const [wd, ov] = await Promise.all([
+    commons([...new Set(items.map((i) => i.file).filter(Boolean))]).catch(() => []),
+    openverse(en),
+  ]);
+  if (!wd.length && !ov) throw new HttpError(503, 'busy');
+  const seen = new Set();
+  const out = { results: [...wd, ...(ov || [])].filter((r) => !seen.has(r.thumb) && seen.add(r.thumb)).slice(0, 18) };
+  if (en !== q) out.en = en;
   await cacheSet(env.DB, k, out);
   return out;
 }

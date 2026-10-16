@@ -1308,6 +1308,12 @@ dialog.modal::backdrop { background: rgba(20, 16, 10, 0.45); backdrop-filter: bl
 .set-card > .row { margin-top: 10px; }
 .about-links { margin: 8px 0 0; padding-inline-start: 18px; font-size: 14px; color: var(--ink-2); }
 .about-links li { margin-bottom: 6px; }
+.mcp-url { margin: 12px 0; }
+.mcp-url .input { flex: 1; min-width: 0; }
+.mcp-how { margin-bottom: 12px; font-size: 14px; }
+.mcp-how summary { cursor: pointer; color: var(--blue-ink); font-weight: 600; }
+.mcp-how code { font: 500 12.5px ui-monospace, Consolas, monospace; overflow-wrap: anywhere; }
+.mcp-card .about-links { margin-top: 4px; }
 
 /* ---------- first run ---------- */
 .onboarding-mode { background: var(--paper); }
@@ -1889,6 +1895,18 @@ dialog.modal::backdrop { background: rgba(20, 16, 10, 0.45); backdrop-filter: bl
 .pic-thumb:hover, .pic-thumb:focus-visible { border-color: var(--blue); }
 .pic-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .pic-thumb.loading { opacity: 0.5; }
+.pics { display: grid; gap: 12px; }
+.pics-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); gap: 8px; max-height: min(42vh, 360px); overflow: auto; padding: 2px; }
+.pics-tile { display: grid; gap: 2px; padding: 6px 6px 8px; border: 2px solid var(--line); border-radius: 14px; background: var(--card); text-align: start; cursor: pointer; min-width: 0; color: var(--ink); }
+.pics-tile:hover, .pics-tile:focus-visible { border-color: var(--blue-edge); }
+.pics-tile.on { border-color: var(--blue); background: var(--blue-soft); }
+.pics-tile.drop { border-style: dashed; border-color: var(--blue); }
+.pics-img { display: grid; place-items: center; aspect-ratio: 4 / 3; border-radius: 10px; overflow: hidden; background: var(--paper-2); color: var(--ink-3); margin-bottom: 4px; }
+.pics-tile.none .pics-img { border: 1.5px dashed var(--line-2); }
+.pics-term, .pics-tile small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pics-term { font-size: 15px; }
+.pics-sel { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.pics-sel b { font-size: 18px; }
 
 /* ---------- Anki import (js/anki.js) ---------- */
 .anki-box { display: grid; gap: 14px; }

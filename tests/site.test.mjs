@@ -355,3 +355,19 @@ test('AI answers keep only the expected fields', () => {
     assert.equal(cleanWord({ term: 'x', tr: 'y', img_url: bad, img_by: 'z' }).img_url, undefined, bad);
   }
 });
+
+/* ---------- the design guide the MCP server gives to people's AI ---------- */
+
+test('every class the design guide names is one the site really has', async () => {
+  const { _test } = await import('../src/mcp.js');
+  const css = read('public/css/style.css');
+  const js = ['public/js/ui.js', 'public/js/app.js', ...readdirSync(new URL('public/js/views/', ROOT)).map((f) => 'public/js/views/' + f)].map(read).join('\n');
+  const example = ['pic', 'word', 'ex', 'jpg']; // the guide's own example and a file name
+  const named = new Set([..._test.DESIGN_GUIDE.matchAll(/(?<![\w-])\.([a-z][a-z0-9-]+)/g)].map((m) => m[1]));
+  const missing = [...named].filter((n) => !example.includes(n)
+    && !new RegExp(`\\.${n}(?![\\w-])`).test(css) && !new RegExp(`['\\s]${n}['\\s]`).test(js));
+  assert.deepEqual(missing, []);
+  for (const v of _test.DESIGN_GUIDE.match(/--[a-z][a-z0-9-]+/g)) {
+    if (!['--card-image', '--bg', '--fg', '--edge'].includes(v)) assert.match(css, new RegExp(`${v}:`), v);
+  }
+});

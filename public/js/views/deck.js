@@ -3,6 +3,8 @@
   const A = window.App;
   const { h, icon, t, tn } = A;
   let filter = '';
+  // an article or "to" in front of a word only gets in the way of a picture search
+  const bare = (x) => x.replace(/^(?:(?:en|ei|et|ein|eine|eit|der|die|das|le|la|les|el|los|las|il|lo|gli|un|une|una|uno|the|an?|to|å|att)\s+|l['’])/i, '');
 
   A.views.deck = {
     live: true,
@@ -33,6 +35,7 @@
           h('button', { class: 'btn btn-soft', type: 'button', disabled: !!job, onclick: () => A.jobs.generate(id) },
             icon('sparkle', 18), t('deck.more', { n: s.batch })),
           h('button', { class: 'btn btn-ghost', type: 'button', onclick: () => editCard(null, id) }, icon('plus', 18), t('deck.add_word')),
+          o.total ? h('button', { class: 'btn btn-ghost', type: 'button', onclick: () => deckPictures(id) }, icon('image', 18), t('pics.open')) : null,
           h('span', { class: 'grow' }),
           h('button', { class: 'icon-btn', type: 'button', title: t('deck.tools'), 'aria-label': t('deck.tools'), onclick: () => A.deckTools.menu(d) }, icon('more')),
           d.topic ? null : h('button', {
@@ -212,20 +215,65 @@
   }
   A.editCard = editCard;
 
+  /* A search for free pictures: a query box and the results. onPick(name, url, credit) gets the picture, kept. */
+  function picSearch(onPick) {
+    const s = A.store.settings;
+    const results = h('div', { class: 'pic-results' });
+    const status = h('p', { class: 'muted small', hidden: true });
+    const q = h('input', { class: 'input', type: 'search', placeholder: t('card.pic_search_ph') });
+    let qLang = s.target; // the word is searched in its own language: Wikidata knows what it means
+    const say = (text) => { status.hidden = !text; status.textContent = text || ''; };
+    async function find() {
+      const query = q.value.trim();
+      if (!query) { q.focus(); return; }
+      say(t('card.pic_searching'));
+      results.replaceChildren();
+      try {
+        const list = await A.media.search(query, qLang);
+        say(list.length ? '' : t('card.pic_none'));
+        results.replaceChildren(...list.map((r) => h('button', {
+          class: 'pic-thumb', type: 'button', title: `${r.by} · ${r.license}`,
+          onclick: async (e) => {
+            const b = e.currentTarget;
+            b.classList.add('loading');
+            try { onPick(await A.media.addUrl(r.thumb), r.thumb, `${r.by} · ${r.license}`); } catch { A.toast(t('card.pic_failed'), 'error'); }
+            b.classList.remove('loading');
+          },
+        }, h('img', { src: '/api/img?u=' + encodeURIComponent(r.thumb), alt: r.by, loading: 'lazy' }))));
+      } catch (e) { say(A.ai.errorText(e)); }
+    }
+    const el = h('div', { class: 'pic-search' },
+      h('form', { class: 'row gap', onsubmit: (e) => { e.preventDefault(); find(); } }, q, h('button', { class: 'btn btn-soft btn-sm', type: 'submit', 'aria-label': t('card.pic_find') }, icon('search', 16))),
+      h('small', { class: 'muted' }, t('card.pic_hint')), status, results);
+    // a card's word, or its translation when it has none yet
+    const run = (term, tr) => {
+      q.value = bare(term) || tr;
+      qLang = bare(term) ? s.target : s.native;
+      results.replaceChildren();
+      say('');
+      if (q.value) find();
+    };
+    return { el, run, get empty() { return !q.value; } };
+  }
+
+  // a picture pasted anywhere on the page, while fn is listening; returns the function that stops listening
+  function onPastedPicture(fn) {
+    const onPaste = (e) => {
+      const it = [...(e.clipboardData?.items || [])].find((x) => x.type.startsWith('image/'));
+      if (it) { e.preventDefault(); fn(it.getAsFile()); }
+    };
+    document.addEventListener('paste', onPaste);
+    return () => document.removeEventListener('paste', onPaste);
+  }
+
   /* The picture of a card: a free one found by the word, one of your own (a file or the camera), or pasted.
      pic is changed in place: { img, imgUrl, imgBy }. */
   function pictureField(pic, term, tr) {
-    const s = A.store.settings;
     const preview = h('div', { class: 'pic-preview' });
     const credit = h('small', { class: 'pic-credit muted' });
-    const results = h('div', { class: 'pic-results' });
-    const status = h('p', { class: 'muted small', hidden: true });
     const file = h('input', { type: 'file', accept: 'image/*', hidden: true });
-    const bare = (x) => x.replace(/^(en|ei|et|ein|eit|der|die|das|le|la|les|el|los|las|il|lo|gli|the|an?|to|å)\s+/i, '');
-    const q = h('input', { class: 'input', type: 'search', placeholder: t('card.pic_search_ph') });
-    const panel = h('div', { class: 'pic-search', hidden: true },
-      h('form', { class: 'row gap', onsubmit: (e) => { e.preventDefault(); find(); } }, q, h('button', { class: 'btn btn-soft btn-sm', type: 'submit', 'aria-label': t('card.pic_find') }, icon('search', 16))),
-      h('small', { class: 'muted' }, t('card.pic_hint')), status, results);
+    const search = picSearch((img, imgUrl, imgBy) => { set(img, imgUrl, imgBy); search.el.hidden = true; });
+    search.el.hidden = true;
 
     const remove = h('button', { class: 'btn btn-ghost btn-sm', type: 'button', onclick: () => set('') }, icon('trash', 16), t('card.pic_remove'));
     const paint = () => {
@@ -236,36 +284,11 @@
       preview.append(im || h('span', { class: 'pic-empty' }, icon('image', 28)));
     };
     const set = (img, imgUrl = '', imgBy = '') => { Object.assign(pic, { img, imgUrl, imgBy }); paint(); };
-    const say = (text) => { status.hidden = !text; status.textContent = text || ''; };
-
-    async function find() {
-      const query = q.value.trim();
-      if (!query) { q.focus(); return; }
-      say(t('card.pic_searching'));
-      results.replaceChildren();
-      try {
-        const list = await A.media.search(query);
-        say(list.length ? '' : t('card.pic_none'));
-        results.replaceChildren(...list.map((r) => h('button', {
-          class: 'pic-thumb', type: 'button', title: `${r.by} · ${r.license}`,
-          onclick: async (e) => {
-            const b = e.currentTarget;
-            b.classList.add('loading');
-            try { set(await A.media.addUrl(r.thumb), r.thumb, `${r.by} · ${r.license}`); panel.hidden = true; } catch { A.toast(t('card.pic_failed'), 'error'); }
-            b.classList.remove('loading');
-          },
-        }, h('img', { src: '/api/img?u=' + encodeURIComponent(r.thumb), alt: r.by, loading: 'lazy' }))));
-      } catch (e) { say(A.ai.errorText(e)); }
-    }
     async function own(blob) {
-      try { set(await A.media.add(blob)); panel.hidden = true; } catch { A.toast(t('card.pic_failed'), 'error'); }
+      try { set(await A.media.add(blob)); search.el.hidden = true; } catch { A.toast(t('card.pic_failed'), 'error'); }
     }
     file.addEventListener('change', () => { const b = file.files?.[0]; if (b) own(b); file.value = ''; });
-    const onPaste = (e) => {
-      const it = [...(e.clipboardData?.items || [])].find((x) => x.type.startsWith('image/'));
-      if (it) { e.preventDefault(); own(it.getAsFile()); }
-    };
-    document.addEventListener('paste', onPaste);
+    const stop = onPastedPicture(own);
 
     const el = h('div', { class: 'field pic-field' },
       h('span', null, t('card.picture')),
@@ -274,15 +297,111 @@
           h('button', {
             class: 'btn btn-soft btn-sm', type: 'button',
             onclick: () => {
-              panel.hidden = !panel.hidden;
-              if (!panel.hidden && !q.value) { q.value = s.native === 'en' ? tr() : bare(term()) || tr(); if (q.value) find(); }
+              search.el.hidden = !search.el.hidden;
+              if (!search.el.hidden && search.empty) search.run(term(), tr());
             },
           }, icon('search', 16), t('card.pic_find')),
           h('button', { class: 'btn btn-ghost btn-sm', type: 'button', onclick: () => file.click() }, icon('upload', 16), t('card.pic_upload')),
           remove,
           h('small', { class: 'muted' }, t('card.pic_paste')))),
-      credit, panel, file);
+      credit, search.el, file);
     paint();
-    return { el, stop: () => document.removeEventListener('paste', onPaste) };
+    return { el, stop };
   }
+
+  /* Pictures for the words of a whole deck, on one screen: pick a word, then give it your own picture (a file,
+     a pasted one, one dropped on it) or a free one found by the word. Several files dropped or chosen at once go
+     to the words they are named after: hus.jpg → "et hus". */
+  function deckPictures(deckId) {
+    const s = A.store.settings;
+    const cards = () => A.store.cards(deckId).sort((a, b) => a.created - b.created);
+    let sel = cards().find((c) => !c.img)?.id || cards()[0]?.id;
+    let changed = false;
+    const grid = h('div', { class: 'pics-grid' });
+    const head = h('div', { class: 'pics-sel' });
+    const status = h('p', { class: 'muted small', role: 'status' });
+    const one = h('input', { type: 'file', accept: 'image/*', hidden: true });
+    const many = h('input', { type: 'file', accept: 'image/*', multiple: true, hidden: true });
+    const search = picSearch((img, imgUrl, imgBy) => put(sel, { img, imgUrl, imgBy }, true));
+    const card = (id) => A.store.cards(deckId).find((c) => c.id === id);
+
+    function put(id, pic, next = false) {
+      A.store.updateCard(id, pic);
+      changed = true;
+      if (next) sel = cards().find((c) => !c.img && c.id !== id)?.id || id;
+      draw(next);
+    }
+    async function own(id, blob) {
+      try { put(id, { img: await A.media.add(blob), imgUrl: '', imgBy: '' }, true); } catch { A.toast(t('card.pic_failed'), 'error'); }
+    }
+    // files named after the words go to those words; returns how many found their word
+    async function byName(files) {
+      const key = (x) => A.store.norm(bare(String(x || '')).replace(/[_-]+/g, ' '));
+      const list = cards();
+      let n = 0;
+      for (const f of files) {
+        const name = key(f.name.replace(/\.[^.]+$/, ''));
+        const c = list.find((x) => key(x.term) === name) || list.find((x) => key(x.tr) === name);
+        if (!c) continue;
+        try { A.store.updateCard(c.id, { img: await A.media.add(f), imgUrl: '', imgBy: '' }); n++; changed = true; } catch { /* not a picture */ }
+      }
+      status.textContent = t('pics.matched', { n, all: files.length });
+      draw(false);
+    }
+
+    function tile(c) {
+      const b = h('button', {
+        class: 'pics-tile' + (c.id === sel ? ' on' : '') + (c.img ? '' : ' none'), type: 'button', 'aria-pressed': String(c.id === sel),
+        onclick: () => { sel = c.id; draw(true); },
+      },
+        h('span', { class: 'pics-img' }, c.img ? A.media.el(c, 'pic-img') : icon('image', 24)),
+        A.lt(c.term, s.target, 'pics-term serif'),
+        h('small', { class: 'muted', dir: 'auto' }, c.tr));
+      b.addEventListener('dragover', (e) => { e.preventDefault(); b.classList.add('drop'); });
+      b.addEventListener('dragleave', () => b.classList.remove('drop'));
+      b.addEventListener('drop', (e) => {
+        e.preventDefault();
+        b.classList.remove('drop');
+        const files = [...(e.dataTransfer?.files || [])].filter((f) => f.type.startsWith('image/'));
+        if (files.length === 1) { sel = c.id; own(c.id, files[0]); } else if (files.length) byName(files);
+      });
+      return b;
+    }
+
+    function draw(searchNow) {
+      const list = cards();
+      grid.replaceChildren(...list.map(tile));
+      const c = card(sel);
+      head.replaceChildren();
+      if (!c) return;
+      head.append(
+        h('b', { class: 'serif', lang: s.target, dir: 'auto' }, c.term),
+        h('span', { class: 'grow' }),
+        h('button', { class: 'btn btn-ghost btn-sm', type: 'button', onclick: () => one.click() }, icon('upload', 16), t('card.pic_upload')),
+        c.img ? h('button', { class: 'btn btn-ghost btn-sm', type: 'button', onclick: () => put(c.id, { img: '', imgUrl: '', imgBy: '' }) }, icon('trash', 16), t('card.pic_remove')) : null);
+      if (searchNow) search.run(c.term, c.tr);
+      grid.querySelector('.pics-tile.on')?.scrollIntoView({ block: 'nearest' });
+      const have = list.filter((x) => x.img).length;
+      m.el.querySelector('.modal-head h3').textContent = `${t('pics.title')} · ${have}/${list.length}`;
+    }
+
+    one.addEventListener('change', () => { const f = one.files?.[0]; if (f) own(sel, f); one.value = ''; });
+    many.addEventListener('change', () => { const fs = [...(many.files || [])]; if (fs.length) byName(fs); many.value = ''; });
+    const stop = onPastedPicture((blob) => own(sel, blob));
+
+    const m = A.modal({
+      title: t('pics.title'),
+      wide: true,
+      body: h('div', { class: 'pics' },
+        h('p', { class: 'muted small' }, t('pics.hint')),
+        h('div', { class: 'row gap wrap' },
+          h('button', { class: 'btn btn-soft btn-sm', type: 'button', onclick: () => many.click() }, icon('upload', 16), t('pics.many')),
+          status),
+        grid, head, search.el, one, many),
+      onClose: () => { stop(); if (changed) A.refresh(); },
+      actions: [h('button', { class: 'btn btn-primary', type: 'button', onclick: () => m.close() }, t('common.close'))],
+    });
+    draw(true);
+  }
+  A.deckPictures = deckPictures;
 })();

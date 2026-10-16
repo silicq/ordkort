@@ -152,7 +152,11 @@ footer a{color:var(--ink-2)}
     "Grammar book",
     "A translator that explains",
     "Reading",
-    "Progress on every device"
+    "Progress on every device",
+    "Anki both ways",
+    "Pictures and your own look",
+    "Remembering better",
+    "Your own AI, through MCP"
    ]
   },
   {
@@ -200,7 +204,7 @@ footer a{color:var(--ink-2)}
      "name": "How is it different from Anki or Quizlet?",
      "acceptedAnswer": {
       "@type": "Answer",
-      "text": "Ordkort comes with ready word lists for each topic and level, and with a dictionary, a grammar book, a translator and a reading mode built in. You can still add your own words and import an Anki export (plain text) or a CSV file."
+      "text": "Ordkort comes with ready word lists for each topic and level, and with a dictionary, a grammar book, a translator and a reading mode built in. It uses the same FSRS scheduler as Anki, and decks move both ways: import an .apkg with its pictures and progress, export your decks as an .apkg Anki opens."
      }
     },
     {
@@ -217,6 +221,14 @@ footer a{color:var(--ink-2)}
      "acceptedAnswer": {
       "@type": "Answer",
       "text": "They are written by AI and checked: Norwegian against the official dictionaries of the Language Council of Norway and the University of Bergen, other languages against Wiktionary. Any entry can be reported as a mistake right on the site."
+     }
+    },
+    {
+     "@type": "Question",
+     "name": "Can my own AI make decks for me?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "Yes. Ordkort is an MCP server: connect Claude, ChatGPT or another assistant to ordkort.com/mcp (Settings in the app shows how). Ask it for a deck about any topic, with pictures, or for a new look for the site; it answers with a link that adds it when you agree. It never sees your cards."
      }
     }
    ]
@@ -247,13 +259,17 @@ footer a{color:var(--ink-2)}
         <h2>Everything for learning words in one place</h2>
         <div class="grid">
           <div class="feat"><h3>Spaced repetition</h3><p>Cards come back exactly when you are about to forget them (FSRS, the algorithm Anki uses). Six ways to practise: flip cards, multiple choice, typing, listening, filling the gap in an example, or a mix.</p></div>
-          <div class="feat"><h3>Ready word lists</h3><p>29 topics from greetings to documents and public services, for levels A1–C1. The AI picks frequent, useful words; one tap adds twenty more. Or add your own words and import from Anki or CSV.</p></div>
+          <div class="feat"><h3>Ready word lists</h3><p>29 topics from greetings to documents and public services, for levels A1–C1. The AI picks frequent, useful words; one tap adds twenty more. Or add your own words, or import them from Anki or CSV.</p></div>
           <div class="feat"><h3>Words checked against dictionaries</h3><p>Nouns and verbs are checked against real dictionaries: the official Norwegian dictionaries (ordbokene.no), and Wiktionary for other languages — the article, the gender and the forms.</p></div>
           <div class="feat"><h3>A learner’s dictionary</h3><p>Translation, inflection tables, meanings with examples, fixed expressions and compounds. For Norwegian, the official Bokmål and Nynorsk entries are shown alongside.</p></div>
           <div class="feat"><h3>Grammar book</h3><p>15 chapters — nouns, adjectives, verbs, word order and more — with tables, examples, typical mistakes and exercises. Ask any grammar question in your own words.</p></div>
           <div class="feat"><h3>A translator that explains</h3><p>Every word of the translation is coloured by part of speech, with its form and the rule that explains why it is used exactly there.</p></div>
           <div class="feat"><h3>Reading</h3><p>Paste an article, a message or song lyrics and tap any word to see what it means in this sentence — and add it to your cards.</p></div>
           <div class="feat"><h3>Progress on every device</h3><p>Statistics, a daily goal and a streak. Sync your devices without an account, end-to-end encrypted. Works offline and installs like an app.</p></div>
+          <div class="feat"><h3>Anki both ways</h3><p>Import an .apkg from any Anki with its pictures and, if you want, its progress. Export your decks as an .apkg Anki opens, with progress and pictures. CSV in and out, and decks shared by link or QR code.</p></div>
+          <div class="feat"><h3>Pictures and your own look</h3><p>A free, openly licensed picture for each word, found by the word in its own language, or a photo of your own. Change how cards and the whole site look with a template in HTML and CSS; scripts never run.</p></div>
+          <div class="feat"><h3>Remembering better</h3><p>Two answers or four (Again, Hard, Good, Easy), your own target retention, and words you keep forgetting set aside. “What goes wrong” reads your answers and shows what to change.</p></div>
+          <div class="feat"><h3>Your own AI, through MCP</h3><p>Connect Claude, ChatGPT or another assistant to ordkort.com/mcp and ask it for a deck with pictures or a new look. It answers with a link that adds it only when you agree, and never sees your cards.</p></div>
         </div>
       </section>
       <section class="honest">
@@ -277,9 +293,10 @@ footer a{color:var(--ink-2)}
         <details><summary>Is Ordkort really free?</summary><p>Yes. There are no ads, no subscriptions and no paid version. The AI features have a daily limit per person that is plenty for everyday learning.</p></details>
         <details><summary>Do I need an account?</summary><p>No. Open the site and start. Your cards stay in your browser; to use them on several devices, link the devices with a one-time code or a QR code — no e-mail, no password.</p></details>
         <details><summary>Which languages can I learn?</summary><p>Sixty, from any of them to any other: Norwegian, English, German, Spanish, French, Chinese, Arabic, Ukrainian, Russian and many more. The interface is in English, Russian, Ukrainian, Norwegian, Arabic and Chinese; other interface languages are translated automatically.</p></details>
-        <details><summary>How is it different from Anki or Quizlet?</summary><p>Ordkort comes with ready word lists for each topic and level, and with a dictionary, a grammar book, a translator and a reading mode built in. You can still add your own words and import an Anki export (plain text) or a CSV file.</p></details>
+        <details><summary>How is it different from Anki or Quizlet?</summary><p>Ordkort comes with ready word lists for each topic and level, and with a dictionary, a grammar book, a translator and a reading mode built in. It uses the same FSRS scheduler as Anki, and decks move both ways: import an .apkg with its pictures and progress, export your decks as an .apkg Anki opens.</p></details>
         <details><summary>Does it work offline?</summary><p>Yes. Once opened, the site keeps a copy, so your cards open without internet. The dictionary, grammar, translator and reading need a connection, except for entries you have already opened.</p></details>
         <details><summary>Where do the words and explanations come from?</summary><p>They are written by AI and checked: Norwegian against the official dictionaries of the Language Council of Norway and the University of Bergen, other languages against Wiktionary. Any entry can be reported as a mistake right on the site.</p></details>
+        <details><summary>Can my own AI make decks for me?</summary><p>Yes. Ordkort is an MCP server: connect Claude, ChatGPT or another assistant to ordkort.com/mcp (Settings in the app shows how). Ask it for a deck about any topic, with pictures, or for a new look for the site; it answers with a link that adds it when you agree. It never sees your cards.</p></details>
       </section>
       <section class="end">
         <h2>Start with your first words</h2>

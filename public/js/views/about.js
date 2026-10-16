@@ -1,4 +1,5 @@
-/* "How it works": what is stored where, what is sent where, why there are limits. */
+/* "How it works": what is stored where, what is sent where, why there are limits, and what pictures, looks,
+   Anki files and people's own AI (MCP) can and cannot reach. */
 (() => {
   const A = window.App;
   const { h, icon, t } = A;
@@ -15,6 +16,10 @@
     ['wipe', 'trash'],
     ['offline', 'download'],
     ['codes', 'check'],
+    ['pictures', 'image'],
+    ['look', 'palette'],
+    ['anki', 'anki'],
+    ['mcp', 'plug'],
     ['third', 'globe'],
     ['free', 'grammar'],
   ];
