@@ -195,10 +195,10 @@ export const UI = {
     hubsH: 'Norsk, klart til å leses',
     hubsP: 'Gloser etter tema og de 500 vanligste ordene – med bøyning og eksempler, rett her på siden.',
   },
-  /* Polish: the largest group learning Norwegian in Norway. Topic lists only for now (the dictionary has no Polish
-     yet, and noDict hides its links); the app has no hand-made Polish interface, so the names it would give are here. */
+  /* Polish: the largest group learning Norwegian in Norway. The app has no hand-made Polish interface, so the names
+     it would give are here. A language without dictionary translations sets noDict to hide the dictionary links. */
   pl: {
-    learn: 'norweski', noDict: true,
+    learn: 'norweski',
     pos: POS.pl, gender: GENDER.pl, table: TABLE.pl, source: SOURCE,
     home: 'Ordkort', topicsHub: 'Norweski według tematów', dictHub: 'Słownik norweski',
     topicsTitle: (n) => `Norweski: słówka według tematów — ${n} list | Ordkort`,
