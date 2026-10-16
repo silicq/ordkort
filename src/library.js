@@ -38,6 +38,8 @@ export async function check(env, deck) {
   if (cur) pieces.push(cur);
   const found = new Set();
   const note = (r) => { r.cats.forEach((c) => found.add(c)); if (!r.safe && !r.cats.length) found.add('unsafe'); };
+  // the title on its own first: it is what everybody sees in the list
+  note(await guard(env, { text: `The title of a vocabulary deck, shown in a public list that children use too: ${JSON.stringify(deck.title)}` }));
   for (const text of pieces) note(await guard(env, { text: `A vocabulary deck for language learners:\n${text}` }));
   let cover = true;
   if (deck.cover?.startsWith('data:')) {

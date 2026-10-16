@@ -1976,3 +1976,4 @@ textarea.input.code { font: 13px/1.5 ui-monospace, SFMono-Regular, Consolas, mon
     .tab { flex: 1 1 0 !important; min-width: 0 !important; padding-inline: 2px !important; }
   }
 }
+.lib-share { margin-top: 10px; }
