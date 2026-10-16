@@ -118,3 +118,21 @@ test('recordings: the word’s own one is read from a note and goes back out wit
   const maps = { [type]: { ...K.guess([...pkg.types[type].fields]), ex: 8 } };
   assert.equal(K.words(pkg, maps, { now })[0].words[0].audioName, '', 'the example’s recording is not the word’s');
 });
+
+test('cards with gaps go out as Anki cloze notes and come back; own fields travel too', async () => {
+  const now = Date.UTC(2026, 9, 16, 12);
+  const cards = [
+    { term: 'Jeg {{bor}} i {{c2::Oslo::by}}.', tr: 'I live in Oslo.', box: 0, extra: [{ k: 'Kilde', v: 'Lærebok' }] },
+    { term: 'et hus', tr: 'house', box: 0, extra: [{ k: 'Husk', v: 'hus — house' }] },
+  ];
+  const pkg = await K.read(await K.write([{ name: 'Ordkort::Norsk', cards }], new Map(), { SQL, now }), deps);
+  assert.deepEqual(Object.values(pkg.types).map((t) => t.name).sort(), ['Ordkort', 'Ordkort Cloze']);
+  const cz = pkg.notes.find((n) => n.fields[0].includes('{{c'));
+  assert.equal(cz.fields[0], 'Jeg {{c1::bor}} i {{c2::Oslo::by}}.', 'in Anki’s own form');
+  assert.equal(pkg.cards.filter((c) => c.nid === cz.id).length, 2, 'one Anki card for each gap');
+  const back = K.words(pkg, {}, { now })[0].words;
+  const g = back.find((w) => w.term.startsWith('Jeg'));
+  assert.equal(g.tr, 'I live in Oslo.');
+  assert.deepEqual(JSON.parse(JSON.stringify(g.extra)), [{ k: 'Notes', v: 'Kilde: Lærebok' }]);
+  assert.deepEqual(JSON.parse(JSON.stringify(back.find((w) => w.term === 'et hus').extra)), [{ k: 'Notes', v: 'Husk: hus — house' }]);
+});

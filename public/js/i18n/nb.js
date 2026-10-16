@@ -824,4 +824,10 @@ globalThis.App.i18nData.nb = {
   'look.phone_hint': "Nettstedet i en telefons bredde med dette utseendet, før det lagres. Ingenting du gjør i den, blir lagret.",
   'set.auto_cover': "Omslag for emner",
   'set.auto_cover_hint': "En ny kortstokk med et ferdig emne får et fritt bilde for emnet i stedet for emojien. Bare emnets navn søkes etter.",
+  'card.gap_hint': "Et kort med en luke: merk luken med doble krøllparenteser, som i Anki — Jeg {{bor}} i Oslo, eller {{c1::bor::verb}} med et hint. Oversettelsen kan da stå tom.",
+  'card.extra': "Egne felt",
+  'card.extra_add': "Legg til et felt",
+  'card.extra_name': "Navn",
+  'card.extra_text': "Tekst",
+  'study.ask_gaps': "Hva står i luken?",
 };

@@ -255,3 +255,21 @@ test('checked cards remember it; a fix is an edit that syncs', () => {
   assert.equal(T.card(a.id).chk, 1);
   assert.ok(T.card(a.id).u >= u);
 });
+
+/* ---------- cards of your own with gaps, and your own fields ---------- */
+
+test('a card with a gap marked as in Anki is a gap card: no translation needed, typed when it has one gap', () => {
+  const d = S.addDeck({ title: 'Gaps', manual: true });
+  assert.equal(S.addCards(d.id, [
+    { term: 'Jeg {{c1::bor::verb}} i Oslo.', tr: '' },
+    { term: 'Hun {{har}} {{to}} katter.', tr: 'She has two cats.', extra: [{ k: 'Kilde', v: 'Lærebok s. 12' }, { k: '', v: 'no name' }] },
+    { term: 'uten luke', tr: '' },
+  ]), 2, 'a plain word still needs its translation');
+  const [one, two] = S.cards(d.id).sort((a, b) => a.created - b.created);
+  assert.ok(S.isCloze(one) && S.isCloze(two));
+  assert.equal(S.plain(two.term), 'Hun har to katter.');
+  assert.deepEqual({ ...clozeOf(one) }, { before: 'Jeg ', answer: 'bor', after: ' i Oslo.', tr: '', hint: 'verb' });
+  assert.equal(clozeOf(two), null, 'two gaps: turned over, not typed');
+  assert.deepEqual(JSON.parse(JSON.stringify(two.extra)), [{ k: 'Kilde', v: 'Lærebok s. 12' }], 'a field without a name is dropped');
+  assert.equal(S.needsFill(one), false, 'the AI does not fill a gap card in');
+});

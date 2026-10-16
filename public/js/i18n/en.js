@@ -824,4 +824,10 @@ globalThis.App.i18nData.en = {
   'look.phone_hint': "The site at a phone's width, wearing this look before it is saved. Nothing you do in it is kept.",
   'set.auto_cover': "Covers for topics",
   'set.auto_cover_hint': "A new deck of a ready topic gets a free picture for the topic instead of its emoji. Only the topic's name is searched.",
+  'card.gap_hint': "A card with a gap: mark the gap with double braces, as in Anki — Jeg {{bor}} i Oslo, or {{c1::bor::verb}} with a hint. The translation may then stay empty.",
+  'card.extra': "Your own fields",
+  'card.extra_add': "Add a field",
+  'card.extra_name': "Name",
+  'card.extra_text': "Text",
+  'study.ask_gaps': "What goes in the gap?",
 };

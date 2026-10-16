@@ -405,7 +405,7 @@ export async function gloss(request, env, key) {
 // a deck someone shares (here or through MCP), cleaned: at most 500 words, each with a term and a translation
 export function cleanDeck(d) {
   const { target, native } = pairOf(d || {});
-  const words = arr(d.words, 500).map(P.cleanWord).filter((w) => w.term && w.tr);
+  const words = arr(d.words, 500).map(P.cleanWord).filter((w) => w.term && (w.tr || /\{\{[^{}]+\}\}/.test(w.term))); // a card with gaps may have no translation
   if (!words.length) throw new HttpError(400, 'empty');
   return {
     title: str(d.title, 80), emoji: str(d.emoji, 8), level: LEVELS.includes(d.level) ? d.level : '',

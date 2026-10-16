@@ -181,13 +181,14 @@
         had.audio ||= w.audio;
         had.ex ||= w.ex;
         had.ex_tr ||= w.ex_tr;
+        had.extra ||= w.extra;
         if (w.sched && (!had.sched || w.sched.s > had.sched.s)) had.sched = w.sched;
       }
       words.length = 0;
       words.push(...one.values());
       const deck = A.store.addDeck({ title: title.slice(0, 80), emoji: '📥', group: 'custom', manual: true });
       const before = new Set(A.store.cards(deck.id).map((c) => c.id));
-      const n = A.store.addCards(deck.id, words.map((w) => ({ term: w.term, tr: w.tr, ex: w.ex, ex_tr: w.ex_tr, pron: w.pron, img: w.img, audio: w.audio, src: 'anki' })));
+      const n = A.store.addCards(deck.id, words.map((w) => ({ term: w.term, tr: w.tr, ex: w.ex, ex_tr: w.ex_tr, pron: w.pron, img: w.img, audio: w.audio, extra: w.extra, src: 'anki' })));
       if (!n) { A.store.deleteDeck(deck.id); continue; }
       added += n;
       decks++;

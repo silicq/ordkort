@@ -820,4 +820,10 @@ globalThis.App.i18nData.zh = {
   'look.phone_hint': "以手机宽度显示网站，套用尚未保存的外观。在其中的任何操作都不会被保存。",
   'set.auto_cover': "主题封面",
   'set.auto_cover_hint': "新建的现成主题卡组会获得一张该主题的免费图片来代替表情符号。只搜索主题名称。",
+  'card.gap_hint': "填空卡：像 Anki 一样用双花括号标出空格 —— Jeg {{bor}} i Oslo，或带提示的 {{c1::bor::动词}}。这样翻译可以留空。",
+  'card.extra': "自定义字段",
+  'card.extra_add': "添加字段",
+  'card.extra_name': "名称",
+  'card.extra_text': "内容",
+  'study.ask_gaps': "空格里应填什么？",
 };

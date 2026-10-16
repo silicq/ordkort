@@ -1934,6 +1934,13 @@ dialog.modal::backdrop { background: rgba(20, 16, 10, 0.45); backdrop-filter: bl
 .look-flash .face { transform: none; }
 .look-flash .face.look-back { transform: none; }
 .look-edit { margin-top: 4px; }
+.extra-list { display: grid; gap: 8px; }
+.extra-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr) auto; gap: 8px; align-items: center; }
+.gap-hint { margin-top: -6px; }
+mark.gap-fill { background: var(--hl, rgba(255, 214, 102, 0.55)); color: inherit; border-radius: 4px; padding: 0 3px; }
+.flash-extra { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; margin: 12px auto 0; max-width: 40ch; text-align: start; font-size: 15px; }
+.flash-extra dt { color: var(--ink-3); font-weight: 600; }
+.flash-extra dd { margin: 0; overflow-wrap: anywhere; }
 .look-phone { --z: 0.8; width: 100%; max-width: 300px; height: calc(720px * var(--z)); margin: 6px auto 0; border: 6px solid var(--ink); border-radius: 26px; overflow: hidden; background: var(--paper); }
 .look-phone iframe { display: block; width: var(--w); height: var(--h); border: 0; transform: scale(var(--z)); transform-origin: 0 0; }
 .look-edit summary { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; font-weight: 600; color: var(--blue-ink); }
