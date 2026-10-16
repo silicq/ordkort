@@ -41,6 +41,30 @@
     A.download(`ordkort-${new Date().toISOString().slice(0, 10)}.json`, JSON.stringify(data));
   }
 
+  /* Your own AI through MCP: the address to give it, how to connect it, and what to ask */
+  function mcpCard() {
+    const url = `${location.origin}/mcp`;
+    const copy = h('button', { class: 'btn btn-primary btn-sm', type: 'button' }, icon('copy', 16), t('sync.copy'));
+    copy.addEventListener('click', () => navigator.clipboard?.writeText(url).then(() => A.toast(t('sync.copied'))));
+    const step = (who, how) => h('li', null, h('b', null, who), ' — ', how);
+    return h('section', { class: 'set-card mcp-card' },
+      h('h2', null, t('mcp.title')),
+      h('p', { class: 'muted small' }, t('mcp.text')),
+      h('div', { class: 'row gap mcp-url' },
+        h('input', { class: 'input share-url', readonly: true, value: url, 'aria-label': t('mcp.address'), onfocus: (e) => e.target.select() }),
+        copy),
+      h('details', { class: 'mcp-how' },
+        h('summary', null, t('mcp.how')),
+        h('ul', { class: 'about-links' },
+          step('Claude', t('mcp.claude')),
+          step('ChatGPT', t('mcp.chatgpt')),
+          step('Claude Code', h('code', null, `claude mcp add --transport http ordkort ${url}`)),
+          step(t('mcp.others'), t('mcp.others_how')))),
+      h('p', { class: 'small' }, h('b', null, t('mcp.try'))),
+      h('ul', { class: 'about-links' }, ['mcp.ex1', 'mcp.ex2', 'mcp.ex3'].map((k) => h('li', null, t(k)))),
+      h('p', { class: 'small muted safe-note' }, icon('info', 14), t('mcp.private')));
+  }
+
   A.views.settings = {
     leave() { A.look.unpreview(); }, // the sample's CSS is only for this page
     render(root) {
@@ -127,12 +151,15 @@
             h('p', { class: 'muted small' }, t('set.ai_hint')),
             row(t('set.quota'), t('set.quota_hint'), quotaEl),
             h('a', { class: 'link-btn small', href: '#/about' }, icon('info', 14), t('sync.how')))),
+          at(8, mcpCard()),
           at(7, card(t('set.about'),
             h('p', { class: 'muted small' }, t('set.about_text')),
             h('ul', { class: 'about-links' },
               h('li', null, h('a', { href: 'https://ordbokene.no', target: '_blank', rel: 'noopener' }, 'ordbokene.no'), ' — ', t('set.src_ob')),
               h('li', null, h('a', { href: 'https://lexin.oslomet.no', target: '_blank', rel: 'noopener' }, 'Lexin'), ' — ', t('set.src_lexin')),
               h('li', null, h('a', { href: 'https://en.wiktionary.org', target: '_blank', rel: 'noopener' }, 'Wiktionary'), ' — ', t('set.src_wikt')),
+              h('li', null, h('a', { href: 'https://commons.wikimedia.org', target: '_blank', rel: 'noopener' }, 'Wikimedia Commons'), ', ',
+                h('a', { href: 'https://openverse.org', target: '_blank', rel: 'noopener' }, 'Openverse'), ' — ', t('set.src_pics')),
               h('li', null, h('a', { href: 'https://groq.com', target: '_blank', rel: 'noopener' }, 'Groq'), ' — ', t('set.src_groq')))))),
         col(
           at(2, card(t('set.study'),

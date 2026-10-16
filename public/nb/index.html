@@ -152,7 +152,11 @@ footer a{color:var(--ink-2)}
     "Grammatikkbok",
     "En oversetter som forklarer",
     "Lesing",
-    "Framgang på alle enheter"
+    "Framgang på alle enheter",
+    "Anki begge veier",
+    "Bilder og ditt eget utseende",
+    "Husk bedre",
+    "Din egen KI, gjennom MCP"
    ]
   },
   {
@@ -200,7 +204,7 @@ footer a{color:var(--ink-2)}
      "name": "Hva er forskjellen fra Anki eller Quizlet?",
      "acceptedAnswer": {
       "@type": "Answer",
-      "text": "Ordkort har ferdige gloser for hvert tema og nivå, og ordbok, grammatikkbok, oversetter og lesemodus er innebygd. Du kan fortsatt legge inn egne ord og importere en Anki-eksport (ren tekst) eller en CSV-fil."
+      "text": "Ordkort har ferdige gloser for hvert tema og nivå, og ordbok, grammatikkbok, oversetter og lesemodus er innebygd. Repetisjonen bruker samme FSRS som Anki, og kortstokker går begge veier: importer en .apkg med bilder og fremgang, eksporter kortstokkene som en .apkg Anki åpner."
      }
     },
     {
@@ -217,6 +221,14 @@ footer a{color:var(--ink-2)}
      "acceptedAnswer": {
       "@type": "Answer",
       "text": "De skrives av KI og kontrolleres: norsk mot de offisielle ordbøkene fra Språkrådet og Universitetet i Bergen, andre språk mot Wiktionary. Alle oppslag kan meldes som feil rett på siden."
+     }
+    },
+    {
+     "@type": "Question",
+     "name": "Kan min egen KI lage kortstokker for meg?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "Ja. Ordkort er en MCP-server: koble Claude, ChatGPT eller en annen assistent til ordkort.com/mcp (innstillingene i appen viser hvordan). Be om en kortstokk om hvilket som helst tema, med bilder, eller et nytt utseende for nettstedet; den svarer med en lenke som legger det til når du sier ja. Den ser aldri kortene dine."
      }
     }
    ]
@@ -254,6 +266,10 @@ footer a{color:var(--ink-2)}
           <div class="feat"><h3>En oversetter som forklarer</h3><p>Hvert ord i oversettelsen er farget etter ordklasse, med bøyningsformen og regelen som forklarer hvorfor det står akkurat der.</p></div>
           <div class="feat"><h3>Lesing</h3><p>Lim inn en artikkel, en melding eller en sangtekst og trykk på et ord for å se hva det betyr i akkurat denne setningen – og legg det til i kortene dine.</p></div>
           <div class="feat"><h3>Framgang på alle enheter</h3><p>Statistikk, dagsmål og en rekke av dager. Synkroniser enhetene dine uten konto, ende-til-ende-kryptert. Virker uten nett og kan installeres som en app.</p></div>
+          <div class="feat"><h3>Anki begge veier</h3><p>Importer en .apkg fra hvilken som helst Anki med bilder og, om du vil, fremgang. Eksporter kortstokkene dine som en .apkg Anki åpner, med fremgang og bilder. CSV inn og ut, og kortstokker delt med lenke eller QR-kode.</p></div>
+          <div class="feat"><h3>Bilder og ditt eget utseende</h3><p>Et gratis bilde med åpen lisens til hvert ord, funnet etter ordet på dets eget språk, eller et eget bilde. Endre hvordan kortene og hele nettstedet ser ut med en mal i HTML og CSS; skript kjøres aldri.</p></div>
+          <div class="feat"><h3>Husk bedre</h3><p>To svar eller fire (Igjen, Vanskelig, Bra, Lett), din egen målsatte husketeprosent, og ord du stadig glemmer, legges til side. «Hva går galt» leser svarene dine og viser hva du kan endre.</p></div>
+          <div class="feat"><h3>Din egen KI, gjennom MCP</h3><p>Koble Claude, ChatGPT eller en annen assistent til ordkort.com/mcp og be om en kortstokk med bilder eller et nytt utseende. Den svarer med en lenke som legger det til bare når du sier ja, og ser aldri kortene dine.</p></div>
         </div>
       </section>
       <section class="honest">
@@ -277,9 +293,10 @@ footer a{color:var(--ink-2)}
         <details><summary>Er Ordkort virkelig gratis?</summary><p>Ja. Det er ingen reklame, ingen abonnement og ingen betalt versjon. KI-funksjonene har en daglig grense per person som er mer enn nok til daglig læring.</p></details>
         <details><summary>Må jeg lage en konto?</summary><p>Nei. Åpne siden og sett i gang. Kortene ligger i nettleseren din; vil du bruke dem på flere enheter, kobler du enhetene med en engangskode eller en QR-kode – uten e-post og passord.</p></details>
         <details><summary>Hvilke språk kan jeg lære?</summary><p>Seksti, fra hvilket som helst til hvilket som helst: norsk, engelsk, tysk, spansk, fransk, kinesisk, arabisk, ukrainsk, russisk og mange flere. Grensesnittet finnes på norsk, engelsk, russisk, ukrainsk, arabisk og kinesisk; andre språk oversettes automatisk.</p></details>
-        <details><summary>Hva er forskjellen fra Anki eller Quizlet?</summary><p>Ordkort har ferdige gloser for hvert tema og nivå, og ordbok, grammatikkbok, oversetter og lesemodus er innebygd. Du kan fortsatt legge inn egne ord og importere en Anki-eksport (ren tekst) eller en CSV-fil.</p></details>
+        <details><summary>Hva er forskjellen fra Anki eller Quizlet?</summary><p>Ordkort har ferdige gloser for hvert tema og nivå, og ordbok, grammatikkbok, oversetter og lesemodus er innebygd. Repetisjonen bruker samme FSRS som Anki, og kortstokker går begge veier: importer en .apkg med bilder og fremgang, eksporter kortstokkene som en .apkg Anki åpner.</p></details>
         <details><summary>Virker det uten internett?</summary><p>Ja. Når siden først er åpnet, har nettleseren en kopi, så kortene åpnes uten nett. Ordboka, grammatikken, oversetteren og lesingen trenger nett – unntatt oppslag du allerede har åpnet.</p></details>
         <details><summary>Hvor kommer ordene og forklaringene fra?</summary><p>De skrives av KI og kontrolleres: norsk mot de offisielle ordbøkene fra Språkrådet og Universitetet i Bergen, andre språk mot Wiktionary. Alle oppslag kan meldes som feil rett på siden.</p></details>
+        <details><summary>Kan min egen KI lage kortstokker for meg?</summary><p>Ja. Ordkort er en MCP-server: koble Claude, ChatGPT eller en annen assistent til ordkort.com/mcp (innstillingene i appen viser hvordan). Be om en kortstokk om hvilket som helst tema, med bilder, eller et nytt utseende for nettstedet; den svarer med en lenke som legger det til når du sier ja. Den ser aldri kortene dine.</p></details>
       </section>
       <section class="end">
         <h2>Begynn med de første ordene</h2>

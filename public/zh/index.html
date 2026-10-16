@@ -152,7 +152,11 @@ footer a{color:var(--ink-2)}
     "语法书",
     "会讲解的翻译",
     "阅读",
-    "所有设备同步进度"
+    "所有设备同步进度",
+    "与 Anki 双向互通",
+    "图片与自定义外观",
+    "记得更牢",
+    "通过 MCP 使用你自己的 AI"
    ]
   },
   {
@@ -200,7 +204,7 @@ footer a{color:var(--ink-2)}
      "name": "和 Anki 或 Quizlet 有什么不同？",
      "acceptedAnswer": {
       "@type": "Answer",
-      "text": "Ordkort 为每个主题和水平准备了现成的词汇，还内置了词典、语法书、翻译和阅读模式。你仍然可以添加自己的单词，并导入 Anki 导出的纯文本文件或 CSV 文件。"
+      "text": "Ordkort 为每个主题和水平准备了现成的词汇，还内置了词典、语法书、翻译和阅读模式。复习排程使用与 Anki 相同的 FSRS，牌组可以双向流通：导入带图片和进度的 .apkg，或把牌组导出为 Anki 能打开的 .apkg。"
      }
     },
     {
@@ -217,6 +221,14 @@ footer a{color:var(--ink-2)}
      "acceptedAnswer": {
       "@type": "Answer",
       "text": "由 AI 编写，再经过核对：挪威语对照挪威语言委员会和卑尔根大学的官方词典，其他语言对照维基词典。任何条目都可以直接在网站上报告错误。"
+     }
+    },
+    {
+     "@type": "Question",
+     "name": "我自己的 AI 能帮我做牌组吗？",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "可以。Ordkort 是一个 MCP 服务器：把 Claude、ChatGPT 或其他助手连接到 ordkort.com/mcp（应用的设置里有说明）。让它做任何主题的带图片牌组，或给网站换新外观；它会回复一个链接，你同意后才会添加。它看不到你的卡片。"
      }
     }
    ]
@@ -254,6 +266,10 @@ footer a{color:var(--ink-2)}
           <div class="feat"><h3>会讲解的翻译</h3><p>译文中的每个词都按词性着色，并标出它的形式，以及它为什么恰好用在这里的规则。</p></div>
           <div class="feat"><h3>阅读</h3><p>粘贴一篇文章、一条消息或一段歌词，点任意一个词，就能看到它在这句话里的意思——并加入你的卡片。</p></div>
           <div class="feat"><h3>所有设备同步进度</h3><p>统计、每日目标和连续天数。无需账号即可在设备间同步，端到端加密。可离线使用，也能像应用一样安装。</p></div>
+          <div class="feat"><h3>与 Anki 双向互通</h3><p>从任何版本的 Anki 导入 .apkg，带图片，也可以带学习进度。把牌组导出为 Anki 能打开的 .apkg，包含进度和图片。CSV 可导入导出，牌组还能通过链接或二维码分享。</p></div>
+          <div class="feat"><h3>图片与自定义外观</h3><p>每个单词都能配一张免费的开放授权图片——按单词在它自己的语言里查找——也可以用你自己的照片。用 HTML 和 CSS 模板改变卡片和整个网站的样子；脚本永远不会运行。</p></div>
+          <div class="feat"><h3>记得更牢</h3><p>两个按钮或四个（重来、困难、良好、简单），自定目标记忆率，总是忘的单词会被暂时搁置。“问题在哪里”会分析你的作答，告诉你该改什么。</p></div>
+          <div class="feat"><h3>通过 MCP 使用你自己的 AI</h3><p>把 Claude、ChatGPT 或其他助手连接到 ordkort.com/mcp，让它做带图片的牌组或新外观。它会回复一个链接，只有你同意才会添加，而且它看不到你的卡片。</p></div>
         </div>
       </section>
       <section class="honest">
@@ -272,9 +288,10 @@ footer a{color:var(--ink-2)}
         <details><summary>Ordkort 真的免费吗？</summary><p>是的。没有广告、没有订阅，也没有付费版。AI 功能每人每天有使用上限，日常学习绰绰有余。</p></details>
         <details><summary>需要注册吗？</summary><p>不需要。打开网站就能开始。卡片保存在你的浏览器里；想在多台设备上使用，用一次性代码或二维码把设备关联起来即可——无需邮箱和密码。</p></details>
         <details><summary>可以学哪些语言？</summary><p>六十种，任意两种之间都可以：挪威语、英语、德语、西班牙语、法语、中文、阿拉伯语、乌克兰语、俄语等等。界面有中文、英语、俄语、乌克兰语、挪威语和阿拉伯语版本，其他语言会自动翻译。</p></details>
-        <details><summary>和 Anki 或 Quizlet 有什么不同？</summary><p>Ordkort 为每个主题和水平准备了现成的词汇，还内置了词典、语法书、翻译和阅读模式。你仍然可以添加自己的单词，并导入 Anki 导出的纯文本文件或 CSV 文件。</p></details>
+        <details><summary>和 Anki 或 Quizlet 有什么不同？</summary><p>Ordkort 为每个主题和水平准备了现成的词汇，还内置了词典、语法书、翻译和阅读模式。复习排程使用与 Anki 相同的 FSRS，牌组可以双向流通：导入带图片和进度的 .apkg，或把牌组导出为 Anki 能打开的 .apkg。</p></details>
         <details><summary>可以离线使用吗？</summary><p>可以。打开过一次后，浏览器会保存网站副本，没有网络也能打开卡片。词典、语法、翻译和阅读需要联网——已经打开过的词条除外。</p></details>
         <details><summary>单词和讲解从哪里来？</summary><p>由 AI 编写，再经过核对：挪威语对照挪威语言委员会和卑尔根大学的官方词典，其他语言对照维基词典。任何条目都可以直接在网站上报告错误。</p></details>
+        <details><summary>我自己的 AI 能帮我做牌组吗？</summary><p>可以。Ordkort 是一个 MCP 服务器：把 Claude、ChatGPT 或其他助手连接到 ordkort.com/mcp（应用的设置里有说明）。让它做任何主题的带图片牌组，或给网站换新外观；它会回复一个链接，你同意后才会添加。它看不到你的卡片。</p></details>
       </section>
       <section class="end">
         <h2>从第一批单词开始</h2>

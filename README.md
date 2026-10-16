@@ -96,6 +96,8 @@ Address: **`https://ordkort.com/mcp`** (Streamable HTTP; no account, no key).
 - **ChatGPT**: Settings → Apps & Connectors → *Create* (developer mode) → paste the address.
 - **Others** (Cursor, VS Code, LM Studio…): add a remote / HTTP MCP server with the address.
 
+The address, these steps and example requests are also in the app, under Settings → *Your own AI (MCP)*.
+
 Then ask, for example: *“Make me an A2 Norwegian deck about the kitchen with pictures”* or *“Design a dark,
 calm card with the picture on top”*. The AI gets a link; opening it shows the deck or the look and adds it only
 when you agree. It never sees or changes your cards.

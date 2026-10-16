@@ -1308,6 +1308,12 @@ dialog.modal::backdrop { background: rgba(20, 16, 10, 0.45); backdrop-filter: bl
 .set-card > .row { margin-top: 10px; }
 .about-links { margin: 8px 0 0; padding-inline-start: 18px; font-size: 14px; color: var(--ink-2); }
 .about-links li { margin-bottom: 6px; }
+.mcp-url { margin: 12px 0; }
+.mcp-url .input { flex: 1; min-width: 0; }
+.mcp-how { margin-bottom: 12px; font-size: 14px; }
+.mcp-how summary { cursor: pointer; color: var(--blue-ink); font-weight: 600; }
+.mcp-how code { font: 500 12.5px ui-monospace, Consolas, monospace; overflow-wrap: anywhere; }
+.mcp-card .about-links { margin-top: 4px; }
 
 /* ---------- first run ---------- */
 .onboarding-mode { background: var(--paper); }
