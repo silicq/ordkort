@@ -863,4 +863,11 @@ globalThis.App.i18nData.uk = {
   'remind.tab': "Увімкнено: прийде, поки сайт відкритий у вкладці. Щоб нагадування приходили при закритому сайті, встановіть його як застосунок (Chrome, Edge).",
   'look.side_front': "Лице",
   'look.side_back': "Зворот",
+  'ui.translating_to': "Перекладаємо інтерфейс мовою {lang}",
+  'ui.translating_start': "Запитуємо в ШІ першу частину…",
+  'ui.translating_parts': "Частина {done} з {parts} · сторінка змінюється під час перекладу",
+  'ui.translating_wait': "ШІ зайнятий, зараз спитаємо ще раз…",
+  'ui.translating_failed': "Переклад зупинився. Решта поки буде англійською.",
+  'ui.translating_retry': "Повторити",
+  'ui.translated': "Інтерфейс тепер мовою: {lang}",
 };

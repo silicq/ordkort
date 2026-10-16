@@ -851,4 +851,11 @@ globalThis.App.i18nData.zh = {
   'remind.tab': "已开启：网站在标签页中打开时会提醒。将网站安装为应用（Chrome、Edge）后，关闭时也能收到提醒。",
   'look.side_front': "正面",
   'look.side_back': "背面",
+  'ui.translating_to': "正在把界面翻译成{lang}",
+  'ui.translating_start': "正在请 AI 翻译第一部分…",
+  'ui.translating_parts': "第 {done} 部分，共 {parts} 部分 · 页面会随之更新",
+  'ui.translating_wait': "AI 正忙，稍后再试…",
+  'ui.translating_failed': "翻译中断了。其余部分暂时保持英文。",
+  'ui.translating_retry': "重试",
+  'ui.translated': "界面现在是{lang}",
 };

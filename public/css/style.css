@@ -1457,6 +1457,26 @@ dialog.modal::backdrop { background: rgba(20, 16, 10, 0.45); backdrop-filter: bl
 .toasts { position: fixed; bottom: 24px; left: 50%; z-index: 1000; display: flex; flex-direction: column; align-items: center; gap: 8px; width: max-content; max-width: calc(100vw - 32px); transform: translateX(-50%); pointer-events: none; }
 .toast { padding: 11px 18px; border-radius: 14px; background: var(--ink); color: var(--paper); font-weight: 550; font-size: 14.5px; box-shadow: 0 12px 30px -10px rgba(0, 0, 0, 0.45); animation: toast-in 0.25s cubic-bezier(0.2, 0.9, 0.3, 1.2); transition: opacity 0.3s, transform 0.3s; }
 .toast.ok { background: var(--green); color: #fff; }
+/* the interface being translated by the AI (js/i18n.js): how far it is, a hello in the new language, the line just done */
+.xl8 { position: fixed; z-index: 1001; left: 50%; bottom: calc(env(safe-area-inset-bottom) + 84px); width: min(440px, calc(100vw - 24px)); transform: translateX(-50%);
+  padding: 12px 14px 11px; border-radius: 16px; background: var(--card); color: var(--ink); border: 1.5px solid var(--line-2); box-shadow: var(--shadow-lg);
+  animation: toast-in 0.3s cubic-bezier(0.2, 0.9, 0.3, 1.2); }
+@media (min-width: 900px) { .xl8 { bottom: 24px; } }
+.xl8-head { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 14.5px; }
+.xl8-head > span { flex: 1; min-width: 0; }
+.xl8-hello { font: 600 17px/1.2 var(--font-serif); color: var(--blue-ink); animation: xl8-wave 2.4s ease-in-out infinite; transform-origin: 70% 80%; }
+.xl8-x { border: 0; background: none; color: var(--ink-3); font-size: 20px; line-height: 1; padding: 0 4px; cursor: pointer; }
+.xl8-bar { position: relative; height: 6px; margin: 10px 0 7px; border-radius: 999px; background: var(--paper-2); overflow: hidden; }
+.xl8-bar i { position: absolute; inset: 0 auto 0 0; width: 0; border-radius: inherit; background: linear-gradient(90deg, var(--blue), var(--green)); transition: width 0.6s cubic-bezier(0.3, 1, 0.4, 1); }
+.xl8-bar.wait i { width: 35% !important; animation: xl8-slide 1.3s ease-in-out infinite; }
+.xl8-foot { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 4px 10px; font-size: 12.5px; color: var(--ink-2); }
+.xl8-sample { font-family: var(--font-serif); font-style: italic; color: var(--ink); }
+.xl8-sample.in { animation: xl8-pop 0.5s ease; }
+.xl8.failed .xl8-bar i { background: var(--red); }
+@keyframes xl8-slide { from { left: -35%; } to { left: 100%; } }
+@keyframes xl8-pop { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+@keyframes xl8-wave { 0%, 60%, 100% { transform: rotate(0); } 70% { transform: rotate(-8deg); } 80% { transform: rotate(6deg); } 90% { transform: rotate(-3deg); } }
+@media (prefers-reduced-motion: reduce) { .xl8, .xl8-hello, .xl8-sample.in, .xl8-bar.wait i { animation: none; } .xl8-bar i { transition: none; } }
 .toast.error { background: var(--red); color: #fff; }
 .toast.out { opacity: 0; transform: translateY(8px); }
 @keyframes toast-in { from { opacity: 0; transform: translateY(12px) scale(0.96); } to { opacity: 1; transform: none; } }
