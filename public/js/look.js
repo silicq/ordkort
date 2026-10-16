@@ -150,10 +150,11 @@
   // a look chosen before the first-run setup waits here, and moves into the settings once they exist
   const LATER = 'ordkort.look-later';
   const later = () => { try { return JSON.parse(localStorage.getItem(LATER) || 'null'); } catch { return null; } };
+  let worn = null; // the look a preview shows instead of the saved one (in the phone preview's frame)
   function apply() {
     const waiting = later();
-    if (waiting && A.store.ready) { A.store.set({ look: waiting }); try { localStorage.removeItem(LATER); } catch {} }
-    const look = A.store.settings?.look || waiting || {};
+    if (waiting && A.store.ready && !A.framed) { A.store.set({ look: waiting }); try { localStorage.removeItem(LATER); } catch {} }
+    const look = worn || A.store.settings?.look || waiting || {};
     fetchPics(look);
     const css = [look.site || '', look.css ? `.flash .face-body .tpl { display: contents; }\n${look.css}` : ''].map(cleanCss).join('\n').trim();
     let el = document.getElementById('user-look');
@@ -202,6 +203,28 @@
     box.replaceChildren(side('front'), side('back'));
   }
   const unpreview = () => { shown = null; previewCss(); };
+  const wear = (look) => { worn = look; apply(); };
+
+  /* The whole site at a phone's width, wearing the look being edited: the site itself in a frame, which keeps and
+     sends nothing (A.framed), scaled down to the space it has. Made when it is first opened. */
+  const PHONE_W = 360, PHONE_H = 720;
+  function phone(getLook) {
+    const { h, icon, t } = A;
+    const holder = h('div', { class: 'look-phone' });
+    let frame = null;
+    const dress = () => { try { frame?.contentWindow?.App?.look?.wear({ ...getLook() }); } catch { /* not ready */ } };
+    const fit = typeof ResizeObserver === 'function' ? new ResizeObserver(([e]) => holder.style.setProperty('--z', String(Math.min(1, e.contentRect.width / PHONE_W)))) : null;
+    const el = h('details', { class: 'look-edit' }, h('summary', null, icon('phone', 16), t('look.phone')));
+    el.addEventListener('toggle', () => {
+      if (!el.open || frame) return;
+      frame = h('iframe', { src: '/#/', title: t('look.phone'), width: PHONE_W, height: PHONE_H, loading: 'lazy', style: `--w: ${PHONE_W}px; --h: ${PHONE_H}px` });
+      frame.addEventListener('load', () => { dress(); setTimeout(dress, 600); });
+      holder.append(frame);
+      el.append(h('p', { class: 'muted small' }, t('look.phone_hint')), holder);
+      fit?.observe(holder);
+    });
+    return { el, dress };
+  }
 
   /* ---------- Settings → Your own look ---------- */
   // `title` and `before` (rows such as the theme) let Settings make this its whole "Appearance" card
@@ -247,7 +270,8 @@
     // the sample card, both sides, as a session would show them
     const box = h('div', { class: 'look-preview' });
     const sample = sampleCard();
-    const paint = () => preview(box, look, sample);
+    const tel = phone(() => look);
+    const paint = () => { preview(box, look, sample); tel.dress(); };
     paint();
 
     return h('section', { class: 'set-card look-card' },
@@ -264,6 +288,7 @@
         h('p', { class: 'muted small' }, icon('info', 14), ' ', t('look.safe'))),
       h('div', { class: 'set-row' }, h('div', { class: 'set-label' }, h('b', null, t('look.site')), h('small', null, t('look.site_hint'))), h('div', { class: 'set-ctl' }, siteSel)),
       h('details', { class: 'look-edit' }, h('summary', null, icon('palette', 16), t('look.site_edit')), siteF),
+      tel.el,
       h('div', { class: 'row gap' },
         h('button', {
           class: 'btn btn-ghost btn-sm', type: 'button',
@@ -327,5 +352,5 @@
   }
   arrived.add(tryOn);
 
-  A.look = { PRESETS, SITE, FIELDS, render, apply, clean, cleanCss, fill, card, preview, unpreview, addresses, MAX };
+  A.look = { PRESETS, SITE, FIELDS, render, apply, clean, cleanCss, fill, card, preview, unpreview, wear, addresses, MAX };
 })();

@@ -466,8 +466,9 @@
     applyTheme();
     window.addEventListener('hashchange', route);
     prefersDark.addEventListener?.('change', () => { applyTheme(); if (A.store.settings?.theme === 'auto') route(); });
-    A.sync.start();
     route();
+    if (A.framed) { document.documentElement.classList.add('framed'); return; } // a look's preview: no sync, no AI, no worker
+    A.sync.start();
     refill();
     setTimeout(() => filler.daily(), 20000); // the daily share of a big deck's empty fields
     updater.check().then((stale) => stale && updater.apply()); // opened with an old copy: load the new one now

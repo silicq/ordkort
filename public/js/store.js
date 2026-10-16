@@ -49,6 +49,7 @@
   }
 
   function save() {
+    if (A.framed) { if (!silent) listeners.forEach((fn) => fn()); return; } // a preview keeps nothing
     if (!write(A.config.storageKey, JSON.stringify(state)) && !warned) {
       warned = true;
       A.toast?.(A.t('err.storage'), 'error');

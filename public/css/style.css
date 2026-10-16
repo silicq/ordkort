@@ -1934,6 +1934,8 @@ dialog.modal::backdrop { background: rgba(20, 16, 10, 0.45); backdrop-filter: bl
 .look-flash .face { transform: none; }
 .look-flash .face.look-back { transform: none; }
 .look-edit { margin-top: 4px; }
+.look-phone { --z: 0.8; width: 100%; max-width: 300px; height: calc(720px * var(--z)); margin: 6px auto 0; border: 6px solid var(--ink); border-radius: 26px; overflow: hidden; background: var(--paper); }
+.look-phone iframe { display: block; width: var(--w); height: var(--h); border: 0; transform: scale(var(--z)); transform-origin: 0 0; }
 .look-edit summary { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; font-weight: 600; color: var(--blue-ink); }
 .look-edit[open] summary { margin-bottom: 10px; }
 .look-edit code { font-size: 12.5px; overflow-wrap: anywhere; }
