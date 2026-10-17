@@ -1,10 +1,10 @@
-// A voice for cards without a recording (src/voice.js): a native speaker's recording from the word's Wiktionary page
+// A voice for cards without a recording (src/sources/voice.js): a native speaker's recording from the word's Wiktionary page
 // (its own language's section only), else Google's synthetic voice within a daily budget, kept for everybody.
 // Wiktionary, Commons and Google are small fakes here: no network.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { audioOf } from '../src/wiktionary.js';
-import { tts, singleWord } from '../src/voice.js';
+import { audioOf } from '../src/sources/wiktionary.js';
+import { tts, singleWord } from '../src/sources/voice.js';
 
 const PAGE = `<div class="mw-parser-output">
 <h2 id="Danish">Danish</h2>

@@ -1,4 +1,4 @@
-/* The library: decks people published for the same pair of languages (src/library.js).
+/* The library: decks people published for the same pair of languages (src/decks/library.js).
    #/library — search and browse; #/lib/ID — one deck, to add, vote on or report; and publishing from a deck. */
 (() => {
   const A = window.App;

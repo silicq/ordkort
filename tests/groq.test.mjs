@@ -1,7 +1,7 @@
 // The Groq client: what it does when the plan's limits refuse a request. No network: fetch is replaced.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { groq } from '../src/groq.js';
+import { groq } from '../src/ai/groq.js';
 
 const env = { GROQ_API_KEY: 'test', GROQ_MODELS: 'm1,m2' };
 const prompt = { system: 's', user: 'u', max: 7200 };

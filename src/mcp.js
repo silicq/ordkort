@@ -5,11 +5,12 @@
 
    Streamable HTTP without sessions: every POST holds one JSON-RPC 2.0 message (or a batch) and gets JSON back.
    No account, no key; tool calls count against a per-client hourly limit like the rest of the API. */
-import { App } from './shared.js';
-import { takeSimple } from './limits.js';
-import { HttpError, str, arr, int, readText } from './util.js';
-import { cleanDeck, storeShare, bankWords } from './api.js';
-import * as images from './images.js';
+import { App } from './core/shared.js';
+import { takeSimple } from './core/limits.js';
+import { HttpError, str, arr, int, readText } from './core/util.js';
+import { bankWords } from './ai/routes.js';
+import { cleanDeck, storeShare } from './decks/share.js';
+import * as images from './sources/images.js';
 
 const SITE = 'https://ordkort.com';
 const VERSIONS = ['2025-06-18', '2025-03-26', '2024-11-05'];
@@ -395,7 +396,7 @@ async function callTool(name, a, env, key) {
     } catch (e) { return fail(e.code === 'empty' ? 'The deck has no cards with both a term and a translation.' : `Cannot make that deck: ${e.code || e.message}. Check the language codes.`); }
     await takeSimple(env, 'share', key, 20, 36e5);
     const id = await storeShare(env, key, deck);
-    const url = `${SITE}/s/${id}`; // its own address: chat apps show a preview of the deck (src/preview.js)
+    const url = `${SITE}/s/${id}`; // its own address: chat apps show a preview of the deck (src/decks/preview.js)
     return text(`The deck "${deck.title}" (${deck.words.length} cards) is ready. Opening this link adds it to the person's cards: ${url}\n${POWERED}`, { url, cards: deck.words.length });
   }
   if (name === 'create_design') {

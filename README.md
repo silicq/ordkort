@@ -155,16 +155,28 @@ public/            the site: HTML, CSS, JS, fonts — served by Cloudflare as st
   js/bundle.js     all the scripts of the app in one minified file, written at every deploy (not in git)
 src/               Cloudflare Worker — runs only for /api/*
   worker.js        routing and same-origin check
-  api.js           AI requests: shared cache → word bank → limits → Groq
-  prompts.js       all prompts and validation of AI output
-  facts.js         verified Norwegian Bokmål grammar facts used to ground the AI
-  wiktionary.js    Wiktionary for other languages: checks cards, and the entry shown in the dictionary
-  groq.js          Groq client with model fallback
-  limits.js        burst, hourly, daily and site-wide limits
-  warm.js          a base of ready decks: every 15 minutes, while the site is quiet, the cron fills one more
+  mcp.js           the MCP server: tools an AI uses to make decks and looks
+  core/            what every part uses
+    shared.js      code shared with the site (languages, topics…), the language pair of a request
+    db.js          D1: the schema is created automatically on the first request; the shared cache
+    limits.js      burst, hourly, daily and site-wide limits
+    util.js        small helpers: JSON answers, errors, hashing, codes
+  ai/              everything that asks the AI
+    routes.js      AI requests: shared cache → word bank → limits → Groq
+    prompts.js     all prompts and validation of AI output
+    facts.js       verified Norwegian Bokmål grammar facts used to ground the AI
+    groq.js        Groq client with model fallback, and the moderation check
+    warm.js        a base of ready decks: every 15 minutes, while the site is quiet, the cron fills one more
                    group of the shared word bank, from the decks used most to the rarer ones
-  sync.js          device sync and one-time codes (the server only ever sees ciphertext)
-  db.js            D1: the schema is created automatically on the first request
+  sources/         other sites the Worker reads
+    wiktionary.js  Wiktionary for other languages: checks cards, the dictionary entry, recordings
+    images.js      free pictures (Wikidata/Commons, Pixabay, Openverse) and the picture proxy
+    voice.js       a voice for cards without a recording
+  decks/           decks that leave the device
+    share.js       decks shared by link
+    library.js     the public library and its moderation
+    sync.js        device sync and one-time codes (the server only ever sees ciphertext)
+    preview.js     link previews for chat apps
 scripts/build.mjs  writes public/js/bundle.js (the scripts listed in scripts/bundle.mjs, minified by esbuild)
                    and public/js/build.js; wrangler runs it before every deploy and `wrangler dev`
 scripts/landing.mjs  plain pages about the site for search engines (public/<lang>/, 6 languages)

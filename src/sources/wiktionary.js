@@ -6,10 +6,10 @@
    On every page the headword line is drawn by the same code for all languages: the word, then its gender
    (<span class="gender"><abbr title="masculine gender">m</abbr>), then key forms in <b lang="…">.
    Forms in inflection tables carry the class "form-of … origin-<word>". Only that shared markup is read. */
-import { App } from './shared.js';
+import { UA } from '../core/util.js';
+import { App } from '../core/shared.js';
 
 const API = 'https://en.wiktionary.org/w/api.php';
-const UA = 'Ordkort/1.0 (https://ordkort.com; https://github.com/silicq/ordkort) language-learning flashcards';
 
 // Wiktionary's language codes where they differ from ours
 const WIKT_LANG = { sr: 'sh', hr: 'sh', bs: 'sh', prs: 'fa' };

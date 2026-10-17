@@ -1,25 +1,18 @@
 /* AI request handlers. The order is always the same:
    validate the input → look in the shared base → only if it is not there, take one from the limit and ask Groq →
    check the answer → save it to the shared base for everyone who asks next. */
-import { App } from './shared.js';
+import { App, LEVELS, lang, pairOf } from '../core/shared.js';
 import { groq } from './groq.js';
-import { cacheGet, cacheSet, cacheForget } from './db.js';
-import { takeAI, aiLeft, takeSimple, takeStore } from './limits.js';
-import { HttpError, json, readJSON, str, arr, int, sha256, norm, randomCode, isCode } from './util.js';
+import { cacheGet, cacheSet, cacheForget, cacheOf } from '../core/db.js';
+import { takeAI, aiLeft, takeSimple } from '../core/limits.js';
+import { HttpError, json, readJSON, str, arr, int, sha256, norm } from '../core/util.js';
 import * as P from './prompts.js';
-import * as W from './wiktionary.js';
+import * as W from '../sources/wiktionary.js';
 
-const LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1'];
 const BUILT_IN_UI = ['en', 'ru', 'uk', 'nb', 'nn', 'ar', 'zh'];
 const UI_CHUNK = 90;
 const WEEK = 7 * 864e5;
 
-const lang = (v) => (typeof v === 'string' && App.langs.has(v) ? v : null);
-function pairOf(b) {
-  const target = lang(b.target), native = lang(b.native);
-  if (!target || !native || target === native) throw new HttpError(400, 'bad_lang');
-  return { target, native };
-}
 const h32 = async (s) => (await sha256(s)).slice(0, 32);
 
 /* Cache keys — one place, so that reports can find exactly the entry that was served */
@@ -128,12 +121,11 @@ export async function words(request, env, key) {
    fixed, in the bank for everyone, and `chk` marks the word as checked; `g` is a gender Wiktionary confirmed
    for a noun whose term does not show it ("книга", "l’école"). A Worker may make only 50 requests to other sites
    and the AI call may need up to 8, so this check makes at most 30 and leaves the rest for the next time. */
-const dictCache = (env) => ({ get: (k, age) => cacheGet(env.DB, k, age), set: (k, v) => cacheSet(env.DB, k, v) });
 const checkable = (target) => App.ordbok.supports(target) || W.supports(target);
 async function checkWords(env, target, words) {
   if (!checkable(target)) return [];
   const official = App.ordbok.supports(target);
-  const cache = dictCache(env);
+  const cache = cacheOf(env);
   const todo = words.filter((w) => !w.chk && (w.pos === 'noun' || w.pos === 'verb'));
   const budget = { left: 30 };
   const ctrl = new AbortController();
@@ -264,7 +256,7 @@ export async function lookup(request, env, key) {
 const inTime = (p) => Promise.race([p, new Promise((res) => setTimeout(() => res(null), 4000))]);
 async function groundFor(env, target, q) {
   if (W.hasEntries(target)) {
-    const r = await inTime(W.lookup(dictCache(env), target, q, { budget: { left: 3 }, signal: AbortSignal.timeout(8000) })).catch(() => null);
+    const r = await inTime(W.lookup(cacheOf(env), target, q, { budget: { left: 3 }, signal: AbortSignal.timeout(8000) })).catch(() => null);
     return { ground: W.summary(r), source: 'wiktionary' };
   }
   return { ground: await officialSummary(env, target, q), source: 'official' };
@@ -290,7 +282,7 @@ export async function wikt(request, env, key) {
   const q = str(b.q, 60);
   if (!q) throw new HttpError(400, 'empty');
   if (!W.hasEntries(target)) throw new HttpError(400, 'bad_lang');
-  const cache = dictCache(env);
+  const cache = cacheOf(env);
   // a word someone looked up before costs Wikimedia nothing; a new one takes from a small hourly limit
   if (!(await cache.get(`wk3:${target}:${W.plain(q, target)}`, 30 * 864e5))) await takeSimple(env, 'wikt', key, 120, 36e5);
   const r = await W.lookup(cache, target, q, { budget: { left: 3 }, signal: AbortSignal.timeout(8000) })
@@ -408,56 +400,11 @@ export async function gloss(request, env, key) {
   });
 }
 
-/* ---------- decks shared by link ---------- */
-// a deck someone shares (here or through MCP), cleaned: at most 500 words, each with a term and a translation
-export function cleanDeck(d) {
-  const { target, native } = pairOf(d || {});
-  const words = arr(d.words, 500).map(P.cleanWord).filter((w) => w.term && (w.tr || /\{\{[^{}]+\}\}/.test(w.term))); // a card with gaps may have no translation
-  if (!words.length) throw new HttpError(400, 'empty');
-  return {
-    title: str(d.title, 80), emoji: str(d.emoji, 8), level: LEVELS.includes(d.level) ? d.level : '',
-    topic: typeof d.topic === 'string' && App.topics.get(d.topic) ? d.topic : '',
-    group: str(d.group, 12), target, native, words, ...cover(d),
-  };
-}
-// a deck's cover: a small picture as a data: URL (made on the device) or an https address (from an AI through MCP)
-function cover(d) {
-  const c = typeof d.cover === 'string' ? d.cover : '';
-  const ok = (c.length <= 40000 && /^data:image\/(?:jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(c)) || (c.length <= 600 && /^https:\/\/[^\s]+$/.test(c));
-  if (!ok) return {};
-  const by = str(d.cover_by, 200);
-  return by ? { cover: c, cover_by: by } : { cover: c };
-}
-// kept for a year under a random 8-letter code (a deck, or a look made through MCP)
-export async function storeShare(env, key, data) {
-  const d = JSON.stringify(data);
-  await takeStore(env, key, d.length);
-  for (let i = 0; i < 5; i++) {
-    const id = randomCode(8);
-    const r = await env.DB.prepare('INSERT OR IGNORE INTO shares (id, d, t) VALUES (?, ?, ?)').bind(id, d, Date.now()).run();
-    if (r.meta.changes) return id;
-  }
-  throw new HttpError(503, 'busy');
-}
-
-export async function shareCreate(request, env, key) {
-  await takeSimple(env, 'share', key, 20, 36e5);
-  const b = await readJSON(request, 400000);
-  return json({ id: await storeShare(env, key, cleanDeck(b.deck || {})) });
-}
-
 // words of the shared bank for a topic, without asking the AI: [] when the bank has none yet
 export async function bankWords(env, { target, native, topic, level = 'A1', n = 20 }) {
   const { grp } = await groupOf({ topic, level }, target, native);
   const rows = (await env.DB.prepare('SELECT data FROM words WHERE grp = ? ORDER BY id LIMIT ?').bind(grp, int(n, 1, 100, 20)).all()).results || [];
   return rows.map((r) => JSON.parse(r.data));
-}
-
-export async function shareGet(env, id) {
-  if (!isCode(id, 8)) throw new HttpError(404, 'gone');
-  const row = await env.DB.prepare('SELECT d FROM shares WHERE id = ?').bind(id).first();
-  if (!row) throw new HttpError(404, 'gone');
-  return json({ deck: JSON.parse(row.d) });
 }
 
 export async function limits(request, env, key) {

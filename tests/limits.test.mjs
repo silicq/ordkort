@@ -1,7 +1,7 @@
-// Who is one person for the limits (src/limits.js): an IPv4 address, or an IPv6 /64 network however it is written.
+// Who is one person for the limits (src/core/limits.js): an IPv4 address, or an IPv6 /64 network however it is written.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { network, clientKey } from '../src/limits.js';
+import { network, clientKey } from '../src/core/limits.js';
 
 const key = (ip) => clientKey(new Request('https://ordkort.com/api/x', { headers: { 'CF-Connecting-IP': ip } }), { IP_SALT: 'test' });
 

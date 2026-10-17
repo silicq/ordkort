@@ -1,6 +1,6 @@
 /* Fills the shared word bank ahead of time, so that new visitors get their first decks from the bank
    without waiting for the AI and without using the site's daily AI budget. The Worker's cron does this on its own,
-   slowly and only while the site is quiet (src/warm.js); this script is a quicker push by hand, before a launch.
+   slowly and only while the site is quiet (src/ai/warm.js); this script is a quicker push by hand, before a launch.
    It asks the live API exactly as the app does, so it is held to the same limits as one person:
    40 generations an hour, 120 a day. It stops after --max generations (25 by default): Groq's free plan gives
    each model 200,000 tokens in any 24 hours, about 100–150 AI answers a day for the whole site, and a list of

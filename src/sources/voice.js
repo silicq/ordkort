@@ -8,15 +8,14 @@
 
    Whatever is found is kept in the shared cache for a year, so a word costs at most one lookup for everybody, and
    the browser keeps the answer too. Only the text and its language reach the server. */
-import { App } from './shared.js';
-import { cacheGet, cacheSet, bump } from './db.js';
-import { takeSimple, takeStore } from './limits.js';
-import { HttpError, str, sha256, readBytes } from './util.js';
+import { App } from '../core/shared.js';
+import { cacheGet, cacheSet, cacheOf, bump } from '../core/db.js';
+import { takeSimple, takeStore } from '../core/limits.js';
+import { HttpError, str, sha256, readBytes, UA } from '../core/util.js';
 import * as W from './wiktionary.js';
 
 const YEAR = 365 * 864e5;
 const MAX_BYTES = 1024 * 1024;
-const UA = 'Ordkort/1.0 (https://ordkort.com; https://github.com/silicq/ordkort) language-learning flashcards';
 // Google's name for a voice's language where it differs from the browser's (js/langs.js)
 const GOOGLE_LANG = { ar: 'ar-XA', zh: 'cmn-CN', nn: 'nb-NO', prs: 'fa-IR', kmr: 'ku', tl: 'fil-PH', he: 'he-IL' };
 
@@ -31,8 +30,7 @@ const b64 = (bytes) => { let s = ''; for (let i = 0; i < bytes.length; i += 0x80
 const unb64 = (s) => Uint8Array.from(atob(s), (c) => c.charCodeAt(0));
 
 async function speaker(env, lang, word) {
-  const cache = { get: (k, age) => cacheGet(env.DB, k, age), set: (k, v) => cacheSet(env.DB, k, v) };
-  const rec = await W.recording(cache, lang, word, { budget: { left: 2 } }).catch(() => null);
+  const rec = await W.recording(cacheOf(env), lang, word, { budget: { left: 2 } }).catch(() => null);
   if (!rec) return null;
   const r = await fetch(rec.url, { headers: { 'User-Agent': UA }, signal: AbortSignal.timeout(8000) }).catch(() => null);
   if (!r?.ok) return null;

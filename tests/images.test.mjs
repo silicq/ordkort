@@ -1,9 +1,9 @@
-// Picture search (src/images.js): the word is looked up in Wikidata in its own language, the item's Commons picture
+// Picture search (src/sources/images.js): the word is looked up in Wikidata in its own language, the item's Commons picture
 // comes first, and Openverse is asked in English with the pictures about the word sorted before the rest.
 // Pixabay (with a key) comes between them. Wikidata, Commons, Pixabay and Openverse are small fakes here: no network.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { find, bare, relevant, wikidata, proxy, OV_PAGE } from '../src/images.js';
+import { find, bare, relevant, wikidata, proxy, OV_PAGE } from '../src/sources/images.js';
 
 const DB = { prepare: () => ({ bind: () => ({ first: async () => null, run: async () => ({}) }) }) };
 const env = { DB };

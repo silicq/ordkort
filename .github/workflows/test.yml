@@ -25,5 +25,5 @@ jobs:
           cache: npm
       - run: npm ci
       - name: Syntax check of every script
-        run: for f in public/js/*.js public/js/*/*.js public/sw.js src/*.js; do node --check "$f" || exit 1; done
+        run: for f in public/js/*.js public/js/*/*.js public/sw.js src/*.js src/*/*.js; do node --check "$f" || exit 1; done
       - run: npm test
