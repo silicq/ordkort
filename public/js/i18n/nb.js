@@ -862,4 +862,13 @@ globalThis.App.i18nData.nb = {
   'ui.translating_failed': "Oversettelsen stoppet. Resten er på engelsk inntil videre.",
   'ui.translating_retry': "Prøv igjen",
   'ui.translated': "Grensesnittet er nå på {lang}",
+  'open.action': "Åpne en lenke",
+  'open.title': "Åpne en lenke",
+  'open.hint': "Lim inn adressen til en delt kortstokk, en kortstokk fra biblioteket, et utseende eller et emne. På en iPhone er det slik noe som åpnet seg i Safari, kommer inn i appen på hjemskjermen.",
+  'open.ph': "https://ordkort.com/…",
+  'open.paste': "Lim inn og åpne",
+  'open.go': "Åpne",
+  'open.bad': "Det er ikke en lenke til Ordkort.",
+  'open.in_app': "Bruker du Ordkort fra hjemskjermen? Appen har sine egne kort, adskilt fra Safari. Kopier lenken og åpne den der: Hjem → Åpne en lenke.",
+  'remind.ios': "På en iPhone vekkes en nettapp bare av en push-tjeneste, så foreløpig kan påminnelsen bare komme mens Ordkort er åpen.",
 };

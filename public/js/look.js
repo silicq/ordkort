@@ -411,6 +411,7 @@
           onclick: () => { trying = trying ? null : look; tryOn(); tryBtn.lastChild.textContent = t(trying ? 'look.try_off' : 'look.try'); },
         }, icon('palette', 16), h('span', null, t('look.try')));
         A.put(page.firstChild,
+          A.openLink.inAppNote(),
           h('div', { class: 'link-ico' }, icon('palette', 30)),
           h('h1', { class: 'display sm' }, d.name || t('look.title')),
           h('p', { class: 'muted' }, t('look.shared_d')),

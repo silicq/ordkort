@@ -131,6 +131,8 @@
       const remindRow = () => {
         const r = { on: false, hour: 19, ...(s.remind || {}) };
         const note = h('small', { class: 'muted d-block' });
+        // what it can do here, also when the page is opened again later
+        if (r.on && 'Notification' in window) note.textContent = Notification.permission !== 'granted' ? t('remind.denied') : A.install.ios() ? t('remind.ios') : '';
         const hourSel = numSel(Array.from({ length: 24 }, (_, i) => i), r.hour, (v) => { r.hour = v; set({ remind: { ...r } }); A.remind.update(); });
         hourSel.disabled = !r.on;
         const sw = toggle(r.on, async (v) => {

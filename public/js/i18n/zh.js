@@ -858,4 +858,13 @@ globalThis.App.i18nData.zh = {
   'ui.translating_failed': "翻译中断了。其余部分暂时保持英文。",
   'ui.translating_retry': "重试",
   'ui.translated': "界面现在是{lang}",
+  'open.action': "打开链接",
+  'open.title': "打开链接",
+  'open.hint': "粘贴共享卡组、卡组库中的卡组、外观或主题的地址。在 iPhone 上，这样就能把在 Safari 中打开的内容放进主屏幕上的应用。",
+  'open.ph': "https://ordkort.com/…",
+  'open.paste': "粘贴并打开",
+  'open.go': "打开",
+  'open.bad': "这不是 Ordkort 的链接。",
+  'open.in_app': "在主屏幕上使用 Ordkort？应用有自己的卡片，与 Safari 分开。复制此链接并在应用中打开：首页 → 打开链接。",
+  'remind.ios': "在 iPhone 上，网页应用只能由推送服务唤醒，因此目前只有在 Ordkort 打开时才会收到提醒。",
 };

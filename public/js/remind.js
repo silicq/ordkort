@@ -73,7 +73,7 @@
       if (reg.periodicSync && st?.state === 'granted') { await reg.periodicSync.register(TAG, { minInterval: 6 * 36e5 }); update(); return 'background'; }
     } catch { /* not installed as an app */ }
     update();
-    return 'tab';
+    return A.install.ios() ? 'ios' : 'tab'; // an iPhone has no background sync; only a push service wakes a web app
   }
   async function disable() {
     try { const reg = await navigator.serviceWorker.ready; await reg.periodicSync?.unregister(TAG); } catch { /* none */ }
