@@ -39,7 +39,7 @@
   /* ---------- cleaning ---------- */
   /* ---------- pictures from the web ----------
      The site may only show pictures of its own (CSP img-src 'self' data: blob:), so the pictures a look names by an
-     https address are fetched through the site's picture proxy (src/images.js) and used as blob: URLs. All of them
+     https address are fetched through the site's picture proxy (src/sources/images.js) and used as blob: URLs. All of them
      are fetched at once, whatever the page shows, so CSS cannot tell anyone what is on the page ("load this picture
      if an attribute starts with a"); and a template's addresses are taken before any field is filled in, so a word
      can never become part of an address. */

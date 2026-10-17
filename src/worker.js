@@ -1,17 +1,18 @@
 /* Ordkort: a static site plus a small API on Cloudflare Workers.
    Static files (public/) are served by Cloudflare directly; this code runs only for /api/*. */
-import './shared.js';
-import { initDB, cleanup } from './db.js';
-import { clientKey, burst } from './limits.js';
-import { HttpError, errorResponse } from './util.js';
-import * as api from './api.js';
-import * as sync from './sync.js';
-import * as images from './images.js';
-import * as voice from './voice.js';
-import * as library from './library.js';
+import './core/shared.js';
+import { initDB, cleanup } from './core/db.js';
+import { clientKey, burst } from './core/limits.js';
+import { HttpError, errorResponse } from './core/util.js';
+import * as api from './ai/routes.js';
+import * as sync from './decks/sync.js';
+import * as share from './decks/share.js';
+import * as images from './sources/images.js';
+import * as voice from './sources/voice.js';
+import * as library from './decks/library.js';
 import * as mcp from './mcp.js';
-import * as preview from './preview.js';
-import { warmOne } from './warm.js';
+import * as preview from './decks/preview.js';
+import { warmOne } from './ai/warm.js';
 
 const DAILY = '17 3 * * *'; // the daily cron in wrangler.jsonc; the other one fills the word bank
 
@@ -57,7 +58,7 @@ export default {
         },
       });
     }
-    // a shared deck or look by its own address: the app's page with a link preview of what is shared (src/preview.js)
+    // a shared deck or look by its own address: the app's page with a link preview of what is shared (src/decks/preview.js)
     const shared = preview.match(url.pathname);
     if (shared) {
       try {
@@ -90,8 +91,8 @@ export default {
       if (m === 'GET' && name === 'tts' && !id) return await voice.tts(request, env, key);
 
       if (name === 'share') {
-        if (m === 'POST' && !id) return await api.shareCreate(request, env, key);
-        if (m === 'GET' && id) return await api.shareGet(env, id);
+        if (m === 'POST' && !id) return await share.shareCreate(request, env, key);
+        if (m === 'GET' && id) return await share.shareGet(env, id);
         if (m === 'DELETE' && id) return await library.removeShare(request, env, id);
       }
       if (name === 'library') {
@@ -123,7 +124,7 @@ export default {
   },
 
   // once a day: delete expired counters and codes, and long-abandoned copies;
-  // every 15 minutes: one more group of ready words for the shared bank, while the site is quiet (src/warm.js)
+  // every 15 minutes: one more group of ready words for the shared bank, while the site is quiet (src/ai/warm.js)
   async scheduled(event, env, ctx) {
     if (event.cron === DAILY) ctx.waitUntil(initDB(env.DB).then(() => cleanup(env.DB)));
     else ctx.waitUntil(initDB(env.DB).then(() => warmOne(env)).then((r) => console.log('warm:', r), (e) => console.log('warm failed:', e.message)));

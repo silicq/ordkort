@@ -1,10 +1,10 @@
-// The base of ready decks the cron fills (src/warm.js): the plan, which group comes next, and when it waits.
+// The base of ready decks the cron fills (src/ai/warm.js): the plan, which group comes next, and when it waits.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { read } from './helpers.mjs';
-import '../src/shared.js';
-import { plan, nextGroup, quiet, CORE, READY } from '../src/warm.js';
-import { today } from '../src/util.js';
+import '../src/core/shared.js';
+import { plan, nextGroup, quiet, CORE, READY } from '../src/ai/warm.js';
+import { today } from '../src/core/util.js';
 
 const list = plan(App.topics.list);
 
@@ -57,7 +57,7 @@ test('the cron runs it every 15 minutes, apart from the daily cleanup', () => {
 test('it takes only a small, fixed share of the AI each day', () => {
   // Groq's free plan: 200,000 tokens a day per model, a list of words takes 5,000–7,000
   assert.match(read('wrangler.jsonc'), /"WARM_PER_DAY": "24"/);
-  const src = read('src/warm.js');
+  const src = read('src/ai/warm.js');
   assert.match(src, /env\.WARM_PER_DAY \?\? PER_DAY/);
   assert.ok(src.indexOf('enough for today') < src.indexOf("words(req, env, 'warm')"), 'the cap is checked before the AI is asked');
 });

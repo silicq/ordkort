@@ -1,7 +1,7 @@
 /* The library: decks people publish for everybody learning the same pair of languages.
 
    Publishing is a choice (a deck shared by link stays unlisted). Before a deck is listed, a model told the
-   library's policy reads its title and words, and one that sees pictures looks at its cover (src/groq.js guard); an unsafe deck is refused, and when the words cannot be checked nothing
+   library's policy reads its title and words, and one that sees pictures looks at its cover (src/ai/groq.js guard); an unsafe deck is refused, and when the words cannot be checked nothing
    is published (a cover that cannot be looked at is left out). Listed decks can be voted up or down, are counted when added, and can be reported: after
    REPORTS_TO_HIDE reports from different people a deck is hidden until the site's owner looks at it.
    The publisher keeps a token that lets them take the deck down; the site's owner can take down any deck, or any
@@ -9,11 +9,11 @@
 
    People are told apart only by the same daily-salted fingerprint the limits use: a vote or a report counts once
    per person per day, and nothing about them is kept. */
-import { cleanDeck } from './api.js';
-import { guard } from './groq.js';
-import { takeSimple, takeGuard, takeStore } from './limits.js';
-import { HttpError, json, readJSON, str, int, sha256, randomCode, isCode, safeEqual } from './util.js';
-import { App } from './shared.js';
+import { cleanDeck } from './share.js';
+import { guard } from '../ai/groq.js';
+import { takeSimple, takeGuard, takeStore } from '../core/limits.js';
+import { HttpError, json, readJSON, str, int, sha256, randomCode, isCode, safeEqual } from '../core/util.js';
+import { App } from '../core/shared.js';
 
 const PAGE = 24;
 const REPORTS_TO_HIDE = 3;
@@ -36,7 +36,7 @@ export async function check(env, deck, key) {
     cur += l + '\n';
   }
   if (cur) pieces.push(cur);
-  // each piece and the title are a request to the models, the cover one more (src/limits.js takeGuard)
+  // each piece and the title are a request to the models, the cover one more (src/core/limits.js takeGuard)
   if (key) await takeGuard(env, key, pieces.length + 1 + (deck.cover?.startsWith('data:') ? 1 : 0));
   const found = new Set();
   const note = (r) => { r.cats.forEach((c) => found.add(c)); if (!r.safe && !r.cats.length) found.add('unsafe'); };

@@ -4,8 +4,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { browser } from './helpers.mjs';
-import { aiWord, wordsPrompt, phrasesPrompt } from '../src/prompts.js';
-import { App as Shared } from '../src/shared.js';
+import { aiWord, wordsPrompt, phrasesPrompt } from '../src/ai/prompts.js';
+import { App as Shared } from '../src/core/shared.js';
 
 function tab() {
   const { App } = browser(['public/js/langs.js', 'public/js/i18n/en.js', 'public/js/i18n/ru.js', 'public/js/i18n.js', 'public/js/store.js', 'public/js/views/study.js']);

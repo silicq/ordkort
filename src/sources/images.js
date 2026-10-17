@@ -13,12 +13,10 @@
    proxy  — fetches one picture for the browser, which then shrinks it and keeps it on the device. The page may load
             nothing from other sites (CSP), and the person's IP never reaches them. Only https, only raster images
             (no SVG), at most 5 MB, under a per-person hourly limit. */
-import { cacheGet, cacheSet } from './db.js';
-import { takeSimple } from './limits.js';
-import { HttpError, json, readJSON, readBytes, str, sha256 } from './util.js';
+import { cacheGet, cacheSet } from '../core/db.js';
+import { takeSimple } from '../core/limits.js';
+import { HttpError, json, readJSON, readBytes, str, sha256, UA } from '../core/util.js';
 
-// Wikimedia asks for a User-Agent that names the tool and how to reach its makers
-const UA = 'Ordkort/1.0 (https://ordkort.com; https://github.com/silicq/ordkort) language-learning flashcards';
 const MONTH = 30 * 864e5;
 const MAX_BYTES = 5 * 1024 * 1024;
 const TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/avif'];
