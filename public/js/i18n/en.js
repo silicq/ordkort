@@ -862,4 +862,13 @@ globalThis.App.i18nData.en = {
   'ui.translating_failed': "The translation stopped. The rest stays in English for now.",
   'ui.translating_retry': "Try again",
   'ui.translated': "The interface is in {lang} now",
+  'open.action': "Open a link",
+  'open.title': "Open a link",
+  'open.hint': "Paste the address of a shared deck, a deck from the library, a look or a topic. On an iPhone this is how something opened in Safari gets into the app on your home screen.",
+  'open.ph': "https://ordkort.com/…",
+  'open.paste': "Paste and open",
+  'open.go': "Open",
+  'open.bad': "That is not a link to Ordkort.",
+  'open.in_app': "Using Ordkort from your home screen? It keeps its own cards, apart from Safari. Copy this link and open it there: Home → Open a link.",
+  'remind.ios': "On an iPhone a web app is woken only by a push service, so for now the reminder can come only while Ordkort is open.",
 };
