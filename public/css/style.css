@@ -902,6 +902,17 @@ dialog.modal::backdrop { background: rgba(20, 16, 10, 0.45); backdrop-filter: bl
 .flash:not(.look-flash) .face.face.front { transform: none !important; }
 .flash:not(.look-flash) .face.face.back { transform: rotateY(180deg) !important; }
 .look-flash .face.face { transform: none !important; }
+/* The side turned away is also hidden half-way through the turn (js/views/study.js sets .turned). A look's filter,
+   opacity or blur on the card makes the browser lay the 3D card flat (Safari above all), and then the hidden side
+   showed through the other one, mirrored. */
+/* what lays the card flat is not let on the turning part itself */
+.flash .flash-inner.flash-inner { filter: none !important; opacity: 1 !important; overflow: visible !important; clip-path: none !important;
+  mask: none !important; -webkit-mask: none !important; mix-blend-mode: normal !important; backdrop-filter: none !important; }
+/* the side in view is drawn whichever way the browser thinks it faces; the other one is hidden */
+.flash:not(.look-flash) .face.face.front { backface-visibility: visible !important; -webkit-backface-visibility: visible !important; }
+.flash:not(.look-flash) .face.face.back { visibility: hidden !important; }
+.flash:not(.look-flash).turned .face.face.back { visibility: visible !important; backface-visibility: visible !important; -webkit-backface-visibility: visible !important; }
+.flash:not(.look-flash).turned .face.face.front { visibility: hidden !important; }
 .flash.failed .face.back { border-color: var(--red); }
 .flash.partial .face.back { border-color: var(--yellow); }
 .flash-tag { display: flex; align-items: center; justify-content: space-between; gap: 10px; height: 34px; font-size: 12.5px; color: var(--ink-2); }
