@@ -91,3 +91,6 @@ export async function cleanup(db) {
     db.prepare('DELETE FROM libmarks WHERE t < ?').bind(now - 2 * 864e5),
   ]);
 }
+
+// the shared cache as { get, set }, for code that is also run without a database (src/sources/wiktionary.js)
+export const cacheOf = (env) => ({ get: (k, age) => cacheGet(env.DB, k, age), set: (k, v) => cacheSet(env.DB, k, v) });

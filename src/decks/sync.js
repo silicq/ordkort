@@ -7,8 +7,8 @@
    /api/sync  — the encrypted copy for continuous sync between linked devices.
    /api/media — the files that copy refers to but cannot hold (recordings from Anki, photos of your own), one by one,
                 each encrypted on the device with the copy's key; only who holds the copy's token reaches them. */
-import { HttpError, json, readJSON, sha256, safeEqual, randomCode, isCode } from './util.js';
-import { takeSimple, takeStore } from './limits.js';
+import { HttpError, json, readJSON, sha256, safeEqual, randomCode, isCode } from '../core/util.js';
+import { takeSimple, takeStore } from '../core/limits.js';
 
 const PAIR_TTL = 180 * 1000;
 const MAX_BLOB = 1_900_000; // D1 stores strings of up to 2 MB
@@ -137,7 +137,7 @@ export async function mediaPut(request, env, key, id, name) {
   if (!b64ok(body.d)) throw new HttpError(400, 'bad_data');
   const use = await env.DB.prepare('SELECT COUNT(*) AS n, COALESCE(SUM(LENGTH(d)), 0) AS bytes FROM media WHERE sid = ?').bind(id).first();
   if ((use?.n || 0) >= MEDIA_MAX_FILES || (use?.bytes || 0) + body.d.length > MEDIA_MAX_BYTES) throw new HttpError(413, 'too_large');
-  // a copy may hold 150 MB, and anyone can make copies: the bytes come from the room in the database (src/limits.js)
+  // a copy may hold 150 MB, and anyone can make copies: the bytes come from the room in the database (src/core/limits.js)
   if (!(await env.DB.prepare('SELECT 1 FROM media WHERE sid = ? AND name = ?').bind(id, name).first())) await takeStore(env, key, body.d.length);
   // a file's name is a hash of its bytes: the same name is the same file, so a second upload changes nothing
   await env.DB.prepare('INSERT OR IGNORE INTO media (sid, name, d, t) VALUES (?, ?, ?, ?)').bind(id, name, body.d, Date.now()).run();

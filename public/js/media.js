@@ -36,7 +36,7 @@
     return name;
   }
 
-  // a picture from the web, through the site's own proxy (src/images.js)
+  // a picture from the web, through the site's own proxy (src/sources/images.js)
   async function fetchUrl(u) {
     const r = await fetch('/api/img?u=' + encodeURIComponent(u));
     if (!r.ok) throw new Error('fetch ' + r.status);
@@ -145,7 +145,7 @@
     return u;
   }
 
-  /* The site's voice for a card without a recording (src/voice.js): a native speaker's recording from Wiktionary,
+  /* The site's voice for a card without a recording (src/sources/voice.js): a native speaker's recording from Wiktionary,
      or a synthetic one. Kept for the visit by language and text: an object URL, '' when the site has none (the
      system's voice then speaks), or the promise while it loads. */
   const voices = new Map();

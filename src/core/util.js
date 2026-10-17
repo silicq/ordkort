@@ -107,3 +107,6 @@ export function randomCode(len) {
   return s;
 }
 export const isCode = (s, len) => typeof s === 'string' && s.length === len && [...s].every((c) => B32.includes(c));
+
+// how the site names itself to other sites (Wikimedia asks for a User-Agent that says who to reach)
+export const UA = 'Ordkort/1.0 (https://ordkort.com; https://github.com/silicq/ordkort) language-learning flashcards';
