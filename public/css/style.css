@@ -2056,3 +2056,5 @@ textarea.input.code { font: 13px/1.5 ui-monospace, SFMono-Regular, Consolas, mon
   }
 }
 .lib-share { margin-top: 10px; }
+.in-app-note { display: grid; grid-template-columns: auto 1fr; gap: 6px 10px; align-items: start; text-align: start; margin: 0 0 14px; }
+.in-app-note .link-btn { grid-column: 2; justify-self: start; }

@@ -6,6 +6,16 @@
   A.views.home = {
     live: true,
     render(root) {
+      // a topic's link from the static pages (#/?from=en&learn=nb&topic=food), opened once set up: that topic's deck
+      const q = new URLSearchParams(location.hash.split('?')[1] || '');
+      const linked = A.topics.get(q.get('topic') || '');
+      if (linked) {
+        history.replaceState(null, '', location.pathname + '#/');
+        const learn = q.get('learn');
+        if (A.langs.has(learn) && learn !== A.store.settings.target && learn !== A.store.settings.native) A.store.set({ target: learn });
+        openTopic(linked);
+        return;
+      }
       const s = A.store.settings;
       const decks = A.store.decks();
       const o = A.store.overview();
@@ -174,7 +184,8 @@
           },
         }, icon('plus', 16), t('cat.empty')),
         h('button', { class: 'link-btn', type: 'button', onclick: () => A.anki.pick() }, icon('anki', 16), t('anki.import')),
-        h('a', { class: 'link-btn', href: '#/library' }, icon('globe', 16), t('lib.title_plain'))));
+        h('a', { class: 'link-btn', href: '#/library' }, icon('globe', 16), t('lib.title_plain')),
+        h('button', { class: 'link-btn', type: 'button', onclick: () => A.openLink.ask() }, icon('external', 16), t('open.action'))));
   }
 
   function openTopic(tp) {
