@@ -24,9 +24,8 @@ everyone who speaks that language.
 3. Translate the values, not the keys. Keep `{placeholders}` as they are. Plural strings come as
    `key_one` / `key_other`; add `key_few`, `key_many` and so on if your language has those forms
    ([CLDR plural rules](https://www.unicode.org/cldr/charts/latest/supplemental/language_plural_rules.html)).
-4. Register the file in three places: a `<script src="js/i18n/<code>.js">` line in `public/index.html`
-   next to the others, `'/js/i18n/<code>.js'` in the file list at the top of `public/sw.js`, and the code
-   in `BUILT_IN` in `tests/site.test.mjs`.
+4. Register the file in two places: `'js/i18n/<code>.js'` in the list at the top of `scripts/bundle.mjs`, next
+   to the others, and the code in `BUILT_IN` in `tests/site.test.mjs`.
 5. Run `npm test`. It checks that no string is missing and that the placeholders match English.
 
 Not comfortable with git? Open a [translation issue](https://github.com/silicq/ordkort/issues/new?template=translation.yml)
@@ -50,5 +49,13 @@ everything lives.
 - Every visible string goes through `t('key')` and exists in all six hand-made translations
   (`npm test` checks it). If you cannot translate one, ask in the pull request.
 - Add or update a test in `tests/` when you change behaviour.
+
+## Pull requests
+
+- For anything bigger than a fix, open an issue first, so we agree on the approach before you spend time on it.
+- Open the pull request against `main`. It is merged by the maintainer after review, once the tests pass.
+- Tests run on GitHub Actions without any secrets. A first pull request from a fork waits for the maintainer to
+  start them; preview deployments are made only for branches of this repository, never for forks.
+- Keep a pull request to one change; it is easier to review and to undo.
 
 By contributing you agree that your work is published under the [AGPL-3.0](LICENSE), like the rest of the project.
