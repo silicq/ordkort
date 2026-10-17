@@ -12,11 +12,11 @@
   const on = () => !!A.store.settings?.remind?.on;
   const hour = () => { const x = A.store.settings?.remind?.hour; return Number.isInteger(x) && x >= 0 && x < 24 ? x : 19; };
 
-  // when the cards of every language pair fall due (read as the backup reads them)
+  // when the cards of every language pair fall due
   function dueTimes() {
     const out = [];
     try {
-      for (const p of Object.values(JSON.parse(localStorage.getItem(A.config.storageKey) || '{}').pairs || {})) {
+      for (const p of Object.values(A.store.allPairs || {})) {
         for (const c of Object.values(p.cards || {})) if (c.box > 0 && !c.sus && c.due) out.push(c.due);
       }
     } catch { /* nothing to plan */ }
