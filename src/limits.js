@@ -16,12 +16,20 @@ export function limitsOf(env) {
   };
 }
 
+export function network(ip) {
+  if (!ip.includes(':')) return ip;
+  if (ip.includes('.')) return ip.slice(ip.lastIndexOf(':') + 1); // ::ffff:203.0.113.7 is an IPv4 client
+  const [head, tail] = ip.split('%')[0].toLowerCase().split('::');
+  const a = head ? head.split(':') : [], b = tail ? tail.split(':') : [];
+  const all = tail === undefined ? a : [...a, ...Array(Math.max(0, 8 - a.length - b.length)).fill('0'), ...b];
+  return all.slice(0, 4).map((g) => g.replace(/^0+(?=.)/, '')).join(':');
+}
+
 /* Client fingerprint: the full IPv4 address, or the /64 network for IPv6. The IP itself is never stored. */
 export async function clientKey(request, env) {
   const ip = request.headers.get('CF-Connecting-IP') || 'local';
-  const net = ip.includes(':') ? ip.split(':').slice(0, 4).join(':') : ip;
   const salt = env.IP_SALT || env.GROQ_API_KEY || 'ordkort';
-  return (await hmac(salt, `${today()}|${net}`)).slice(0, 24);
+  return (await hmac(salt, `${today()}|${network(ip)}`)).slice(0, 24);
 }
 
 /* Bursts: at most `limit` requests per `windowMs` from one fingerprint, within this isolate */
