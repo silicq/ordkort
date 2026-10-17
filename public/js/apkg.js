@@ -296,15 +296,16 @@
   const guid = () => Array.from(crypto.getRandomValues(new Uint8Array(10)), (b) => GUID[b % GUID.length]).join('');
 
   const EXT = { 'audio/mpeg': 'mp3', 'audio/ogg': 'ogg', 'audio/wav': 'wav', 'audio/x-wav': 'wav', 'audio/mp4': 'm4a', 'audio/aac': 'aac', 'audio/webm': 'webm', 'audio/flac': 'flac' };
-  /* decks: [{ name: 'Ordkort::Norsk::Mat', cards: [Ordkort cards] }], media: Map(name → bytes, or → { bytes, type }
-     for a recording) → .apkg bytes */
-  async function write(decks, media, { SQL, now = Date.now() }) {
+  /* decks: [{ name: 'Ordkort::Norsk::Mat', desc?, cards: [Ordkort cards] }], media: Map(name → bytes, or → { bytes, type }
+     for a recording) → .apkg bytes. A deck made for sharing (scripts/anki-decks.mjs) passes a fixed now, its own base for
+     the ids and a guid on each card, so the same words make the same file and a new version updates the notes in Anki. */
+  async function write(decks, media, { SQL, now = Date.now(), base = now }) {
     const db = new SQL.Database();
     try {
       for (const s of SCHEMA) db.run(s);
       const secs = Math.floor(now / 1000);
       const crt = Math.floor(now / DAY) * 86400; // midnight UTC today: due days count from here
-      const mid = now, deckBase = now + 1;
+      const mid = now, deckBase = base + 1;
       const model = {
         id: mid, name: 'Ordkort', type: 0, mod: secs, usn: -1, sortf: 0, did: deckBase, css: CSS,
         latexPre: '\\documentclass[12pt]{article}\n\\special{papersize=3in,5in}\n\\usepackage[utf8]{inputenc}\n\\usepackage{amssymb,amsmath}\n\\pagestyle{empty}\n\\setlength{\\parindent}{0in}\n\\begin{document}\n',
@@ -321,7 +322,7 @@
       const deckJson = { 1: { id: 1, name: 'Default', conf: 1, desc: '', dyn: 0, collapsed: false, browserCollapsed: false, extendNew: 0, extendRev: 0, mod: secs, usn: 0, newToday: [0, 0], revToday: [0, 0], lrnToday: [0, 0], timeToday: [0, 0] } };
       decks.forEach((d, i) => {
         const id = deckBase + i;
-        deckJson[id] = { ...deckJson[1], id, name: d.name, usn: -1 };
+        deckJson[id] = { ...deckJson[1], id, name: d.name, desc: d.desc || '', usn: -1 };
       });
       const conf = { activeDecks: [1], curDeck: 1, newSpread: 0, collapseTime: 1200, timeLim: 0, estTimes: true, dueCounts: true, curModel: String(mid), nextPos: 1, sortType: 'noteFld', sortBackwards: false, addToCur: true, schedVer: 2 };
       const dconf = { 1: { id: 1, name: 'Default', mod: 0, usn: 0, maxTaken: 60, autoplay: true, timer: 0, replayq: true, dyn: false,
@@ -345,7 +346,7 @@
         if (!files.has(file)) files.set(file, a);
         return file;
       };
-      let id = now, pos = 0;
+      let id = base, pos = 0;
       for (const [i, d] of decks.entries()) {
         for (const c of d.cards) {
           const nid = ++id;
@@ -355,7 +356,7 @@
           const media = [pic ? `<img src="${pic}">` : '', snd ? `[sound:${snd}]` : ''];
           const flds = (cz ? [cz.s, esc(c.tr), ...media, notes(c)] : [c.term, c.tr, c.pron, c.gram, c.forms, c.ex, c.exTr].map(esc).concat(...media, notes(c))).join('\x1f');
           const csum = parseInt((await sha1hex(c.term)).slice(0, 8), 16);
-          db.run('INSERT INTO notes VALUES (?, ?, ?, ?, -1, ?, ?, ?, ?, 0, ?)', [nid, guid(), cz ? cmid : mid, secs, ' ordkort ', flds, c.term, csum, '']);
+          db.run('INSERT INTO notes VALUES (?, ?, ?, ?, -1, ?, ?, ?, ?, 0, ?)', [nid, c.guid || guid(), cz ? cmid : mid, secs, ' ordkort ', flds, c.term, csum, '']);
           const review = c.box > 0 && c.s > 0;
           const ivl = review ? Math.max(1, Math.round(Math.max(c.due - (c.last || c.due), DAY) / DAY)) : 0;
           const factor = review ? Math.round(Math.min(3500, Math.max(1300, (2.5 - ((c.d || 5) - 5) / 4) * 1000))) : 0;

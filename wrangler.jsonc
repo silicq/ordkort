@@ -11,7 +11,7 @@
   "assets": {
     "directory": "./public",
     "binding": "ASSETS",
-    "run_worker_first": ["/api/*", "/mcp"]
+    "run_worker_first": ["/api/*", "/mcp", "/mcp/*", "/s/*", "/look/*", "/.well-known/ai-catalog.json", "/.well-known/mcp-registry-auth"]
   },
 
   // The database is created automatically on the first deploy (wrangler ≥ 4.45), the schema on the first request
@@ -38,6 +38,14 @@
     // How many lists of words the cron may generate a day for the bank of ready decks (src/warm.js).
     // Groq's free plan gives each model 200,000 tokens a day, about 100–150 answers for the whole site: keep this small
     "WARM_PER_DAY": "24",
+    // Room in the database a day (src/limits.js takeStore): sync copies and their files, links, library decks,
+    // voices. Per person, and for the whole site. D1 holds 500 MB on the free plan, 10 GB on the paid one:
+    // on the free plan lower STORE_SITE_DAY_MB, or the database can still fill in a few days of an attack
+    "STORE_PER_DAY_MB": "100",
+    "STORE_SITE_DAY_MB": "1000",
+    // Requests to the moderating models when decks are published to the library (src/library.js)
+    "GUARD_PER_DAY": "60",
+    "GUARD_SITE_DAY": "400",
     // characters a day the synthetic voice may speak for the whole site (src/voice.js), when GOOGLE_TTS_KEY is set
     "TTS_DAILY_CHARS": "30000"
   },

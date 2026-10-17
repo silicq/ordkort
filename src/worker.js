@@ -10,6 +10,7 @@ import * as images from './images.js';
 import * as voice from './voice.js';
 import * as library from './library.js';
 import * as mcp from './mcp.js';
+import * as preview from './preview.js';
 import { warmOne } from './warm.js';
 
 const DAILY = '17 3 * * *'; // the daily cron in wrangler.jsonc; the other one fills the word bank
@@ -41,6 +42,31 @@ export default {
         await initDB(env.DB);
         return await mcp.handle(request, env, key);
       } catch (e) { return errorResponse(e); }
+    }
+    if (url.pathname === '/.well-known/mcp-registry-auth') {
+      return new Response(mcp.REGISTRY_AUTH, { headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'public, max-age=3600' } });
+    }
+    // how AI clients find the MCP server: a catalog of what the site offers agents, and the server's card
+    if (url.pathname === '/.well-known/ai-catalog.json' || url.pathname === '/mcp/server-card') {
+      if (request.method !== 'GET' && request.method !== 'HEAD') return new Response(null, { status: 405, headers: { Allow: 'GET, HEAD' } });
+      const body = url.pathname === '/mcp/server-card' ? mcp.serverCard() : mcp.aiCatalog();
+      return new Response(request.method === 'HEAD' ? null : JSON.stringify(body, null, 2), {
+        headers: {
+          'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'public, max-age=3600',
+          'Access-Control-Allow-Origin': '*', 'X-Content-Type-Options': 'nosniff',
+        },
+      });
+    }
+    // a shared deck or look by its own address: the app's page with a link preview of what is shared (src/preview.js)
+    const shared = preview.match(url.pathname);
+    if (shared) {
+      try {
+        await initDB(env.DB);
+        return await preview.page(request, env, shared);
+      } catch (e) {
+        console.error(e);
+        return env.ASSETS.fetch(new Request(new URL('/', request.url)));
+      }
     }
     if (!url.pathname.startsWith('/api/')) return env.ASSETS.fetch(request);
 

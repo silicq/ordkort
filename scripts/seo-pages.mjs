@@ -16,6 +16,7 @@ import '../public/js/i18n/en.js';
 import '../public/js/i18n/ru.js';
 import '../public/js/i18n/uk.js';
 import '../public/js/i18n/nb.js';
+import '../public/js/i18n/ar.js';
 
 export const SITE = 'https://ordkort.com';
 export const MIN_WORDS = 150;
@@ -25,7 +26,7 @@ const DATA = new URL('../data/seo/', import.meta.url);
 const PUBLIC = new URL('../public/', import.meta.url);
 const json = (name) => JSON.parse(readFileSync(new URL(name, DATA), 'utf8'));
 const dir = (name) => (existsSync(new URL(name, DATA)) ? readdirSync(new URL(name, DATA)).filter((f) => f.endsWith('.json')).sort() : []);
-const t = (ui, key) => App.i18nData[ui][key];
+export const t = (ui, key) => App.i18nData[ui]?.[key] ?? UI[ui].names?.[key]; // Polish has no app interface of its own: its names are in seo-text.mjs
 const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 const collator = new Intl.Collator('nb');
 
@@ -80,7 +81,7 @@ function formsTable(ui, a, lemma) {
 }
 
 // the few forms a flashcard shows: "huset, hus, husene", "er, var, har vært", "stort, store, større, størst"
-function keyForms(a, lemma) {
+export function keyForms(a, lemma) {
   if (!a) return '';
   // of two correct forms, the one textbooks teach first: "husene" rather than "husa"
   const first = (...k) => { const v = get(a, ...k).split(' / '); return v.find((x) => /ene$/.test(x)) || v[0]; };
@@ -109,24 +110,31 @@ const clean = (s) => String(s || '').replace(/(?<![\p{L}])([\p{L}]+(?:_[\p{L}]+)
 
 /* ---------- pages and their addresses ---------- */
 
-const topicsHubPath = (ui) => `/${ui}/${UI[ui].learn}/`;
-const topicPath = (ui, id) => `/${ui}/${UI[ui].learn}/${slug(translit(t(ui, 'topic.' + id), ui))}/`;
+export const topicsHubPath = (ui) => `/${ui}/${UI[ui].learn}/`;
+// the topic's name in the address, transliterated, or romanized by hand where a script has no ASCII form (Arabic)
+export const topicPath = (ui, id) => `/${ui}/${UI[ui].learn}/${UI[ui].slugs?.[id] ?? slug(translit(t(ui, 'topic.' + id), ui))}/`;
 const dictHubPath = (ui) => `/${ui}/ordbok/${LEARN}/`;
 const wordPath = (ui, w) => `/${ui}/ordbok/${LEARN}/${slug(w)}/`;
+// the Anki decks of the topics, made by scripts/anki-decks.mjs: one per topic, and one with them all
+export const deckPath = (ui, id) => `/anki/ordkort-norsk-${ui}${id ? '-' + id : ''}.apkg`;
 const abs = (p) => SITE + p;
 // into the app with the language pair of the page: the first-run setup starts from it (public/js/views/onboarding.js)
 const invite = (ui) => (ui === LEARN ? `learn=${LEARN}` : `from=${ui}&amp;learn=${LEARN}`);
 const lang = (ui) => Landing.PAGES[ui];
+// where each language's translation stands in an example: [nb, en, ru, uk, pl, ar]
+const EX = { en: 1, ru: 2, uk: 3, pl: 4, ar: 5 };
+// a link to the dictionary, if this interface language has one (Polish does not yet)
+const dictA = (ui, label) => (UI[ui].noDict ? '' : `<a href="${dictHubPath(ui)}">${esc(label)}</a>`);
 
 // topic word lists: the hand-made seed first, then words of the shared word bank it does not have yet
-function topicWords(ui, id) {
+export function topicWords(ui, id) {
   const seed = TOPICS.get(id).words.map((x) => {
     const lemma = lemmaOf(x.nb);
     const given = /^(en|ei|et)\s/.exec(x.nb)?.[1];
     const a = article(lemma, x.pos, GENDER_OF[given]);
     // the article Bokmålsordboka gives the noun wins over the one in the seed
     const term = given && x.pos === 'noun' && a?.g.length && !a.g.includes(GENDER_OF[given]) ? `${ART[a.g[0]]} ${lemma}` : x.nb;
-    return { term, lemma, pos: x.pos, a, tr: ui === 'nb' ? '' : x[ui], ex: x.ex[0], exTr: ui === 'nb' ? '' : x.ex[['en', 'ru', 'uk'].indexOf(ui) + 1] };
+    return { term, lemma, pos: x.pos, a, tr: ui === 'nb' ? '' : x[ui], ex: x.ex[0], exTr: ui === 'nb' ? '' : x.ex[EX[ui]] };
   });
   const seen = new Set(seed.map((x) => x.lemma.toLowerCase()));
   const natives = ui === 'nb' ? Object.keys(BANK) : [ui];
@@ -151,7 +159,7 @@ for (const [id, d] of TOPICS) for (const x of d.words) {
   if (!TOPICS_OF.get(l).includes(id)) TOPICS_OF.get(l).push(id);
 }
 const RANK = new Map(FREQ.map((f) => [f.w, f]));
-const TOPIC_IDS = App.topics.list.map((x) => x.id).filter((id) => TOPICS.has(id));
+export const TOPIC_IDS = App.topics.list.map((x) => x.id).filter((id) => TOPICS.has(id));
 
 /* ---------- counting a page's own words ---------- */
 
@@ -212,7 +220,7 @@ ${alt.filter((u) => u !== ui).map((u) => `  <meta property="og:locale:alternate"
   <div class="wrap">
     <header class="top">
       <a class="brand" href="/${ui}/">${LOGO}<span>ordkort</span></a>
-      <nav class="sections" aria-label="Ordkort"><a href="${topicsHubPath(ui)}">${esc(U.topicsHub)}</a><a href="${dictHubPath(ui)}">${esc(U.dictHub)}</a></nav>
+      <nav class="sections" aria-label="Ordkort"><a href="${topicsHubPath(ui)}">${esc(U.topicsHub)}</a>${dictA(ui, U.dictHub)}</nav>
       ${alt.length > 1 ? `<ul class="langs">${alt.map((u) => `<li><a href="${alternates[u]}" hreflang="${lang(u).hreflang}" lang="${lang(u).htmlLang}"${u === ui ? ' aria-current="page"' : ''}>${esc(lang(u).name)}</a></li>`).join('')}</ul>` : ''}
     </header>
     <nav class="crumbs" aria-label="${esc(U.crumbs)}"><ol>${crumbs.map(([name, p], i) => (i === crumbs.length - 1
@@ -224,7 +232,7 @@ ${body}
     <footer>
       <a href="/${ui}/">Ordkort</a>
       <a href="${topicsHubPath(ui)}">${esc(U.topicsHub)}</a>
-      <a href="${dictHubPath(ui)}">${esc(U.dictHub)}</a>
+      ${dictA(ui, U.dictHub)}
       <a href="/#/about">${esc(t(ui, 'foot.about') || 'About')}</a>
       <a href="https://github.com/silicq/ordkort" rel="noopener">GitHub</a>
     </footer>
@@ -240,12 +248,12 @@ function wordPage(ui, w, live) {
   const U = UI[ui], e = DICT.get(w), f = RANK.get(w);
   const a = article(w, f.pos, null);
   const head = headword(w, f.pos, a);
-  const posLabel = [U.pos[f.pos], ...(f.pos === 'noun' && a ? a.g.map((g) => U.gender[g]) : [])].join(', ');
+  const posLabel = [U.pos[f.pos], ...(f.pos === 'noun' && a ? a.g.map((g) => U.gender[g]) : [])].join(U.comma || ', ');
   const tr = ui === 'nb' ? e.nb : e.tr[ui];
   const forms = keyForms(a, w);
   const table = formsTable(ui, a, w);
   const nbA = lang(ui).rtl ? ' lang="nb" dir="ltr"' : ' lang="nb"';
-  const exIdx = { en: 1, ru: 2, uk: 3 }[ui];
+  const exIdx = EX[ui];
   const ofc = a ? { senses: a.senses.slice(0, 5), expr: a.expr.slice(0, 5), compounds: a.compounds.slice(0, 8) } : null;
 
   // related: words of the same topics first, then words of the same class close in frequency
@@ -357,11 +365,11 @@ function topicPage(ui, id, live) {
           <li><div class="w">${link ? `<a href="${link}">${term}</a>` : term}${x.tr ? ` <span class="w-tr">${esc(x.tr)}</span>` : ''}</div>${f ? `<div class="w-forms"${nbA}>${esc(f)}</div>` : ''}<div class="w-ex"><span${nbA}>${esc(x.ex)}</span>${x.exTr ? ` <span class="ex-tr">${esc(x.exTr)}</span>` : ''}</div></li>`;
   }).join('')}
         </ul>
-${usesOrdbok ? `        <p class="t source">${esc(UI[ui].table.forms)}: <a href="https://ordbokene.no" rel="noopener">${esc(U.source)}</a></p>\n` : ''}      </section>
+${usesOrdbok ? `        <p class="t source">${esc(UI[ui].table.forms)}: <a href="https://ordbokene.no" rel="noopener">${esc(U.source)}</a></p>\n` : ''}${ankiLinks(ui, id, live)}${embedBlock(ui, id)}      </section>
 ${sameGroup.length ? `      <nav class="t more" aria-label="${esc(U.otherTopics(t(ui, 'group.' + tp.group)))}">
         <h2>${esc(U.otherTopics(t(ui, 'group.' + tp.group)))}</h2>
         <ul class="chips">${sameGroup.map((x) => `<li><a href="${topicPath(ui, x)}">${App.topics.get(x).emoji} ${esc(t(ui, 'topic.' + x))}</a></li>`).join('')}</ul>
-        <p class="t links"><a href="${topicsHubPath(ui)}">${esc(U.allTopics)}</a><a href="${dictHubPath(ui)}">${esc(U.alsoDict)}</a></p>
+        <p class="t links"><a href="${topicsHubPath(ui)}">${esc(U.allTopics)}</a>${dictA(ui, U.alsoDict)}</p>
       </nav>` : ''}`;
 
   const alternates = Object.fromEntries(UIS.filter((u) => live.topics[u].has(id)).map((u) => [u, topicPath(u, id)]));
@@ -376,6 +384,76 @@ ${sameGroup.length ? `      <nav class="t more" aria-label="${esc(U.otherTopics(
     },
   ];
   return { path, title, desc, alternates, body, graph, crumbs: [[U.home, `/${ui}/`], [U.topicsHub, topicsHubPath(ui)], [name, path]] };
+}
+
+// a topic's deck and the deck of every topic, for the languages that have deck names
+function ankiLinks(ui, id, live) {
+  const U = UI[ui];
+  if (!U.ankiRoot) return '';
+  const own = id ? `<a href="${deckPath(ui, id)}" download>${esc(U.ankiTopic)}</a>` : '';
+  return `        <p class="t links">${own}<a href="${deckPath(ui)}" download>${esc(U.ankiAll(live.topics[ui].size))}</a></p>
+        <p class="t source">${esc(U.ankiNote)}</p>
+`;
+}
+
+/* ---------- cards for other sites ---------- */
+
+// a topic's cards in a frame on any site: /embed/<ui>/<topic>/, with the script and look in public/widget/
+export const embedPath = (ui, id) => `/embed/${ui}/${id}/`;
+// what a teacher pastes: the frame, and a plain link to the topic under it
+function embedCode(ui, id) {
+  const name = t(ui, 'topic.' + id);
+  return `<iframe src="${abs(embedPath(ui, id))}" title="${esc(UI[ui].embed.title(name))}" width="100%" height="380" style="border:0;max-width:560px" loading="lazy"></iframe>\n`
+    + `<p><a href="${abs(topicPath(ui, id))}">${esc(UI[ui].topicH1(name))}</a> · Ordkort</p>`;
+}
+function embedBlock(ui, id) {
+  const E = UI[ui].embed;
+  if (!E) return '';
+  return `        <details class="t embed"><summary>${esc(E.h)}</summary>
+          <p class="t">${esc(E.p)}</p>
+          <pre class="code"><code>${esc(embedCode(ui, id))}</code></pre>
+        </details>
+`;
+}
+
+function embedPage(ui, id) {
+  const E = UI[ui].embed, L = lang(ui), name = t(ui, 'topic.' + id), home = abs(topicPath(ui, id));
+  const words = topicWords(ui, id).filter((x) => x.tr).map((x) => ({ term: x.term, tr: x.tr, forms: keyForms(x.a, x.lemma) || '', ex: x.ex || '', exTr: x.exTr || '' }));
+  // the words travel as data the script reads: "<" written as <, so nothing in them can close the element
+  const data = JSON.stringify(words).replace(/</g, '\u003c');
+  // Norwegian runs left to right on a right-to-left page, and the arrows point the way the cards go
+  const nb = L.rtl ? 'lang="nb" dir="ltr"' : 'lang="nb"';
+  const [back, on] = L.rtl ? ['→', '←'] : ['←', '→'];
+  return `<!doctype html>
+<html lang="${L.htmlLang}" dir="${L.rtl ? 'rtl' : 'ltr'}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>${esc(E.title(name))}</title>
+  <meta name="robots" content="noindex">
+  <link rel="canonical" href="${home}">
+  <link rel="stylesheet" href="/css/fonts.css">
+  <link rel="stylesheet" href="/widget/embed.css">
+  <script src="/widget/embed.js" defer></script>
+</head>
+<body>
+  <main class="w">
+    <header><b>${esc(name)}</b><span id="n"${L.rtl ? ' dir="ltr"' : ''}>1 / ${words.length}</span></header>
+    <button class="card" id="card" type="button">
+      <span class="front"><span class="term" id="term" ${nb}>${esc(words[0].term)}</span><span class="hint">${esc(E.flip)}</span></span>
+      <span class="back"><span class="tr" id="tr"></span><span class="forms" id="forms" ${nb}></span><span class="ex" id="ex" ${nb}></span><span class="extr" id="extr"></span></span>
+    </button>
+    <nav>
+      <button type="button" id="prev" aria-label="${esc(E.prev)}" title="${esc(E.prev)}">${back}</button>
+      <button type="button" id="shuffle">${esc(E.shuffle)}</button>
+      <button type="button" id="next" aria-label="${esc(E.next)}" title="${esc(E.next)}">${on}</button>
+    </nav>
+    <footer><a href="${home}" target="_blank" rel="noopener">${esc(E.more)} ${on}</a></footer>
+  </main>
+  <script type="application/json" id="data">${data}</script>
+</body>
+</html>
+`;
 }
 
 /* ---------- the two hubs ---------- */
@@ -399,7 +477,7 @@ ${App.topics.groups.map((g) => {
         </ul>
       </section>`;
   }).filter(Boolean).join('\n')}
-      <p class="t links"><a href="${dictHubPath(ui)}">${esc(U.alsoDict)}</a></p>`;
+${ankiLinks(ui, null, live)}      ${U.noDict ? '' : `<p class="t links">${dictA(ui, U.alsoDict)}</p>`}`;
   const title = U.topicsTitle(ids.length);
   const desc = U.topicsDesc(ids.length, total);
   const alternates = Object.fromEntries(UIS.filter((u) => live.topics[u].size).map((u) => [u, topicsHubPath(u)]));
@@ -436,6 +514,17 @@ function teachersPage(ui) {
         <ol>${T.own.map((x) => `<li>${esc(x)}</li>`).join('')}</ol>
         <p>${esc(T.ownNote)}</p>
       </section>
+      ${T.printH ? `<section>
+        <h2 class="t">${esc(T.printH)}</h2>
+        <p>${esc(T.printP)}</p>
+        <p><a href="/print/ordkort-plakat-nb.pdf" download>${esc(T.printLink)}</a></p>
+      </section>` : ''}
+      ${U.embed ? `<section>
+        <h2 class="t">${esc(U.embed.h)}</h2>
+        <p>${esc(U.embed.p)}</p>
+        <iframe class="embed-demo" src="${embedPath(ui, 'greetings')}" title="${esc(U.embed.title(t(ui, 'topic.greetings')))}" loading="lazy"></iframe>
+        <pre class="code"><code>${esc(embedCode(ui, 'greetings'))}</code></pre>
+      </section>` : ''}
       <section>
         <h2 class="t">${esc(T.privacyH)}</h2>
         ${T.privacy.map((p) => `<p>${esc(p)}</p>`).join('\n        ')}
@@ -525,7 +614,9 @@ export function build() {
     for (const f of FREQ) if (live.words[ui].has(f.w)) add(ui, wordPage(ui, f.w, live));
   }
   for (const ui of UIS) if (TEACH[ui]) add(ui, teachersPage(ui));
-  return { pages, sitemaps: sitemaps(entries), thin: [...thin].map(([k, n]) => `${k} (${n})`), live };
+  const embeds = new Map(); // the cards for other sites: not in the sitemap, not indexed
+  for (const ui of UIS) if (UI[ui].embed) for (const id of TOPIC_IDS) if (live.topics[ui].has(id)) embeds.set(embedPath(ui, id).slice(1) + 'index.html', embedPage(ui, id));
+  return { pages, embeds, sitemaps: sitemaps(entries), thin: [...thin].map(([k, n]) => `${k} (${n})`), live };
 }
 
 /* ---------- sitemap ---------- */
@@ -554,19 +645,19 @@ ${[...out.keys()].map((f) => `  <sitemap><loc>${SITE}/${f}</loc></sitemap>`).joi
 }
 
 // folders this script owns: removed before writing, so a page that is no longer published disappears
-export const OWNED = UIS.flatMap((ui) => [`${ui}/${UI[ui].learn}/`, `${ui}/ordbok/`]);
+export const OWNED = [...UIS.flatMap((ui) => [`${ui}/${UI[ui].learn}/`, `${ui}/ordbok/`]), 'embed/'];
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
-  const { pages, sitemaps: maps, thin, live } = build();
+  const { pages, embeds, sitemaps: maps, thin, live } = build();
   const pub = fileURLToPath(PUBLIC);
   for (const d of OWNED) rmSync(pub + d, { recursive: true, force: true });
   for (const f of readdirSync(pub)) if (/^sitemap-\d+\.xml$/.test(f)) rmSync(pub + f);
-  for (const [p, html] of pages) {
+  for (const [p, html] of [...pages, ...embeds]) {
     mkdirSync(pub + p.replace(/[^/]+$/, ''), { recursive: true });
     writeFileSync(pub + p, html);
   }
   for (const [f, xml] of maps) writeFileSync(pub + f, xml);
   const n = (ui) => `${ui}: ${live.topics[ui].size} topics, ${live.words[ui].size} words`;
-  console.log(`${pages.size} pages (${UIS.map(n).join('; ')}) + ${[...maps.keys()].join(', ')}`);
+  console.log(`${pages.size} pages (${UIS.map(n).join('; ')}) + ${[...maps.keys()].join(', ')} + ${embeds.size} cards for other sites`);
   if (thin.length) console.log(`not published, under ${MIN_WORDS} words of their own: ${thin.join(', ')}`);
 }

@@ -853,4 +853,13 @@ globalThis.App.i18nData.nb = {
   'remind.denied': "Varsler er blokkert for nettstedet i nettleserens innstillinger.",
   'remind.background': "På: det kommer selv når appen er lukket.",
   'remind.tab': "På: det kommer mens nettstedet er åpent i en fane. Installer nettstedet som app (Chrome, Edge) for påminnelser når det er lukket.",
+  'look.side_front': "Forside",
+  'look.side_back': "Bakside",
+  'ui.translating_to': "Oversetter grensesnittet til {lang}",
+  'ui.translating_start': "Ber KI-en om den første delen…",
+  'ui.translating_parts': "Del {done} av {parts} · siden endres etter hvert",
+  'ui.translating_wait': "KI-en er opptatt, prøver igjen om et øyeblikk…",
+  'ui.translating_failed': "Oversettelsen stoppet. Resten er på engelsk inntil videre.",
+  'ui.translating_retry': "Prøv igjen",
+  'ui.translated': "Grensesnittet er nå på {lang}",
 };

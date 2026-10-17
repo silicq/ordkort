@@ -68,11 +68,22 @@
       });
   }
 
-  const DROP = 'script, iframe, frame, frameset, object, embed, applet, link, meta, base, form, input, button, textarea, select, style, noscript, template';
-  // `allowed`: the https pictures this look may show (they come from the template itself, see above)
+  // math and the old raw-text elements are where HTML read twice can come out different from what was cleaned
+  const DROP = 'script, iframe, frame, frameset, object, embed, applet, link, meta, base, form, input, button, textarea, select, style, noscript, template, math, noembed, noframes, xmp, plaintext, title';
+  // `allowed`: the https pictures this look may show (they come from the template itself, see above).
+  // The result is read again by innerHTML, so it is cleaned until reading it again changes nothing
   function clean(html, allowed = new Set()) {
+    let out = cleanOnce(String(html || '').slice(0, MAX), allowed);
+    for (let i = 0; i < 3; i++) {
+      const again = cleanOnce(out, allowed);
+      if (again === out) return out;
+      out = again;
+    }
+    return '';
+  }
+  function cleanOnce(html, allowed) {
     const t = document.createElement('template');
-    t.innerHTML = String(html || '').slice(0, MAX);
+    t.innerHTML = html;
     t.content.querySelectorAll(DROP).forEach((n) => n.remove());
     for (const el of t.content.querySelectorAll('*')) {
       for (const a of [...el.attributes]) {
@@ -100,16 +111,83 @@
       return /^(javascript|vbscript|https?):|^\/\//i.test(u) ? 'none' : m;
     });
 
+  /* A look someone else made is shown before it is used: its card CSS then must not reach the rest of the page
+     (hide the buttons, cover the page, restyle "Cancel"). It is parsed and wrapped in @scope, so it styles only the
+     sample cards; .look-preview itself is outside that scope and clips them (contain: paint in style.css).
+     @keyframes, @font-face and @property cannot live in @scope and only give names, so they stay outside. */
+  /* The CSS is not parsed and written out again (the browser cannot write back a `background` with var() next to
+     a background-clip of its own, and the gradient was lost): it is cut into its top-level blocks as written,
+     reading strings, escapes and comments, and a brace that closes nothing is dropped, so no block can end the
+     @scope around it. */
+  function blocks(css) {
+    const out = [];
+    let start = 0, depth = 0, quote = '', i = 0;
+    const s = String(css || '');
+    for (; i < s.length; i++) {
+      const ch = s[i];
+      if (quote) { if (ch === '\\') i++; else if (ch === quote) quote = ''; continue; }
+      if (ch === '/' && s[i + 1] === '*') { const end = s.indexOf('*/', i + 2); i = end < 0 ? s.length : end + 1; continue; }
+      if (ch === '"' || ch === "'") quote = ch;
+      else if (ch === '\\') i++;
+      else if (ch === '{') depth++;
+      else if (ch === '}') {
+        if (!depth) { out.push(s.slice(start, i)); start = i + 1; continue; } // closes nothing: left out
+        if (!--depth) { out.push(s.slice(start, i + 1)); start = i + 1; }
+      } else if (ch === ';' && !depth) { out.push(s.slice(start, i + 1)); start = i + 1; }
+    }
+    return out.map((b) => b.trim()).filter((b) => b && /[{;]/.test(b) && (b.endsWith('}') || b.endsWith(';')));
+  }
+  function scoped(css, root) {
+    if (!css) return '';
+    const all = blocks(css);
+    const named = (b) => /^@(-webkit-)?(keyframes|font-face|property)\b/i.test(b);
+    return all.filter(named).join('\n') + `\n@scope (${root}) {\n${all.filter((b) => !named(b)).join('\n')}\n}`;
+  }
+
+  /* A look's card CSS usually takes its colours from variables its site CSS sets on :root (--card, --ink, accents of
+     its own). For the preview only those custom properties are lifted onto the sample cards (`root`), from rules on
+     :root or html, inside @media and @supports too: the sample shows as it will be, and the page stays as it is. */
+  function variables(css, root) {
+    if (!css || typeof CSSStyleSheet !== 'function') return '';
+    try {
+      const sheet = new CSSStyleSheet();
+      sheet.replaceSync(css);
+      const walk = (rules) => [...rules].map((r) => {
+        if (r.style && typeof r.selectorText === 'string') {
+          const decls = [...r.style].filter((p) => p.startsWith('--') || p === 'color-scheme').map((p) => `${p}: ${r.style.getPropertyValue(p)};`).join(' ');
+          const sel = r.selectorText.split(',').map((x) => x.trim()).filter((x) => /:root|^html\b/i.test(x)).map((x) => `${x} ${root}`).join(', ');
+          return decls && sel ? `${sel} { ${decls} }` : '';
+        }
+        if (r.cssRules && /^@(media|supports)\b/i.test(r.cssText)) {
+          const inner = walk(r.cssRules).join('\n');
+          return inner ? `${r.cssText.slice(0, r.cssText.indexOf('{'))}{\n${inner}\n}` : '';
+        }
+        return '';
+      }).filter(Boolean);
+      return walk(sheet.cssRules).join('\n');
+    } catch { return ''; }
+  }
+
+  /* ?nolook in the address turns your own look off for that visit: the way back to Settings → Reset when a look
+     has hidden the controls */
+  const off = () => typeof location === 'object' && /[?&]nolook\b/.test(String(location.search) + String(location.hash));
+
   /* ---------- filling a template ---------- */
   const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-  function values(c) {
+  /* `ask`: the side of a card that asks for the word from its translation (reverse flip cards, typing). The template
+     then shows the translation where it shows the term: on the front nothing that gives the word away (no
+     pronunciation, forms, example or sound), and on the back the word in the template's big place. */
+  function values(c, ask = '') {
     const ex = A.store.example(c);
     const { gram, pron, forms } = A.store.shown(c);
     const deck = A.store.ready && A.store.deck(c.deck);
-    return {
+    const v = {
       term: c.term, translation: c.tr, pronunciation: pron, grammar: gram, forms, example: ex.text, example_translation: ex.tr,
       deck: deck ? A.deckTitle(deck) : '', image: c.img ? '1' : '', audio: '1',
     };
+    if (ask === 'front') return { ...v, term: c.tr, translation: '', pronunciation: '', grammar: '', forms: '', example: '', example_translation: '', audio: '' };
+    if (ask === 'back') return { ...v, term: c.tr, translation: c.term };
+    return v;
   }
   // the template → HTML: sections, then fields; {{image}} and {{audio}} become placeholders filled after
   function fill(tpl, v) {
@@ -117,22 +195,31 @@
       // the card's picture where an address goes: <img src="{{image}}">, url({{image}})
       .replace(/\ssrc\s*=\s*(['"]?)\{\{\s*image\s*\}\}\1/g, ' data-card-image')
       .replace(/url\(\s*(['"]?)\{\{\s*image\s*\}\}\1\s*\)/g, 'var(--card-image)');
-    out = out.replace(/\{\{#(\w+)\}\}([\s\S]*?)\{\{\/\1\}\}/g, (m, k, inner) => (v[k] ? inner : ''));
-    out = out.replace(/\{\{\^(\w+)\}\}([\s\S]*?)\{\{\/\1\}\}/g, (m, k, inner) => (v[k] ? '' : inner));
+    // sections, also one inside another ({{#example}}…{{#example_translation}}…{{/example_translation}}{{/example}}):
+    // opened again until nothing changes; a section mark left without its pair is dropped, never shown as braces
+    for (let i = 0; i < 8; i++) {
+      const was = out;
+      out = out.replace(/\{\{#(\w+)\}\}([\s\S]*?)\{\{\/\1\}\}/g, (m, k, inner) => (v[k] ? inner : ''));
+      out = out.replace(/\{\{\^(\w+)\}\}([\s\S]*?)\{\{\/\1\}\}/g, (m, k, inner) => (v[k] ? '' : inner));
+      if (out === was) break;
+    }
+    out = out.replace(/\{\{\s*[#^/]\s*\w+\s*\}\}/g, '');
     return out.replace(/\{\{\s*(\w+)\s*\}\}/g, (m, k) => {
       if (k === 'image') return v.image ? '<span data-slot="image"></span>' : '';
       if (k === 'audio') return '<span data-slot="audio"></span>';
       return FIELDS.includes(k) ? esc(v[k]) : '';
     });
   }
+  // whether your own look has a card template (then study cards wear .face.own in every mode)
+  const has = (look = A.store.settings?.look) => !!(look && (String(look.front || '').trim() || String(look.back || '').trim()) && !off());
   // a side of a card from the template, as nodes for .face-body; null when the side has no template
-  function render(side, c, look = A.store.settings.look) {
+  function render(side, c, look = A.store.settings.look, ask = false) {
     const tpl = look?.[side];
-    if (!tpl || !tpl.trim()) return null;
+    if (!tpl || !tpl.trim() || (look === A.store.settings?.look && off())) return null;
     const box = document.createElement('div');
     box.className = 'tpl tpl-' + side;
     fetchPics(look);
-    box.innerHTML = clean(fill(tpl, values(c)), new Set(addresses(look)));
+    box.innerHTML = clean(fill(tpl, values(c, ask ? side : '')), new Set(addresses(look)));
     box.querySelectorAll('[data-slot="image"]').forEach((s) => s.replaceWith(A.media.el(c, 'flash-img') || ''));
     // the card's picture: <img src="{{image}}"> and var(--card-image)
     const imgs = [...box.querySelectorAll('img[data-card-image]')];
@@ -142,7 +229,7 @@
       box.style.setProperty('--card-image', `url("${u}")`);
       imgs.forEach((i) => { i.src = u; i.removeAttribute('data-card-image'); });
     });
-    box.querySelectorAll('[data-slot="audio"]').forEach((s) => s.replaceWith(A.speakBtn(c.term, A.store.settings?.target || 'nb', '', c)));
+    box.querySelectorAll('[data-slot="audio"]').forEach((s) => s.replaceWith(ask && side === 'front' ? '' : A.speakBtn(c.term, A.store.settings?.target || 'nb', '', c)));
     return box;
   }
 
@@ -154,7 +241,7 @@
   function apply() {
     const waiting = later();
     if (waiting && A.store.ready && !A.framed) { A.store.set({ look: waiting }); try { localStorage.removeItem(LATER); } catch {} }
-    const look = worn || A.store.settings?.look || waiting || {};
+    const look = worn || (off() ? {} : A.store.settings?.look || waiting || {});
     fetchPics(look);
     const css = [look.site || '', look.css ? `.flash .face-body .tpl { display: contents; }\n${look.css}` : ''].map(cleanCss).join('\n').trim();
     let el = document.getElementById('user-look');
@@ -176,7 +263,8 @@
     let st = document.getElementById('user-look-preview');
     if (!shown) { st?.remove(); return; }
     if (!st) { st = document.createElement('style'); st.id = 'user-look-preview'; document.head.append(st); }
-    st.textContent = shown.css ? `.look-preview .face-body .tpl { display: contents; }\n${cleanCss(shown.css)}` : '';
+    st.textContent = variables(cleanCss(shown.site), '.look-side') + '\n'
+      + (shown.css ? `.look-preview .face-body .tpl { display: contents; }\n${scoped(cleanCss(shown.css), '.look-side')}` : '');
   };
   arrived.add(() => { apply(); previewCss(); });
   const scaler = typeof ResizeObserver === 'function' ? new ResizeObserver((all) => {
@@ -191,16 +279,20 @@
       const body = own || (name === 'front'
         ? [A.lt(sample.term, s.target, 'flash-word serif' + size(sample.term), 'div'), A.speakBtn(sample.term, s.target, 'lg')]
         : [sample.img ? A.media.el(sample, 'flash-img') : null, A.lt(sample.term, s.target, 'flash-small', 'div'), A.lt(sample.tr, s.native, 'flash-word serif' + size(sample.tr), 'div'), ex ? A.lt(ex, s.target, 'flash-ex serif', 'p') : null]);
-      const el = h('div', { class: 'look-side', style: `--w: ${W}px; --h: ${H}px` },
-        h('div', { class: 'flash look-flash in' }, h('div', { class: 'face' + (own ? ' own' : '') + (name === 'back' ? ' look-back' : '') },
+      const el = h('div', { class: 'look-side is-' + name, style: `--w: ${W}px; --h: ${H}px`, onclick: () => flip(name === 'front' ? 'back' : 'front') },
+        h('div', { class: 'flash look-flash in' }, h('div', { class: 'face' + (has(look) ? ' own' : '') + (name === 'back' ? ' back look-back' : ' front') },
           h('div', { class: 'flash-tag' }, h('span', { class: 'badge new' }, t('study.new'))),
           h('div', { class: 'face-body' }, body))));
       scaler?.observe(el);
       return el;
     };
+    // on a phone one side at a time, turned by the switch or by a tap on the card; side by side on wider screens
+    const sides = A.segmented([{ value: 'front', label: t('look.side_front') }, { value: 'back', label: t('look.side_back') }], 'front', (v) => { box.dataset.side = v; }, 'look-sides');
+    const flip = (v) => { box.dataset.side = v; sides.querySelectorAll('button').forEach((b, i) => { const on = (i === 0) === (v === 'front'); b.classList.toggle('on', on); b.setAttribute('aria-checked', String(on)); }); };
+    box.dataset.side = 'front';
     shown = look;
     previewCss();
-    box.replaceChildren(side('front'), side('back'));
+    box.replaceChildren(sides, side('front'), side('back'));
   }
   const unpreview = () => { shown = null; previewCss(); };
   const wear = (look) => { worn = look; apply(); };
@@ -306,7 +398,7 @@
   A.views.look = {
     render(root, [id]) {
       const { h, icon, t } = A;
-      const page = h('section', { class: 'link-page' }, h('div', { class: 'link-card share-open' }, A.loading(t('share.loading'))));
+      const page = h('section', { class: 'link-page' }, h('div', { class: 'link-card share-open look-open' }, A.loading(t('share.loading'))));
       root.append(page);
       A.ai.sharedDeck(id).then((d) => {
         if (!d || d.kind !== 'look') { location.replace('#/s/' + id); return; }
@@ -323,8 +415,8 @@
           h('h1', { class: 'display sm' }, d.name || t('look.title')),
           h('p', { class: 'muted' }, t('look.shared_d')),
           box,
-          look.site ? h('p', { class: 'muted small row gap center wrap' }, h('span', null, icon('info', 14), ' ', t('look.shared_site')), tryBtn) : null,
-          h('div', { class: 'row gap center wrap' },
+          look.site ? h('p', { class: 'muted small row gap center wrap look-note' }, h('span', null, icon('info', 14), ' ', t('look.shared_site')), tryBtn) : null,
+          h('div', { class: 'row gap center wrap look-go' },
             h('button', {
               class: 'btn btn-primary btn-lg', type: 'button',
               onclick: () => {
@@ -352,5 +444,5 @@
   }
   arrived.add(tryOn);
 
-  A.look = { PRESETS, SITE, FIELDS, render, apply, clean, cleanCss, fill, card, preview, unpreview, wear, addresses, MAX };
+  A.look = { PRESETS, SITE, FIELDS, has, render, apply, clean, cleanCss, scoped, fill, card, preview, unpreview, wear, addresses, MAX };
 })();

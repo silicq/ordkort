@@ -92,7 +92,7 @@
         // a picture goes with the deck only by its web address: a photo of your own stays on your device
         words: cards.map((c) => ({ term: c.term, tr: c.tr, pos: c.pos, gram: c.gram, forms: c.forms, pron: c.pron, ex: c.ex, ex_tr: c.exTr, img_url: c.imgUrl || undefined, img_by: c.imgUrl ? c.imgBy : undefined })),
       });
-      const url = `${location.origin}/#/s/${id}`;
+      const url = `${location.origin}/s/${id}`; // its own address, so chat apps show what the deck is (src/preview.js)
       const copy = h('button', { class: 'btn btn-primary btn-sm', type: 'button' }, icon('copy', 16), t('sync.copy'));
       copy.addEventListener('click', () => navigator.clipboard?.writeText(url).then(() => A.toast(t('sync.copied'))));
       const native = navigator.share ? h('button', { class: 'btn btn-ghost btn-sm', type: 'button', onclick: () => navigator.share({ title: A.deckTitle(d), url }).catch(() => {}) }, icon('share', 16), t('share.send')) : null;

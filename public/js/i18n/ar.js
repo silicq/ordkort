@@ -869,4 +869,13 @@ globalThis.App.i18nData.ar = {
   'remind.denied': "الإشعارات محظورة لهذا الموقع في إعدادات المتصفح.",
   'remind.background': "مفعّل: يصل حتى عندما يكون التطبيق مغلقًا.",
   'remind.tab': "مفعّل: يصل ما دام الموقع مفتوحًا في علامة تبويب. ثبّت الموقع كتطبيق (Chrome، Edge) لتصلك التذكيرات وهو مغلق.",
+  'look.side_front': "الوجه",
+  'look.side_back': "الظهر",
+  'ui.translating_to': "جارٍ ترجمة الواجهة إلى {lang}",
+  'ui.translating_start': "نطلب الجزء الأول من الذكاء الاصطناعي…",
+  'ui.translating_parts': "الجزء {done} من {parts} · تتغير الصفحة مع وصول الأجزاء",
+  'ui.translating_wait': "الذكاء الاصطناعي مشغول، سنحاول مجددًا بعد لحظة…",
+  'ui.translating_failed': "توقفت الترجمة. سيبقى الباقي بالإنجليزية حاليًا.",
+  'ui.translating_retry': "حاول مجددًا",
+  'ui.translated': "أصبحت الواجهة الآن بلغة {lang}",
 };

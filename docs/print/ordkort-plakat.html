@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="nb">
+<head>
+<meta charset="utf-8">
+<title>Ordkort – plakat og lapper for klassen</title>
+<style>
+/* A4 poster (page 1) and two A5 handouts to cut apart (page 2), for a class learning Norwegian.
+   White paper and dark ink, so it prints well on a school's black-and-white printer. */
+@font-face { font-family: 'Literata'; src: url('../../public/fonts/literata-latin-opsz-normal.woff2') format('woff2'); font-weight: 200 900; }
+@font-face { font-family: 'Literata'; src: url('../../public/fonts/literata-latin-ext-opsz-normal.woff2') format('woff2'); font-weight: 200 900; unicode-range: U+0100-024F; }
+@font-face { font-family: 'Literata'; src: url('../../public/fonts/literata-latin-opsz-italic.woff2') format('woff2'); font-weight: 200 900; font-style: italic; }
+@font-face { font-family: 'Geologica'; src: url('../../public/fonts/geologica-latin-wght-normal.woff2') format('woff2'); font-weight: 100 900; }
+@font-face { font-family: 'Geologica'; src: url('../../public/fonts/geologica-latin-ext-wght-normal.woff2') format('woff2'); font-weight: 100 900; unicode-range: U+0100-024F; }
+@font-face { font-family: 'Geologica'; src: url('../../public/fonts/geologica-cyrillic-wght-normal.woff2') format('woff2'); font-weight: 100 900; unicode-range: U+0400-04FF; }
+@font-face { font-family: 'Readex Pro'; src: url('../../public/fonts/readex-pro-arabic-wght-normal.woff2') format('woff2'); font-weight: 160 700; unicode-range: U+0600-06FF, U+0750-077F, U+FB50-FDFF, U+FE70-FEFF; }
+
+@page { size: A4; margin: 0; }
+:root { --ink: #1d1a16; --ink-2: #4a443a; --line: #d2c7b2; --blue: #2f4bd9; --red: #d9481f; --rule: #e6e9f7;
+  --serif: 'Literata', Georgia, serif; --ui: 'Geologica', 'Readex Pro', 'Segoe UI', 'Nirmala UI', 'Ebrima', 'Nyala', system-ui, sans-serif; }
+* { box-sizing: border-box; }
+html, body { margin: 0; background: #fff; color: var(--ink); font: 400 16px/1.45 var(--ui); -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+.page { width: 210mm; height: 297mm; overflow: hidden; position: relative; page-break-after: always; break-after: page; }
+.page:last-child { page-break-after: auto; break-after: auto; }
+@media screen { body { background: #e9e5dc; } .page { margin: 12mm auto; background: #fff; box-shadow: 0 10px 40px rgba(0,0,0,.18); } }
+
+/* ---------- the poster ---------- */
+.poster { padding: 16mm 18mm 13mm; display: flex; flex-direction: column; }
+.brand { display: flex; align-items: center; gap: 4mm; font: 700 30px/1 var(--serif); letter-spacing: -0.01em; }
+.brand img { width: 15mm; height: 15mm; }
+.free { margin-left: auto; font: 600 13px/1 var(--ui); letter-spacing: .08em; text-transform: uppercase; border: 1.6px solid var(--ink); border-radius: 999px; padding: 2.2mm 4mm; }
+h1 { margin: 9mm 0 0; font: 700 58px/1.02 var(--serif); letter-spacing: -0.02em; }
+h1 em { font-style: italic; font-weight: 500; background: linear-gradient(transparent 62%, #f6d77a 62%, #f6d77a 92%, transparent 92%); padding: 0 1mm; }
+.lede { margin: 5mm 0 0; font-size: 20px; line-height: 1.4; color: var(--ink-2); max-width: 150mm; }
+
+.middle { margin-top: 8mm; display: grid; grid-template-columns: 1fr 74mm; gap: 10mm; align-items: start; }
+.points { list-style: none; margin: 0; padding: 0; border-top: 2.5px solid var(--red); }
+.points li { display: grid; grid-template-columns: 9mm 1fr; gap: 3mm; padding: 3mm 0; border-bottom: 1px solid var(--line); font-size: 16.5px; line-height: 1.35; }
+.points b { font-weight: 650; }
+.points .n { font: 700 18px/1.3 var(--serif); color: var(--blue); }
+
+/* the QR on an index card */
+.card { border: 2px solid var(--ink); border-radius: 6mm; padding: 5mm 5mm 4mm; text-align: center;
+  background: repeating-linear-gradient(to bottom, transparent 0, transparent 7.6mm, var(--rule) 7.6mm, var(--rule) 8mm); background-position: 0 14mm; }
+.card .tag { font: 650 12px/1 var(--ui); letter-spacing: .08em; text-transform: uppercase; border-bottom: 2.5px solid var(--red); padding-bottom: 3.4mm; margin: 0 -5mm 4mm; }
+.card img { width: 62mm; height: 62mm; display: block; margin: 0 auto; }
+.card .url { margin-top: 3mm; font: 700 25px/1 var(--serif); letter-spacing: -0.01em; }
+.card .how { margin-top: 2mm; font-size: 13.5px; color: var(--ink-2); }
+
+.langs { margin-top: 8mm; }
+.langs h2 { margin: 0 0 3mm; font: 650 14px/1 var(--ui); letter-spacing: .08em; text-transform: uppercase; }
+.langs ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 2.2mm; }
+.langs li { border: 1.4px solid var(--line); border-radius: 999px; padding: 1.4mm 3.6mm; font-size: 16px; line-height: 1.3; }
+.langs li.more { border-style: dashed; color: var(--ink-2); }
+
+.foot { margin-top: auto; padding-top: 6mm; border-top: 1px solid var(--line); display: flex; justify-content: space-between; gap: 8mm; font-size: 13px; color: var(--ink-2); }
+.foot b { color: var(--ink); }
+
+/* ---------- two A5 handouts ---------- */
+.halves { display: grid; grid-template-rows: 1fr 1fr; }
+.half { padding: 12mm 16mm; display: grid; grid-template-columns: 1fr 52mm; gap: 8mm; align-items: center; }
+.half + .half { border-top: 1.4px dashed #9a9184; }
+.half .brand { font-size: 22px; } .half .brand img { width: 10mm; height: 10mm; }
+.half h3 { margin: 6mm 0 0; font: 700 34px/1.05 var(--serif); letter-spacing: -0.015em; }
+.half p { margin: 3mm 0 0; font-size: 15px; line-height: 1.4; color: var(--ink-2); }
+.half ul { margin: 4mm 0 0; padding-left: 5mm; font-size: 14.5px; line-height: 1.45; }
+.half .card { padding: 4mm 4mm 3mm; } .half .card img { width: 42mm; height: 42mm; } .half .card .url { font-size: 19px; }
+.half .card .tag { margin: 0 -4mm 3mm; padding-bottom: 2.6mm; font-size: 10.5px; }
+.cut { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); background: #fff; padding: 0 3mm; font-size: 11px; color: #9a9184; }
+</style>
+</head>
+<body>
+
+<section class="page poster">
+  <div class="brand"><img src="../../public/icons/icon-192.png" alt="">ordkort <span class="free">Gratis · uten konto</span></div>
+
+  <h1>Lær norske ord<br>med <em>ordkort</em></h1>
+  <p class="lede">Skann koden, velg ditt språk og begynn. Ordkort viser deg ordet igjen akkurat når du er i ferd med å glemme det.</p>
+
+  <div class="middle">
+    <ol class="points">
+      <li><span class="n">1</span><span><b>29 temaer fra A1 til C1:</b> hilsener, hos legen, dokumenter og offentlige tjenester, arbeid, bolig, butikk og mye mer.</span></li>
+      <li><span class="n">2</span><span><b>Forklaringer på ditt eget språk</b> – du velger blant 60 språk.</span></li>
+      <li><span class="n">3</span><span><b>Riktige bøyninger:</b> substantiv og verb er kontrollert mot Bokmålsordboka.</span></li>
+      <li><span class="n">4</span><span><b>Bilder og uttale</b> til ordene, ordbok og grammatikk.</span></li>
+      <li><span class="n">5</span><span><b>Ingen reklame.</b> Virker uten internett og kan legges på hjemskjermen som en app.</span></li>
+    </ol>
+    <div class="card">
+      <div class="tag">Skann og start</div>
+      <img src="qr-learn-nb.svg" alt="QR-kode til ordkort.com">
+      <div class="url">ordkort.com</div>
+      <div class="how">Åpne kameraet på telefonen og pek på koden.</div>
+    </div>
+  </div>
+
+  <div class="langs">
+    <h2>Velg ditt språk</h2>
+    <ul>
+      <li lang="ti">ትግርኛ</li><li lang="ar" dir="rtl">العربية</li><li lang="prs" dir="rtl">دری</li><li lang="so">Soomaali</li>
+      <li lang="uk">Українська</li><li lang="ps" dir="rtl">پښتو</li><li lang="fa" dir="rtl">فارسی</li><li lang="kmr">Kurmancî</li>
+      <li lang="ckb" dir="rtl">کوردی</li><li lang="am">አማርኛ</li><li lang="pl">Polski</li><li lang="lt">Lietuvių</li>
+      <li lang="ru">Русский</li><li lang="th">ไทย</li><li lang="tl">Filipino</li><li lang="es">Español</li><li lang="en">English</li>
+      <li class="more">og 43 andre</li>
+    </ul>
+  </div>
+
+  <div class="foot">
+    <span><b>For lærere:</b> lag en egen ordliste til klassen og del den med en lenke eller QR-kode – ordkort.com/nb/laerer</span>
+    <span>Gratis og åpen kildekode</span>
+  </div>
+</section>
+
+<section class="page halves">
+  <span class="cut">✂ klipp her</span>
+  <div class="half">
+    <div>
+      <div class="brand"><img src="../../public/icons/icon-192.png" alt="">ordkort</div>
+      <h3>Lær norske ord – gratis</h3>
+      <p>Skann koden, velg ditt språk og begynn. Ingen konto og ingen reklame.</p>
+      <ul>
+        <li>29 temaer fra A1 til C1</li>
+        <li>Forklaringer på ditt eget språk</li>
+        <li>Bøyninger kontrollert mot Bokmålsordboka</li>
+        <li>Bilder, uttale, ordbok og grammatikk</li>
+      </ul>
+    </div>
+    <div class="card"><div class="tag">Skann og start</div><img src="qr-learn-nb.svg" alt="QR-kode til ordkort.com"><div class="url">ordkort.com</div></div>
+  </div>
+  <div class="half">
+    <div>
+      <div class="brand"><img src="../../public/icons/icon-192.png" alt="">ordkort</div>
+      <h3>Lær norske ord – gratis</h3>
+      <p>Skann koden, velg ditt språk og begynn. Ingen konto og ingen reklame.</p>
+      <ul>
+        <li>29 temaer fra A1 til C1</li>
+        <li>Forklaringer på ditt eget språk</li>
+        <li>Bøyninger kontrollert mot Bokmålsordboka</li>
+        <li>Bilder, uttale, ordbok og grammatikk</li>
+      </ul>
+    </div>
+    <div class="card"><div class="tag">Skann og start</div><img src="qr-learn-nb.svg" alt="QR-kode til ordkort.com"><div class="url">ordkort.com</div></div>
+  </div>
+</section>
+
+</body>
+</html>

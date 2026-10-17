@@ -34,6 +34,9 @@ export const TEACH = {
       'Velg «Del med lenke». Du får en lenke og en QR-kode, og den som åpner dem, kan legge en kopi av ordlisten til sine egne kort.',
     ],
     ownNote: 'Oversettelsene i en delt ordliste står på språket du skrev dem på, for eksempel engelsk. I en klasse med mange språk passer derfor de ferdige temaene best, mens en egen liste passer når deltakerne har et felles språk.',
+    printH: 'Plakat og lapper til klasserommet',
+    printP: 'En plakat i A4 og to lapper i A5 med en QR-kode som åpner Ordkort med norsk allerede valgt. Skriv ut og heng opp plakaten, eller del ut lappene.',
+    printLink: 'Last ned PDF (A4, 2 sider)',
     privacyH: 'Personvern',
     privacy: [
       'Deltakerne trenger ingen konto, e-postadresse eller passord. Kortene og fremgangen lagres i nettleseren på deres egen enhet, og det er verken reklame eller sporing.',
@@ -74,6 +77,9 @@ export const TEACH = {
       'Choose “Share by link”. You get a link and a QR code, and whoever opens them can add a copy of the list to their own cards.',
     ],
     ownNote: 'The translations in a shared list are in the language you wrote them in. In a class with many languages the ready topics work best; an own list fits a class that shares a language.',
+    printH: 'A poster and handouts for the classroom',
+    printP: 'An A4 poster and two A5 handouts in Norwegian, with a QR code that opens Ordkort with Norwegian already chosen. Print the poster and put it up, or hand out the slips.',
+    printLink: 'Download the PDF (A4, 2 pages)',
     privacyH: 'Privacy',
     privacy: [
       'Learners need no account, e-mail address or password. Their cards and progress are stored in the browser on their own device, with no ads and no tracking.',
@@ -114,6 +120,9 @@ export const TEACH = {
       'Виберіть «Поділитися посиланням». Ви отримаєте посилання й QR-код, і кожен, хто їх відкриє, зможе додати копію списку до своїх карток.',
     ],
     ownNote: 'Переклади в спільному списку будуть тією мовою, якою ви їх написали, тож для україномовної групи пишіть українською.',
+    printH: 'Плакат і листівки для класу',
+    printP: 'Плакат A4 і дві листівки A5 норвезькою з QR-кодом, який відкриває Ordkort із уже вибраною норвезькою. Роздрукуйте й повісьте плакат або роздайте листівки.',
+    printLink: 'Завантажити PDF (A4, 2 сторінки)',
     privacyH: 'Приватність',
     privacy: [
       'Учням не потрібні акаунт, електронна пошта чи пароль. Картки й прогрес зберігаються в браузері на їхньому пристрої, без реклами й без стеження.',
@@ -154,6 +163,9 @@ export const TEACH = {
       'Выберите «Поделиться ссылкой». Вы получите ссылку и QR-код, и любой, кто их откроет, сможет добавить копию списка к своим карточкам.',
     ],
     ownNote: 'Переводы в общем списке будут на том языке, на котором вы их написали, поэтому для русскоязычной группы пишите по-русски.',
+    printH: 'Плакат и листовки для класса',
+    printP: 'Плакат A4 и две листовки A5 на норвежском с QR-кодом, который открывает Ordkort с уже выбранным норвежским. Распечатайте и повесьте плакат или раздайте листовки.',
+    printLink: 'Скачать PDF (A4, 2 страницы)',
     privacyH: 'Приватность',
     privacy: [
       'Ученикам не нужны аккаунт, почта или пароль. Карточки и прогресс хранятся в браузере на их устройстве, без рекламы и без слежки.',

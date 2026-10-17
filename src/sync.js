@@ -8,7 +8,7 @@
    /api/media — the files that copy refers to but cannot hold (recordings from Anki, photos of your own), one by one,
                 each encrypted on the device with the copy's key; only who holds the copy's token reaches them. */
 import { HttpError, json, readJSON, sha256, safeEqual, randomCode, isCode } from './util.js';
-import { takeSimple } from './limits.js';
+import { takeSimple, takeStore } from './limits.js';
 
 const PAIR_TTL = 180 * 1000;
 const MAX_BLOB = 1_900_000; // D1 stores strings of up to 2 MB
@@ -22,7 +22,10 @@ export async function pairCreate(request, env, key) {
   await takeSimple(env, 'pair-new', key, 20, HOUR);
   const body = await readJSON(request, MAX_BLOB + 1000);
   if (!b64ok(body.d)) throw new HttpError(400, 'bad_data');
+  await takeStore(env, key, body.d.length);
   const exp = Date.now() + PAIR_TTL;
+  // codes that were never taken are cleared here too, not only by the daily cron: they are up to 2 MB each
+  await env.DB.prepare('DELETE FROM pair WHERE exp < ?').bind(Date.now()).run();
   for (let i = 0; i < 5; i++) {
     const id = randomCode(6);
     const r = await env.DB.prepare('INSERT OR IGNORE INTO pair (id, d, exp) VALUES (?, ?, ?)').bind(id, body.d, exp).run();
@@ -70,19 +73,24 @@ export async function syncPut(request, env, key, id) {
   const expected = Number(body.v) || 0;
   const now = Date.now();
 
-  if (expected === 0) {
+  const row = await env.DB.prepare('SELECT auth, v, length(d) AS n FROM sync WHERE id = ?').bind(id).first();
+  if (row && !safeEqual(row.auth, auth)) throw new HttpError(403, 'forbidden');
+  if (!row && expected === 0) {
+    await takeStore(env, key, body.d.length);
     const r = await env.DB.prepare('INSERT OR IGNORE INTO sync (id, auth, v, d, t) VALUES (?, ?, 1, ?, ?)').bind(id, auth, body.d, now).run();
     if (r.meta.changes) return json({ v: 1 });
-  } else {
+  } else if (row && row.v === expected) {
+    // only what makes the copy bigger counts against the room in the database
+    await takeStore(env, key, body.d.length - row.n);
     const r = await env.DB.prepare('UPDATE sync SET d = ?, v = v + 1, t = ? WHERE id = ? AND auth = ? AND v = ?')
       .bind(body.d, now, id, auth, expected).run();
     if (r.meta.changes) return json({ v: expected + 1 });
   }
-  // nothing written: either a wrong token, or someone else wrote first (version conflict)
-  const row = await env.DB.prepare('SELECT auth, v FROM sync WHERE id = ?').bind(id).first();
-  if (!row) throw new HttpError(404, 'none');
-  if (!safeEqual(row.auth, auth)) throw new HttpError(403, 'forbidden');
-  return json({ error: 'conflict', v: row.v }, 409);
+  // nothing written: no copy, or someone else wrote first (version conflict)
+  const cur = await env.DB.prepare('SELECT auth, v FROM sync WHERE id = ?').bind(id).first();
+  if (!cur) throw new HttpError(404, 'none');
+  if (!safeEqual(cur.auth, auth)) throw new HttpError(403, 'forbidden');
+  return json({ error: 'conflict', v: cur.v }, 409);
 }
 
 export async function syncDelete(request, env, key, id) {
@@ -129,6 +137,8 @@ export async function mediaPut(request, env, key, id, name) {
   if (!b64ok(body.d)) throw new HttpError(400, 'bad_data');
   const use = await env.DB.prepare('SELECT COUNT(*) AS n, COALESCE(SUM(LENGTH(d)), 0) AS bytes FROM media WHERE sid = ?').bind(id).first();
   if ((use?.n || 0) >= MEDIA_MAX_FILES || (use?.bytes || 0) + body.d.length > MEDIA_MAX_BYTES) throw new HttpError(413, 'too_large');
+  // a copy may hold 150 MB, and anyone can make copies: the bytes come from the room in the database (src/limits.js)
+  if (!(await env.DB.prepare('SELECT 1 FROM media WHERE sid = ? AND name = ?').bind(id, name).first())) await takeStore(env, key, body.d.length);
   // a file's name is a hash of its bytes: the same name is the same file, so a second upload changes nothing
   await env.DB.prepare('INSERT OR IGNORE INTO media (sid, name, d, t) VALUES (?, ?, ?, ?)').bind(id, name, body.d, Date.now()).run();
   return json({ ok: true });

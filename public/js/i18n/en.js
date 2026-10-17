@@ -853,4 +853,13 @@ globalThis.App.i18nData.en = {
   'remind.denied': "Notifications are blocked for this site in the browser's settings.",
   'remind.background': "On: it comes even when the app is closed.",
   'remind.tab': "On: it comes while the site is open in a tab. Install the site as an app (Chrome, Edge) for reminders when it is closed.",
+  'look.side_front': "Front",
+  'look.side_back': "Back",
+  'ui.translating_to': "Translating the interface into {lang}",
+  'ui.translating_start': "Asking the AI for the first part…",
+  'ui.translating_parts': "Part {done} of {parts} · the page changes as they arrive",
+  'ui.translating_wait': "The AI is busy, asking again in a moment…",
+  'ui.translating_failed': "The translation stopped. The rest stays in English for now.",
+  'ui.translating_retry': "Try again",
+  'ui.translated': "The interface is in {lang} now",
 };
