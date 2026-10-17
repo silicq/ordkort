@@ -383,6 +383,7 @@ textarea.input { resize: vertical; min-height: 64px; line-height: 1.45; }
   position: relative;
   cursor: pointer;
   margin: 0;
+  flex-shrink: 0; /* in a row with other controls it keeps its size */
   transition: background 0.2s;
 }
 .switch::before {
@@ -1717,6 +1718,14 @@ dialog.modal::backdrop { background: rgba(20, 16, 10, 0.45); backdrop-filter: bl
   .result { padding-top: 10px; overflow-y: auto; }
   .empty.big { padding: 30px 10px; }
 }
+
+/* the keyboard is open on a phone (js/app.js): the study screen fits into what is left above it */
+html.kb-open body.view-study .study { height: calc(var(--vvh, 100svh) - 8px); min-height: 0; padding-bottom: 6px; }
+html.kb-open body.view-study .study-top { margin-bottom: 6px; }
+html.kb-open body.view-study .stage { padding-bottom: 8px; }
+html.kb-open body.view-study .stack { min-height: 130px; }
+html.kb-open body.view-study .stack-bg { display: none; } /* the cards under it would reach over the field */
+html.kb-open body.view-study .flash-tag { height: 26px; }
 
 /* short screens (phone in landscape, small phones) */
 @media (max-height: 620px) and (max-width: 1000px) {

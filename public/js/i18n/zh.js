@@ -866,5 +866,5 @@ globalThis.App.i18nData.zh = {
   'open.go': "打开",
   'open.bad': "这不是 Ordkort 的链接。",
   'open.in_app': "在主屏幕上使用 Ordkort？应用有自己的卡片，与 Safari 分开。复制此链接并在应用中打开：首页 → 打开链接。",
-  'remind.ios': "在 iPhone 上，网页应用只能由推送服务唤醒，因此目前只有在 Ordkort 打开时才会收到提醒。",
+  'remind.ios': "在 iPhone 上，应用图标会显示有多少张卡片该复习了。应用关闭时无法收到通知：在 iPhone 上这需要服务器，而你的任何信息都不会发送到服务器。",
 };
