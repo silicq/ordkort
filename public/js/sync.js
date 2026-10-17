@@ -189,7 +189,7 @@
   function wanted() {
     const out = new Set();
     try {
-      for (const p of Object.values(JSON.parse(A.store.kvGet(A.config.storageKey) || '{}').pairs || {})) {
+      for (const p of Object.values(A.store.allPairs || {})) {
         for (const c of Object.values(p.cards || {})) {
           if (c.audio) out.add(c.audio);
           if (c.img && !c.imgUrl) out.add(c.img);

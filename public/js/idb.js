@@ -1,10 +1,12 @@
 /* IndexedDB: what is too big for localStorage and the encrypted sync copy, kept on this device only.
+   kv    — the cards, decks, progress and settings themselves (js/store.js), as one JSON text under 'state':
+           localStorage allows about 5 MB for the whole site, IndexedDB a share of the disk.
    log   — every answer: when, which card, the grade, the mode, and for a wrong answer what was typed or picked.
            It is what "What goes wrong" reads, and what fitting FSRS to a person will need. A year is kept.
    media — pictures for cards, by their own key (a hash of the bytes). */
 (() => {
   const A = window.App;
-  const NAME = 'ordkort', VERSION = 1, YEAR = 365 * 864e5;
+  const NAME = 'ordkort', VERSION = 2, YEAR = 365 * 864e5;
   let opening = null;
 
   function open() {
@@ -19,6 +21,7 @@
           log.createIndex('t', 't');
         }
         if (!db.objectStoreNames.contains('media')) db.createObjectStore('media');
+        if (!db.objectStoreNames.contains('kv')) db.createObjectStore('kv');
       };
       r.onsuccess = () => resolve(r.result);
       r.onerror = () => reject(r.error);
@@ -75,5 +78,10 @@
   const mediaDel = (key) => run('media', 'readwrite', (s) => s.delete(key)).catch(() => {});
   const mediaKeys = () => run('media', 'readonly', (s) => s.getAllKeys()).catch(() => []);
 
-  A.idb = { logAdd, logAll, logClear, mediaPut, mediaGet, mediaDel, mediaKeys };
+  /* ---------- the state (js/store.js) ---------- */
+  const kvGet = (key) => run('kv', 'readonly', (s) => s.get(key));
+  const kvPut = (key, value) => run('kv', 'readwrite', (s) => s.put(value, key));
+  const kvDel = (key) => run('kv', 'readwrite', (s) => s.delete(key));
+
+  A.idb = { logAdd, logAll, logClear, mediaPut, mediaGet, mediaDel, mediaKeys, kvGet, kvPut, kvDel };
 })();

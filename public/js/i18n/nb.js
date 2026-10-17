@@ -436,7 +436,7 @@ globalThis.App.i18nData.nb = {
   'about.title': "Slik *fungerer* det",
   'about.lede': "Kort og ærlig: hva som lagres hvor, og hva som sendes hvor.",
   'about.local_h': "Alt blir hos deg",
-  'about.local_p': "Kort, fremgang og innstillinger lagres i nettleserens lager (localStorage). Historikken over alle svar (det «Hva går galt» leser) og bildene på kortene lagres i IndexedDB, bare på denne enheten. Ingen registrering, reklame, sporing eller analyse. Nettstedet bruker ikke informasjonskapsler.",
+  'about.local_p': "Kort, fremgang og innstillinger lagres i nettleserens lager (IndexedDB). Historikken over alle svar (det «Hva går galt» leser) og bildene på kortene lagres i IndexedDB, bare på denne enheten. Ingen registrering, reklame, sporing eller analyse. Nettstedet bruker ikke informasjonskapsler.",
   'about.ai_h': "Hva som sendes til serveren når du spør KI-en",
   'about.ai_p': "Bare selve forespørselen — et ord, et tema, et spørsmål, en tekst som skal oversettes eller leses — og de to språkene. Serveren sender den til KI-modellen hos Groq og lagrer svaret i en felles base uten noen kobling til deg, slik at neste person får det med en gang. Ikke skriv personopplysninger i oversetteren eller lesingen.",
   'about.limits_h': "Hvorfor det finnes en grense",
