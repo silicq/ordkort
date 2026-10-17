@@ -52,3 +52,28 @@ test('the card picture works where an address goes, and pictures from the web co
   assert.match(css, /url\(\/icons\/x\.svg\)/);
   assert.match(css, /url\(data:image\/png;base64,AAAA\)/);
 });
+
+test('a section inside a section opens too, and a section mark never shows as braces', () => {
+  const tpl = '{{#example}}<p>{{example}}</p>{{#example_translation}}<p class="tr">{{example_translation}}</p>{{/example_translation}}{{/example}}';
+  assert.equal(L.fill(tpl, { example: 'Vi bor her.', example_translation: 'We live here.' }), '<p>Vi bor her.</p><p class="tr">We live here.</p>');
+  assert.equal(L.fill(tpl, { example: 'Vi bor her.', example_translation: '' }), '<p>Vi bor her.</p>');
+  assert.equal(L.fill(tpl, { example: '', example_translation: 'x' }), '');
+  assert.equal(L.fill('{{#term}}a{{/translation}}', { term: 'x' }), 'a', 'a mark without its pair is dropped');
+});
+
+test('a shared look\'s card CSS stays inside its scope and is kept as written', () => {
+  const css = '.a{background:linear-gradient(var(--a1),var(--a2));-webkit-background-clip:text;background-clip:text}'
+    + ' } } body{display:none} @keyframes k{from{opacity:0}to{opacity:1}} .s::after{content:"}"} /* } */ .b{color:red';
+  const out = L.scoped(css, '.look-side');
+  assert.match(out, /background:linear-gradient\(var\(--a1\),var\(--a2\)\);-webkit-background-clip:text/, 'written as it was');
+  assert.match(out, /^@keyframes k\{/, 'keyframes stay outside the scope');
+  const inside = out.slice(out.indexOf('@scope (.look-side) {'));
+  // braces outside strings and comments balance, and the scope closes only at the very end
+  const bare = inside.replace(/"[^"]*"|\/\*[\s\S]*?\*\//g, '');
+  let depth = 0, closedEarly = false;
+  [...bare].forEach((ch, i) => { if (ch === '{') depth++; if (ch === '}') { depth--; if (!depth && i < bare.trimEnd().length - 1) closedEarly = true; } });
+  assert.equal(depth, 0);
+  assert.equal(closedEarly, false, 'no stray brace ends the scope');
+  assert.match(inside, /body\{display:none\}/, 'the rule stays, but only inside the scope');
+  assert.doesNotMatch(out, /\.b\{color:red/, 'an unfinished rule is dropped');
+});

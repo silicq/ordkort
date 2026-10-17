@@ -1,137 +1,2131 @@
 {
- "source": "local",
+ "source": "remote",
  "words": {
-  "ru": {
-   "food": [
+  "en": {
+   "feelings": [
     {
-     "term": "et brød",
-     "tr": "хлеб",
+     "term": "en glede",
+     "tr": "joy, delight",
      "pos": "noun",
-     "forms": "brødet, brød, brødene",
-     "ex": "Jeg spiser et brød.",
-     "ex_tr": "Я ем хлеб.",
-     "level": "A1",
+     "forms": "gleden, gleder, gledene",
+     "ex": "Jeg føler mye glede når jeg ser solen.",
+     "ex_tr": "I feel a lot of joy when I see the sun.",
+     "level": "A2",
      "chk": 0
     },
     {
-     "term": "en ost",
-     "tr": "сыр",
+     "term": "en tristhet",
+     "tr": "sadness, sorrow",
      "pos": "noun",
-     "forms": "osten, oster, ostene",
-     "ex": "Jeg liker ost.",
-     "ex_tr": "Мне нравится сыр.",
-     "level": "A1",
+     "forms": "tristheten, tristheter, tristhetene",
+     "ex": "Tristheten var tydelig i stemmen hennes.",
+     "ex_tr": "The sadness was evident in her voice.",
+     "level": "A2",
      "chk": 0
     },
     {
-     "term": "en pizza",
-     "tr": "пицца",
+     "term": "et sinne",
+     "tr": "anger, rage",
      "pos": "noun",
-     "forms": "pizzaen, pizzaer, pizzaene",
-     "ex": "Vi bestiller en pizza.",
-     "ex_tr": "Мы заказываем пиццу.",
-     "level": "A1",
+     "forms": "sinnet, sinner, sinnene",
+     "ex": "Han klarte ikke å kontrollere sitt sinne.",
+     "ex_tr": "He couldn't control his anger.",
+     "level": "A2",
      "chk": 0
     },
     {
-     "term": "en suppe",
-     "tr": "суп",
+     "term": "en frykt",
+     "tr": "fear, terror",
      "pos": "noun",
-     "forms": "suppen, supper, suppene",
-     "ex": "Hun spiser suppe.",
-     "ex_tr": "Она ест суп.",
-     "level": "A1",
+     "forms": "frykten, frykter, fryktene",
+     "ex": "Frykten for høyden hindrer meg fra å klatre.",
+     "ex_tr": "The fear of heights prevents me from climbing.",
+     "level": "A2",
      "chk": 0
     },
     {
-     "term": "et vann",
-     "tr": "вода",
+     "term": "en overraskelse",
+     "tr": "surprise, astonishment",
      "pos": "noun",
-     "forms": "vannet, vann, vannene",
-     "ex": "Kan jeg få et vann?",
-     "ex_tr": "Можно мне воду?",
-     "level": "A1",
+     "forms": "overraskelsen, overraskelser, overraskelsene",
+     "ex": "Overraskelsen var en stor fest.",
+     "ex_tr": "The surprise was a big party.",
+     "level": "A2",
      "chk": 0
     },
     {
-     "term": "en kaffe",
-     "tr": "кофе",
+     "term": "en ro",
+     "tr": "calm, tranquility",
      "pos": "noun",
-     "forms": "kaffen, kaffer, kaffene",
-     "ex": "Jeg drikker kaffe.",
-     "ex_tr": "Я пью кофе.",
-     "level": "A1",
+     "forms": "roen, roer, roene",
+     "ex": "Jeg liker roen i fjellene.",
+     "ex_tr": "I like the calmness in the mountains.",
+     "level": "A2",
      "chk": 0
     },
     {
-     "term": "et øl",
-     "tr": "пиво",
+     "term": "en misunnelse",
+     "tr": "envy, jealousy",
      "pos": "noun",
-     "forms": "ølet, øl, ølene",
-     "ex": "Han bestiller et øl.",
-     "ex_tr": "Он заказывает пиво.",
-     "level": "A1",
+     "forms": "misunnelsen, misunnelser, misunnelsene",
+     "ex": "Misunnelsen gjorde ham bitter.",
+     "ex_tr": "The envy made him bitter.",
+     "level": "A2",
      "chk": 0
     },
     {
-     "term": "en yoghurt",
-     "tr": "йогурт",
+     "term": "en stolthet",
+     "tr": "pride, self‑respect",
      "pos": "noun",
-     "forms": "yoghurten, yoghurter, yoghurtene",
-     "ex": "Hun spiser yoghurt.",
-     "ex_tr": "Она ест йогурт.",
-     "level": "A1",
+     "forms": "stoltheten, stoltheter, stolthetene",
+     "ex": "Stoltheten over resultatet var stor.",
+     "ex_tr": "The pride over the result was great.",
+     "level": "A2",
      "chk": 0
     },
     {
-     "term": "en kake",
-     "tr": "пирог, торт",
+     "term": "en skam",
+     "tr": "shame, disgrace",
      "pos": "noun",
-     "forms": "kaken, kaker, kakene",
-     "ex": "Vi har kake.",
-     "ex_tr": "У нас есть торт.",
-     "level": "A1",
+     "forms": "skammen, skam, skamene",
+     "ex": "Skammen over feilen var tydelig.",
+     "ex_tr": "The shame over the mistake was obvious.",
+     "level": "A2",
      "chk": 0
     },
     {
-     "term": "et smørbrød",
-     "tr": "бутерброд",
+     "term": "en bekymring",
+     "tr": "worry, concern",
      "pos": "noun",
-     "forms": "smørbrødet, smørbrød, smørbrødene",
-     "ex": "Jeg spiser et smørbrød.",
-     "ex_tr": "Я ем бутерброд.",
-     "level": "A1",
+     "forms": "bekymringen, bekymringer, bekymringene",
+     "ex": "Bekymringen hennes for barnet er naturlig.",
+     "ex_tr": "Her worry for the child is natural.",
+     "level": "A2",
      "chk": 0
     },
     {
-     "term": "å spise",
-     "tr": "есть",
+     "term": "å føle",
+     "tr": "to feel",
      "pos": "verb",
-     "forms": "spiser, spiste, har spist",
-     "ex": "Jeg liker å spise.",
-     "ex_tr": "Мне нравится есть.",
-     "level": "A1",
+     "forms": "føler, følte, har følt",
+     "ex": "Jeg føler meg glad i dag.",
+     "ex_tr": "I feel happy today.",
+     "level": "A2",
      "chk": 0
     },
     {
-     "term": "å drikke",
-     "tr": "пить",
+     "term": "å bli",
+     "tr": "to become",
      "pos": "verb",
-     "forms": "drikker, drakk, har drukket",
-     "ex": "Han vil drikke vann.",
-     "ex_tr": "Он хочет пить воду.",
-     "level": "A1",
+     "forms": "blir, ble, har blitt",
+     "ex": "Han blir sint når han er sulten.",
+     "ex_tr": "He becomes angry when he is hungry.",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "å elske",
+     "tr": "to love",
+     "pos": "verb",
+     "forms": "elsker, elskede, har elsket",
+     "ex": "Jeg elsker å lese bøker.",
+     "ex_tr": "I love to read books.",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "å hate",
+     "tr": "to hate",
+     "pos": "verb",
+     "forms": "hater, hatet, har hatet",
+     "ex": "Hun hater å stå i kø.",
+     "ex_tr": "She hates standing in line.",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "å savne",
+     "tr": "to miss, to long for",
+     "pos": "verb",
+     "forms": "savner, savnet, har savnet",
+     "ex": "Jeg savner familien min.",
+     "ex_tr": "I miss my family.",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "å irritere",
+     "tr": "to irritate",
+     "pos": "verb",
+     "forms": "irriterer, irriterte, har irritert",
+     "ex": "Lyden irriterer meg.",
+     "ex_tr": "The sound irritates me.",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "å roe seg",
+     "tr": "to calm down",
+     "pos": "verb",
+     "forms": "roer seg, roet seg, har roet seg",
+     "ex": "Han prøver å roe seg etter krangelen.",
+     "ex_tr": "He tries to calm down after the argument.",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "å gråte",
+     "tr": "to cry",
+     "pos": "verb",
+     "forms": "gråter, gråt, har grått",
+     "ex": "Hun gråter når hun ser filmen.",
+     "ex_tr": "She cries when she watches the movie.",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "glad",
+     "tr": "happy, glad",
+     "pos": "adjective",
+     "forms": "glatt, glade, gladere, gladest",
+     "ex": "Han er glad for nyhetene.",
+     "ex_tr": "He is happy about the news.",
+     "level": "A2",
      "chk": 0
     }
    ],
    "greetings": [
     {
      "term": "hei",
-     "tr": "привет",
+     "tr": "hello, hi",
      "pos": "interjection",
      "forms": "",
+     "ex": "Hei! Hvordan har du det?",
+     "ex_tr": "Hi! How are you?",
+     "level": "A1",
+     "chk": 0
+    },
+    {
+     "term": "hallo",
+     "tr": "hello",
+     "pos": "interjection",
+     "forms": "",
+     "ex": "Hallo, jeg heter Anna.",
+     "ex_tr": "Hello, my name is Anna.",
+     "level": "A1",
+     "chk": 0
+    },
+    {
+     "term": "god morgen",
+     "tr": "good morning",
+     "pos": "phrase",
+     "forms": "",
+     "ex": "God morgen! Hvordan sov du?",
+     "ex_tr": "Good morning! How did you sleep?",
+     "level": "A1",
+     "chk": 0
+    },
+    {
+     "term": "god dag",
+     "tr": "good day, hello",
+     "pos": "phrase",
+     "forms": "",
+     "ex": "God dag, kan jeg hjelpe deg?",
+     "ex_tr": "Good day, can I help you?",
+     "level": "A1",
+     "chk": 0
+    },
+    {
+     "term": "god kveld",
+     "tr": "good evening",
+     "pos": "phrase",
+     "forms": "",
+     "ex": "God kveld, velkommen!",
+     "ex_tr": "Good evening, welcome!",
+     "level": "A1",
+     "chk": 0
+    },
+    {
+     "term": "god natt",
+     "tr": "good night",
+     "pos": "phrase",
+     "forms": "",
+     "ex": "God natt, sov godt.",
+     "ex_tr": "Good night, sleep well.",
+     "level": "A1",
+     "chk": 0
+    },
+    {
+     "term": "ha det",
+     "tr": "goodbye, see you",
+     "pos": "phrase",
+     "forms": "",
+     "ex": "Ha det! Vi ses i morgen.",
+     "ex_tr": "Bye! See you tomorrow.",
+     "level": "A1",
+     "chk": 0
+    },
+    {
+     "term": "farvel",
+     "tr": "farewell, goodbye",
+     "pos": "interjection",
+     "forms": "",
+     "ex": "Farvel, ha en fin dag.",
+     "ex_tr": "Goodbye, have a nice day.",
+     "level": "A1",
+     "chk": 0
+    },
+    {
+     "term": "takk",
+     "tr": "thanks, thank you",
+     "pos": "interjection",
+     "forms": "",
+     "ex": "Takk for hjelpen.",
+     "ex_tr": "Thanks for the help.",
+     "level": "A1",
+     "chk": 0
+    },
+    {
+     "term": "vær så snill",
+     "tr": "please",
+     "pos": "phrase",
+     "forms": "",
+     "ex": "Kan du hjelpe meg, vær så snill?",
+     "ex_tr": "Can you help me, please?",
+     "level": "A1",
+     "chk": 0
+    },
+    {
+     "term": "unnskyld",
+     "tr": "sorry, excuse me",
+     "pos": "interjection",
+     "forms": "",
+     "ex": "Unnskyld, jeg kom for sent.",
+     "ex_tr": "Sorry, I was late.",
+     "level": "A1",
+     "chk": 0
+    },
+    {
+     "term": "å hilse",
+     "tr": "to greet",
+     "pos": "verb",
+     "forms": "hilser, hilste, har hilst",
+     "ex": "Jeg hilser på deg.",
+     "ex_tr": "I greet you.",
+     "level": "A1",
+     "chk": 1
+    },
+    {
+     "term": "å introdusere",
+     "tr": "to introduce",
+     "pos": "verb",
+     "forms": "introduserer, introduserte, har introdusert",
+     "ex": "Jeg vil introdusere min venn.",
+     "ex_tr": "I want to introduce my friend.",
+     "level": "A1",
+     "chk": 1
+    },
+    {
+     "term": "en person",
+     "tr": "person, someone",
+     "pos": "noun",
+     "forms": "personen, personer, personene",
+     "ex": "Dette er en person jeg kjenner.",
+     "ex_tr": "This is a person I know.",
+     "level": "A1",
+     "chk": 1
+    },
+    {
+     "term": "et navn",
+     "tr": "name",
+     "pos": "noun",
+     "forms": "navnet, navn, navnene",
+     "ex": "Hva er ditt navn?",
+     "ex_tr": "What is your name?",
+     "level": "A1",
+     "chk": 1
+    },
+    {
+     "term": "jeg",
+     "tr": "I",
+     "pos": "pronoun",
+     "forms": "",
+     "ex": "Jeg heter Lars.",
+     "ex_tr": "My name is Lars.",
+     "level": "A1",
+     "chk": 0
+    },
+    {
+     "term": "du",
+     "tr": "you (singular)",
+     "pos": "pronoun",
+     "forms": "",
+     "ex": "Hvordan har du det?",
+     "ex_tr": "How are you?",
+     "level": "A1",
+     "chk": 0
+    },
+    {
+     "term": "han",
+     "tr": "he",
+     "pos": "pronoun",
+     "forms": "",
+     "ex": "Han er min venn.",
+     "ex_tr": "He is my friend.",
+     "level": "A1",
+     "chk": 0
+    },
+    {
+     "term": "hun",
+     "tr": "she",
+     "pos": "pronoun",
+     "forms": "",
+     "ex": "Hun heter Maria.",
+     "ex_tr": "She is called Maria.",
+     "level": "A1",
+     "chk": 0
+    },
+    {
+     "term": "det",
+     "tr": "it, that",
+     "pos": "pronoun",
+     "forms": "",
+     "ex": "Det er fint.",
+     "ex_tr": "It is nice.",
+     "level": "A1",
+     "chk": 0
+    },
+    {
+     "term": "Hei",
+     "tr": "hello, hi",
+     "pos": "interjection",
+     "forms": "",
+     "ex": "Hei! Hvordan har du det?",
+     "ex_tr": "Hi! How are you?",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "Ha det",
+     "tr": "goodbye, bye",
+     "pos": "phrase",
+     "forms": "",
+     "ex": "Vi sees i morgen. Ha det!",
+     "ex_tr": "See you tomorrow. Bye!",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "God morgen",
+     "tr": "good morning",
+     "pos": "phrase",
+     "forms": "",
+     "ex": "God morgen! Har du sovet godt?",
+     "ex_tr": "Good morning! Did you sleep well?",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "God kveld",
+     "tr": "good evening",
+     "pos": "phrase",
+     "forms": "",
+     "ex": "God kveld, velkommen!",
+     "ex_tr": "Good evening, welcome!",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "God natt",
+     "tr": "good night",
+     "pos": "phrase",
+     "forms": "",
+     "ex": "God natt, sov godt.",
+     "ex_tr": "Good night, sleep well.",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "Takk",
+     "tr": "thanks, thank you",
+     "pos": "interjection",
+     "forms": "",
+     "ex": "Takk for hjelpen.",
+     "ex_tr": "Thanks for the help.",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "Vær så snill",
+     "tr": "please",
+     "pos": "phrase",
+     "forms": "",
+     "ex": "Kan du hjelpe meg, vær så snill?",
+     "ex_tr": "Can you help me, please?",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "Unnskyld",
+     "tr": "sorry, excuse me",
+     "pos": "interjection",
+     "forms": "",
+     "ex": "Unnskyld, jeg kom for sent.",
+     "ex_tr": "Sorry, I was late.",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "en hilsen",
+     "tr": "greeting",
+     "pos": "noun",
+     "forms": "hilsenen, hilsener, hilsene",
+     "ex": "Jeg sender deg en hilsen fra Oslo.",
+     "ex_tr": "I send you a greeting from Oslo.",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "en avskjed",
+     "tr": "farewell",
+     "pos": "noun",
+     "forms": "avskjeden, avskjeder, avskjedene",
+     "ex": "Vi tok en avskjed ved flyplassen.",
+     "ex_tr": "We said farewell at the airport.",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "en unnskyldning",
+     "tr": "apology",
+     "pos": "noun",
+     "forms": "unnskyldningen, unnskyldninger, unnskyldningene",
+     "ex": "Han ga meg en unnskyldning.",
+     "ex_tr": "He gave me an apology.",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "å hilse",
+     "tr": "to greet",
+     "pos": "verb",
+     "forms": "hilser, hilste, har hilset",
+     "ex": "Vi hilser på hverandre hver morgen.",
+     "ex_tr": "We greet each other every morning.",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "å ta farvel",
+     "tr": "to say goodbye",
+     "pos": "verb",
+     "forms": "tar farvel, tok farvel, har tatt farvel",
+     "ex": "Han tok farvel med familien.",
+     "ex_tr": "He said goodbye to the family.",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "å takke",
+     "tr": "to thank",
+     "pos": "verb",
+     "forms": "takker, takket, har takket",
+     "ex": "Jeg takker for gaven.",
+     "ex_tr": "I thank you for the gift.",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "å beklage",
+     "tr": "to apologise",
+     "pos": "verb",
+     "forms": "beklager, beklagde, har beklaget",
+     "ex": "Jeg beklager forsinkelsen.",
+     "ex_tr": "I apologise for the delay.",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "å introdusere seg",
+     "tr": "to introduce oneself",
+     "pos": "verb",
+     "forms": "introduserer seg, introduserte seg, har introdusert seg",
+     "ex": "Hun introduserer seg som Maria.",
+     "ex_tr": "She introduces herself as Maria.",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "vennlig",
+     "tr": "friendly, kind",
+     "pos": "adjective",
+     "forms": "vennlig, vennlige, vennligere, vennligst",
+     "ex": "Han er en vennlig person.",
+     "ex_tr": "He is a friendly person.",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "høflig",
+     "tr": "polite",
+     "pos": "adjective",
+     "forms": "høflig, høflige, høfligere, høfligst",
+     "ex": "Det er høflig å si takk.",
+     "ex_tr": "It is polite to say thank you.",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "hvordan har du det?",
+     "tr": "how are you?, how do you do?",
+     "pos": "phrase",
+     "forms": "",
      "ex": "Hei, hvordan har du det?",
-     "ex_tr": "Привет, как ты?",
+     "ex_tr": "Hi, how are you?",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "jeg heter …",
+     "tr": "my name is…, I am called…",
+     "pos": "phrase",
+     "forms": "",
+     "ex": "Hei, jeg heter Lars.",
+     "ex_tr": "Hi, my name is Lars.",
+     "level": "A2",
+     "chk": 0
+    }
+   ],
+   "numbers": [
+    {
+     "term": "en tall",
+     "tr": "number",
+     "pos": "noun",
+     "forms": "tallet, tall, tallene",
+     "ex": "Hva er telefonnummeret ditt?",
+     "ex_tr": "What is your phone number?",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "en mengde",
+     "tr": "amount, quantity",
+     "pos": "noun",
+     "forms": "mengden, mengder, mengdene",
+     "ex": "Jeg kjøpte en stor mengde mat.",
+     "ex_tr": "I bought a large amount of food.",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "en pris",
+     "tr": "price",
+     "pos": "noun",
+     "forms": "prisen, priser, prisene",
+     "ex": "Prisen på boken er hundre kroner.",
+     "ex_tr": "The price of the book is one hundred kroner.",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "en vekt",
+     "tr": "weight",
+     "pos": "noun",
+     "forms": "vekten, vekter, vektene",
+     "ex": "Hva veier du?",
+     "ex_tr": "How much do you weigh?",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "en lengde",
+     "tr": "length",
+     "pos": "noun",
+     "forms": "lengden, lengder, lengdene",
+     "ex": "Lengden på trøya er for kort.",
+     "ex_tr": "The length of the shirt is too short.",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "en størrelse",
+     "tr": "size",
+     "pos": "noun",
+     "forms": "størrelsen, størrelser, størrelsene",
+     "ex": "Hvilken størrelse har du på sko?",
+     "ex_tr": "What size do you wear in shoes?",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "en halv",
+     "tr": "half",
+     "pos": "noun",
+     "forms": "halven, halver, halvene",
+     "ex": "Jeg spiste en halv pizza.",
+     "ex_tr": "I ate half a pizza.",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "en del",
+     "tr": "part, piece",
+     "pos": "noun",
+     "forms": "delen, deler, delene",
+     "ex": "Jeg tok en del av kaken.",
+     "ex_tr": "I took a piece of the cake.",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "en pakke",
+     "tr": "package, parcel",
+     "pos": "noun",
+     "forms": "pakken, pakker, pakkene",
+     "ex": "Jeg mottok en pakke i dag.",
+     "ex_tr": "I received a package today.",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "en kilo",
+     "tr": "kilo",
+     "pos": "noun",
+     "forms": "kiloen, kilo, kiloene",
+     "ex": "Jeg kjøpte to kilo epler.",
+     "ex_tr": "I bought two kilos of apples.",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "en liter",
+     "tr": "liter",
+     "pos": "noun",
+     "forms": "literen, liter, literne",
+     "ex": "Kan jeg få en liter vann?",
+     "ex_tr": "Can I have a liter of water?",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "en centimeter",
+     "tr": "centimeter",
+     "pos": "noun",
+     "forms": "centimeteren, centimeter, centimeterne",
+     "ex": "Blyanten er ti centimeter lang.",
+     "ex_tr": "The pencil is ten centimeters long.",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "en meter",
+     "tr": "meter",
+     "pos": "noun",
+     "forms": "meteren, meter, meterne",
+     "ex": "Rommet er tre meter høyt.",
+     "ex_tr": "The room is three meters high.",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "en time",
+     "tr": "hour, class",
+     "pos": "noun",
+     "forms": "timen, timer, timene",
+     "ex": "Filmen varer to timer.",
+     "ex_tr": "The movie lasts two hours.",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "en minutt",
+     "tr": "minute",
+     "pos": "noun",
+     "forms": "minuttet, minutter, minuttene",
+     "ex": "Vent ett minutt, jeg kommer.",
+     "ex_tr": "Wait one minute, I'm coming.",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "en sekund",
+     "tr": "second",
+     "pos": "noun",
+     "forms": "sekundet, sekunder, sekundene",
+     "ex": "Vent et sekund, jeg hører deg.",
+     "ex_tr": "Wait a second, I hear you.",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "en prosent",
+     "tr": "percent",
+     "pos": "noun",
+     "forms": "prosenten, prosent, prosentene",
+     "ex": "Det koster femti prosent mindre.",
+     "ex_tr": "It costs fifty percent less.",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "en halvdel",
+     "tr": "half",
+     "pos": "noun",
+     "forms": "halvdelen, halvdeler, halvdelene",
+     "ex": "Halvdelen av klassen var der.",
+     "ex_tr": "Half of the class was there.",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "en kvart",
+     "tr": "quarter",
+     "pos": "noun",
+     "forms": "kvarten, kvarter, kvartene",
+     "ex": "Klokka er en kvart i tolv.",
+     "ex_tr": "It is a quarter to twelve.",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "en tiende",
+     "tr": "tenth",
+     "pos": "noun",
+     "forms": "tienden, tiende, tiendene",
+     "ex": "Han fikk tiende plass i løpet.",
+     "ex_tr": "He got tenth place in the race.",
+     "level": "A2",
+     "chk": 0
+    }
+   ]
+  },
+  "ru": {
+   "adjectives": [
+    {
+     "term": "kald",
+     "tr": "холодный, холодно",
+     "pos": "adjective",
+     "forms": "kaldt, kalde, kaldere, kaldest",
+     "ex": "Det er kaldt nå.",
+     "ex_tr": "Сейчас холодно.",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "vakker",
+     "tr": "красивый, прекрасный",
+     "pos": "adjective",
+     "forms": "vakkert, vakre, vakrere, vakrest",
+     "ex": "Hun har en vakker blomst.",
+     "ex_tr": "У неё красивый цветок.",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "pen",
+     "tr": "красивый, симпатичный",
+     "pos": "adjective",
+     "forms": "pent, pene, penere, penest",
+     "ex": "Dette er en pen kjole.",
+     "ex_tr": "Это красивое платье.",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "trøtt",
+     "tr": "усталый, сонный",
+     "pos": "adjective",
+     "forms": "trøtt, trøtte, trøtere, trøtest",
+     "ex": "Jeg er trøtt etter turen.",
+     "ex_tr": "Я устал после прогулки.",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "hungrig",
+     "tr": "голодный, желающий есть",
+     "pos": "adjective",
+     "forms": "hungrig, hungrige, hungrigere, hungrigst",
+     "ex": "Han er hungrig etter trening.",
+     "ex_tr": "Он голоден после тренировки.",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "tørr",
+     "tr": "сухой",
+     "pos": "adjective",
+     "forms": "tørt, tørre, tørrere, tørrest",
+     "ex": "Boken er tørr etter vask.",
+     "ex_tr": "Книга сухая после мытья.",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "våt",
+     "tr": "мокрый",
+     "pos": "adjective",
+     "forms": "vått, våte, våtere, våtest",
+     "ex": "Gulvet er vått.",
+     "ex_tr": "Пол мокрый.",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "lav",
+     "tr": "низкий, короткий",
+     "pos": "adjective",
+     "forms": "lavt, lave, lavere, lavest",
+     "ex": "Bordet er lavt.",
+     "ex_tr": "Стол низкий.",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "dyp",
+     "tr": "глубокий",
+     "pos": "adjective",
+     "forms": "dypt, dype, dypere, dypest",
+     "ex": "Havbunnen er dyp.",
+     "ex_tr": "Дно моря глубокое.",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "grunn",
+     "tr": "мелкий, неглубокий",
+     "pos": "adjective",
+     "forms": "grunt, grunne, grunner, grunnest",
+     "ex": "Elven er grunn her.",
+     "ex_tr": "Река здесь мелкая.",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "tykk",
+     "tr": "толстый, плотный",
+     "pos": "adjective",
+     "forms": "tykt, tykke, tykkere, tykkest",
+     "ex": "Støtten er tykk.",
+     "ex_tr": "Опора толстая.",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "tynn",
+     "tr": "тонкий, худой",
+     "pos": "adjective",
+     "forms": "tynt, tynne, tynnere, tynnest",
+     "ex": "Papiret er tynn.",
+     "ex_tr": "Бумага тонкая.",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "rask",
+     "tr": "быстрый, скорый",
+     "pos": "adjective",
+     "forms": "raskt, raske, raskere, raskest",
+     "ex": "Han er rask.",
+     "ex_tr": "Он быстрый.",
+     "level": "A2",
+     "chk": 0
+    }
+   ],
+   "animals": [
+    {
+     "term": "en hund",
+     "tr": "собака, пёс",
+     "pos": "noun",
+     "forms": "hunden,hunder,hundene",
+     "ex": "En hund løper i parken.",
+     "ex_tr": "Собака бегает в парке.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "en katt",
+     "tr": "кошка, кот",
+     "pos": "noun",
+     "forms": "katten,katter,kattene",
+     "ex": "En katt sover på sofaen.",
+     "ex_tr": "Кошка спит на диване.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "en hest",
+     "tr": "лошадь",
+     "pos": "noun",
+     "forms": "hesten,hester,hestene",
+     "ex": "En hest trekker en vogn.",
+     "ex_tr": "Лошадь тянет повозку.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "en ku",
+     "tr": "корова",
+     "pos": "noun",
+     "forms": "kua,kyr,kyrne",
+     "ex": "En ku gir melk hver dag.",
+     "ex_tr": "Корова дает молоко каждый день.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "en sau",
+     "tr": "овца",
+     "pos": "noun",
+     "forms": "sauen,sauer,sauen",
+     "ex": "En sau spiser gress på engen.",
+     "ex_tr": "Овца ест траву на лугу.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "en gris",
+     "tr": "свинья",
+     "pos": "noun",
+     "forms": "grisen,griser,grisene",
+     "ex": "En gris ruller i gjørmen.",
+     "ex_tr": "Свинья катается в грязи.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "en kanin",
+     "tr": "кролик",
+     "pos": "noun",
+     "forms": "kaninen,kaniner,kaninene",
+     "ex": "En kanin hopper over hagen.",
+     "ex_tr": "Кролик прыгает через сад.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "en fugl",
+     "tr": "птица",
+     "pos": "noun",
+     "forms": "fuglen,fugler,fuglene",
+     "ex": "En fugl synger om morgenen.",
+     "ex_tr": "Птица поёт утром.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "en fisk",
+     "tr": "рыба",
+     "pos": "noun",
+     "forms": "fisk​en,fisker,fiskene",
+     "ex": "En fisk svømmer i vannet.",
+     "ex_tr": "Рыба плавает в воде.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "en elg",
+     "tr": "лось",
+     "pos": "noun",
+     "forms": "elgen,elg,elgene",
+     "ex": "En elg står i skogen.",
+     "ex_tr": "Лось стоит в лесу.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "en bjørn",
+     "tr": "медведь",
+     "pos": "noun",
+     "forms": "bjørnen,bjørner,bjørnene",
+     "ex": "En bjørn sover i hulen.",
+     "ex_tr": "Медведь спит в пещере.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "en rev",
+     "tr": "лиса",
+     "pos": "noun",
+     "forms": "reven,rev,revene",
+     "ex": "En rev jager en kanin.",
+     "ex_tr": "Лиса гонится за кроликом.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "å mate",
+     "tr": "кормить",
+     "pos": "verb",
+     "forms": "mater,matet,har matet",
+     "ex": "Jeg må mate katten hver morgen.",
+     "ex_tr": "Я должен кормить кошку каждое утро.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "å løpe",
+     "tr": "бегать",
+     "pos": "verb",
+     "forms": "løper,løp,har løpt",
+     "ex": "Hunden løper raskt.",
+     "ex_tr": "Собака быстро бежит.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "å svømme",
+     "tr": "плавать",
+     "pos": "verb",
+     "forms": "svømmer,svømte,har svømt",
+     "ex": "Vi svømmer i sjøen om sommeren.",
+     "ex_tr": "Мы плаваем в море летом.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "å brøle",
+     "tr": "рёветь, рычать",
+     "pos": "verb",
+     "forms": "brøler,brølte,har brølt",
+     "ex": "Løven brøler når den er sint.",
+     "ex_tr": "Лев рычит, когда он злой.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "å hoppe",
+     "tr": "прыгать",
+     "pos": "verb",
+     "forms": "hopper,hoppet,har hoppet",
+     "ex": "Katten hopper opp på bordet.",
+     "ex_tr": "Кошка прыгает на стол.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "stor",
+     "tr": "большой",
+     "pos": "adjective",
+     "forms": "stort,store,større,størst",
+     "ex": "Den store bjørnen er farlig.",
+     "ex_tr": "Большой медведь опасен.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "liten",
+     "tr": "маленький",
+     "pos": "adjective",
+     "forms": "lite,små,mindre,minst",
+     "ex": "Den lille kaninen er søt.",
+     "ex_tr": "Маленький кролик милый.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "vill",
+     "tr": "дикий",
+     "pos": "adjective",
+     "forms": "vilt,ville,villere,villest",
+     "ex": "Den ville ulven jakter i skogen.",
+     "ex_tr": "Дикая волк охотится в лесу.",
+     "level": "B1",
+     "chk": 0
+    }
+   ],
+   "body": [
+    {
+     "term": "en hode",
+     "tr": "голова",
+     "pos": "noun",
+     "forms": "hodet, hoder, hodene",
+     "ex": "Jeg har vondt i hodet.",
+     "ex_tr": "У меня болит голова.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "en arm",
+     "tr": "рука",
+     "pos": "noun",
+     "forms": "armen, armer, armene",
+     "ex": "Hun løfter armen sin.",
+     "ex_tr": "Она поднимает свою руку.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "et bein",
+     "tr": "кость",
+     "pos": "noun",
+     "forms": "beinet, bein, beina",
+     "ex": "Han brakk beinet i foten.",
+     "ex_tr": "Он сломал кость в ноге.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "en tann",
+     "tr": "зуб",
+     "pos": "noun",
+     "forms": "tannen, tenner, tennene",
+     "ex": "Jeg må til tannlegen i morgen.",
+     "ex_tr": "Мне нужно к стоматологу завтра.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "en hoste",
+     "tr": "кашель",
+     "pos": "noun",
+     "forms": "hosten, hoster, hostene",
+     "ex": "Jeg har en tørr hoste.",
+     "ex_tr": "У меня сухой кашель.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "en feber",
+     "tr": "лихорадка",
+     "pos": "noun",
+     "forms": "feberen, feber, feberne",
+     "ex": "Barnet har feber på 39 grader.",
+     "ex_tr": "У ребёнка температура 39 градусов.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "en lege",
+     "tr": "врач",
+     "pos": "noun",
+     "forms": "legen, leger, legene",
+     "ex": "Vi må ringe til legen.",
+     "ex_tr": "Нам нужно позвонить врачу.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "en apotek",
+     "tr": "аптека",
+     "pos": "noun",
+     "forms": "apoteket, apotek, apotekene",
+     "ex": "Jeg kjøper medisiner på apoteket.",
+     "ex_tr": "Я покупаю лекарства в аптеке.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "en medisiner",
+     "tr": "лекарство",
+     "pos": "noun",
+     "forms": "medisinen, medisiner, medisinene",
+     "ex": "Ta medisinen med mat.",
+     "ex_tr": "Принимай лекарство с едой.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "å sove",
+     "tr": "спать",
+     "pos": "verb",
+     "forms": "sover, sov, sovet",
+     "ex": "Jeg sover godt om natten.",
+     "ex_tr": "Я хорошо сплю ночью.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "å hvile",
+     "tr": "отдыхать",
+     "pos": "verb",
+     "forms": "hviler, hvilte, hvilt",
+     "ex": "Du må hvile deg i dag.",
+     "ex_tr": "Тебе нужно отдохнуть сегодня.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "å fele",
+     "tr": "чувствовать, ощущать",
+     "pos": "verb",
+     "forms": "føler, følte, følt",
+     "ex": "Jeg føler meg syk.",
+     "ex_tr": "Я чувствую себя больным.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "å kaste opp",
+     "tr": "рвать",
+     "pos": "verb",
+     "forms": "kaster opp, kastet opp, kastet opp",
+     "ex": "Han kastet opp etter måltidet.",
+     "ex_tr": "Он вырвал после еды.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "å svime",
+     "tr": "терять сознание",
+     "pos": "verb",
+     "forms": "svimer, svimmet, svimmet",
+     "ex": "Hun svimmet i butikken.",
+     "ex_tr": "Она потеряла сознание в магазине.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "syk",
+     "tr": "больной",
+     "pos": "adjective",
+     "forms": "sykt, syke, sykest",
+     "ex": "Jeg er for syk til å gå på jobb.",
+     "ex_tr": "Я слишком болен, чтобы идти на работу.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "sunken",
+     "tr": "здоровый",
+     "pos": "adjective",
+     "forms": "sunt, sunne, sunkest",
+     "ex": "Et sunt kosthold er viktig.",
+     "ex_tr": "Здоровое питание важно.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "vondt",
+     "tr": "больно",
+     "pos": "adverb",
+     "forms": "",
+     "ex": "Det gjør vondt her.",
+     "ex_tr": "Здесь больно.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "å ta vare på",
+     "tr": "беречь, заботиться о",
+     "pos": "phrase",
+     "forms": "",
+     "ex": "Du må ta vare på deg selv.",
+     "ex_tr": "Ты должен беречь себя.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "en forkjølelse",
+     "tr": "простуда",
+     "pos": "noun",
+     "forms": "forkjølelsen, forkjølelser, forkjølelsene",
+     "ex": "Jeg har fått en forkjølelse.",
+     "ex_tr": "Я простудился.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "en allergi",
+     "tr": "аллергия",
+     "pos": "noun",
+     "forms": "allergien, allergier, allergiene",
+     "ex": "Hun har allergi mot pollen.",
+     "ex_tr": "У неё аллергия на пыльцу.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "en nakke",
+     "tr": "шея",
+     "pos": "noun",
+     "forms": "nakken, nakker, nakkene",
+     "ex": "Jeg har vondt i nakken.",
+     "ex_tr": "У меня болит шея.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "en rygg",
+     "tr": "спина",
+     "pos": "noun",
+     "forms": "ryggen, rygg, ryggene",
+     "ex": "Han har vondt i ryggen.",
+     "ex_tr": "У него болит спина.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "en mage",
+     "tr": "живот",
+     "pos": "noun",
+     "forms": "magen, mage, magene",
+     "ex": "Hun har vondt i magen.",
+     "ex_tr": "У неё болит живот.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "en hånd",
+     "tr": "рука (ладонь)",
+     "pos": "noun",
+     "forms": "hånden, hender, hendene",
+     "ex": "Han har brukket hånden.",
+     "ex_tr": "Он сломал руку.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "en finger",
+     "tr": "палец (на руке)",
+     "pos": "noun",
+     "forms": "fingeren, fingre, fingrene",
+     "ex": "Jeg har kuttet fingeren.",
+     "ex_tr": "Я порезал палец.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "et øye",
+     "tr": "глаз",
+     "pos": "noun",
+     "forms": "øyet, øyne, øynene",
+     "ex": "Han har vondt i øyet.",
+     "ex_tr": "У него болит глаз.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "et øre",
+     "tr": "ухо",
+     "pos": "noun",
+     "forms": "øret, ører, ørene",
+     "ex": "Hun har vondt i øret.",
+     "ex_tr": "У неё болит ухо.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "en pust",
+     "tr": "дыхание, вдох",
+     "pos": "noun",
+     "forms": "pusten, pust, pustene",
+     "ex": "Han tok en dyp pust.",
+     "ex_tr": "Он сделал глубокий вдох.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "en influensa",
+     "tr": "грипп",
+     "pos": "noun",
+     "forms": "influensaen, influensaer, influensaene",
+     "ex": "Jeg har influensa.",
+     "ex_tr": "У меня грипп.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "en sykdom",
+     "tr": "болезнь",
+     "pos": "noun",
+     "forms": "sykdommen, sykdommer, sykdommene",
+     "ex": "Den nye sykdommen sprer seg raskt.",
+     "ex_tr": "Новая болезнь быстро распространяется.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "en skade",
+     "tr": "травма",
+     "pos": "noun",
+     "forms": "skaden, skader, skadene",
+     "ex": "Han fikk en alvorlig skade i foten.",
+     "ex_tr": "Он получил серьезную травму ноги.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "en operasjon",
+     "tr": "операция",
+     "pos": "noun",
+     "forms": "operasjonen, operasjoner, operasjonene",
+     "ex": "Hun skal ha en operasjon i morgen.",
+     "ex_tr": "Ей будет операция завтра.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "en vaksine",
+     "tr": "вакцина",
+     "pos": "noun",
+     "forms": "vaksinen, vaksiner, vaksinene",
+     "ex": "Det er viktig å ta vaksinen.",
+     "ex_tr": "Важно сделать прививку.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "en blodprøve",
+     "tr": "анализ крови",
+     "pos": "noun",
+     "forms": "blodprøven, blodprøver, blodprøvene",
+     "ex": "Legen bestilte en blodprøve.",
+     "ex_tr": "Врач назначил анализ крови.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "en puls",
+     "tr": "пульс",
+     "pos": "noun",
+     "forms": "pulsen, pulser, pulsene",
+     "ex": "Legen sjekket pulsen min.",
+     "ex_tr": "Врач проверил мой пульс.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "en temperatur",
+     "tr": "температура",
+     "pos": "noun",
+     "forms": "temperaturen, temperaturer, temperaturene",
+     "ex": "Hva er din temperatur?",
+     "ex_tr": "Какая у тебя температура?",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "å puste",
+     "tr": "дышать",
+     "pos": "verb",
+     "forms": "puster, pustet, har pustet",
+     "ex": "Du må puste rolig.",
+     "ex_tr": "Тебе нужно дышать спокойно.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "å undersøke",
+     "tr": "осматривать, обследовать",
+     "pos": "verb",
+     "forms": "undersøker, undersøkte, har undersøkt",
+     "ex": "Legen undersøker pasienten.",
+     "ex_tr": "Врач осматривает пациента.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "å behandle",
+     "tr": "лечить",
+     "pos": "verb",
+     "forms": "behandler, behandlet, har behandlet",
+     "ex": "Vi må behandle såret raskt.",
+     "ex_tr": "Мы должны быстро лечить рану.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "Hvordan føler du deg?",
+     "tr": "Как ты себя чувствуешь?",
+     "pos": "phrase",
+     "forms": "",
+     "ex": "Hvordan føler du deg i dag?",
+     "ex_tr": "Как ты себя чувствуешь сегодня?",
+     "level": "B1",
+     "chk": 0
+    }
+   ],
+   "feelings": [
+    {
+     "term": "en følelse",
+     "tr": "чувство, эмоция",
+     "pos": "noun",
+     "forms": "følelsen, følelser, følelsene",
+     "ex": "Jeg har en sterk følelse av frykt.",
+     "ex_tr": "У меня сильное чувство страха.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "et sinn",
+     "tr": "настроение, дух",
+     "pos": "noun",
+     "forms": "sinnet, sinn, sinnene",
+     "ex": "Hun har ikke godt humør i dag.",
+     "ex_tr": "У неё сегодня плохое настроение.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "en stemning",
+     "tr": "атмосфера, настроение",
+     "pos": "noun",
+     "forms": "stemningen, stemninger, stemningene",
+     "ex": "Det er en hyggelig stemning på festen.",
+     "ex_tr": "На вечеринке приятная атмосфера.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "en personlighet",
+     "tr": "характер, личность",
+     "pos": "noun",
+     "forms": "personligheten, personligheter, personlighetene",
+     "ex": "Han har en morsom personlighet.",
+     "ex_tr": "У него интересный характер.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "en stemme",
+     "tr": "голос",
+     "pos": "noun",
+     "forms": "stemmen, stemmer, stemmene",
+     "ex": "Hun har en vakker stemme.",
+     "ex_tr": "У неё красивый голос.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "et humør",
+     "tr": "настроение",
+     "pos": "noun",
+     "forms": "humøret, humør, humørene",
+     "ex": "Jeg har dårlig humør i dag.",
+     "ex_tr": "Сегодня у меня плохое настроение.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "en reaksjon",
+     "tr": "реакция",
+     "pos": "noun",
+     "forms": "reaksjonen, reaksjoner, reaksjonene",
+     "ex": "Hans reaksjon var overraskende.",
+     "ex_tr": "Его реакция была неожиданной.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "en holdning",
+     "tr": "отношение, позиция",
+     "pos": "noun",
+     "forms": "holdningen, holdninger, holdningene",
+     "ex": "Hun har en positiv holdning til livet.",
+     "ex_tr": "У неё позитивное отношение к жизни.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "en tanke",
+     "tr": "мысль",
+     "pos": "noun",
+     "forms": "tanken, tanker, tankene",
+     "ex": "Jeg har en god tanke.",
+     "ex_tr": "У меня есть хорошая мысль.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "en drøm",
+     "tr": "мечта, сон",
+     "pos": "noun",
+     "forms": "drømmen, drømmer, drømmene",
+     "ex": "Min drøm er å reise til Norge.",
+     "ex_tr": "Моя мечта — поехать в Норвегию.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "et minne",
+     "tr": "память, воспоминание",
+     "pos": "noun",
+     "forms": "minnet, minner, minnene",
+     "ex": "Jeg har et fint minne fra barndommen.",
+     "ex_tr": "У меня есть приятное воспоминание из детства.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "en opplevelse",
+     "tr": "переживание, опыт",
+     "pos": "noun",
+     "forms": "opplevelsen, opplevelser, opplevelsene",
+     "ex": "Det var en spennende opplevelse.",
+     "ex_tr": "Это было волнительное переживание.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "en glede",
+     "tr": "радость, счастье",
+     "pos": "noun",
+     "forms": "gleden, gleder, gledene",
+     "ex": "Jeg føler en stor glede når jeg ser solnedgangen.",
+     "ex_tr": "Я чувствую большую радость, когда вижу закат.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "en sorg",
+     "tr": "печаль, скорбь",
+     "pos": "noun",
+     "forms": "sorgen, sørger, sorgene",
+     "ex": "Hun opplevde stor sorg etter tapet av faren sin.",
+     "ex_tr": "Она испытала большую печаль после потери отца.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "en følelse",
+     "tr": "чувство, эмоция",
+     "pos": "noun",
+     "forms": "følelsen, følelser, følelsene",
+     "ex": "Jeg har sterke følelser for deg.",
+     "ex_tr": "У меня сильные чувства к тебе.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "en engstelse",
+     "tr": "тревога, беспокойство",
+     "pos": "noun",
+     "forms": "engstelsen, engstelser, engstelsene",
+     "ex": "Jeg føler en stor engstelse før eksamenen.",
+     "ex_tr": "Я чувствую большую тревогу перед экзаменом.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "et håp",
+     "tr": "надежда",
+     "pos": "noun",
+     "forms": "håpet, håp, håpene",
+     "ex": "Jeg har håp om at det blir bedre.",
+     "ex_tr": "Я надеюсь, что станет лучше.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "en stolthet",
+     "tr": "гордость",
+     "pos": "noun",
+     "forms": "stoltheten, stoltheter, stolthetene",
+     "ex": "Han er full av stolthet over resultatet.",
+     "ex_tr": "Он полон гордости за результат.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "en skam",
+     "tr": "стыд, позор",
+     "pos": "noun",
+     "forms": "skammen, skam, skamene",
+     "ex": "Jeg føler skam over at jeg løg.",
+     "ex_tr": "Я чувствую стыд за то, что солгал.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "en skuffelse",
+     "tr": "разочарование",
+     "pos": "noun",
+     "forms": "skuffelsen, skuffelser, skuffelsene",
+     "ex": "Det var en stor skuffelse for meg.",
+     "ex_tr": "Это было большим разочарованием для меня.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "en misunnelse",
+     "tr": "зависть",
+     "pos": "noun",
+     "forms": "misunnelsen, misunnelser, misunnelsene",
+     "ex": "Jeg føler misunnelse for hans suksess.",
+     "ex_tr": "Я чувствую зависть к его успеху.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "en empati",
+     "tr": "эмпатия, сочувствие",
+     "pos": "noun",
+     "forms": "empatien, empatier, empatiene",
+     "ex": "Hun viser mye empati mot sine venner.",
+     "ex_tr": "Она проявляет много эмпатии к своим друзьям.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "en selvtillit",
+     "tr": "уверенность в себе",
+     "pos": "noun",
+     "forms": "selvtilliten, selvtillit, selvtillitene",
+     "ex": "Han har mye selvtillit i jobben.",
+     "ex_tr": "У него много уверенности в себе на работе.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "en nervøsitet",
+     "tr": "нервозность, нервное напряжение",
+     "pos": "noun",
+     "forms": "nervøsiteten, nervøsiteter, nervøsitetene",
+     "ex": "Jeg føler nervøsitet før intervjuet.",
+     "ex_tr": "Я чувствую нервное напряжение перед собеседованием.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "å grine",
+     "tr": "плакать, рыдать",
+     "pos": "verb",
+     "forms": "griner, grinte, grint",
+     "ex": "Hun grinner fordi hun er så trist.",
+     "ex_tr": "Она плачет, потому что ей очень грустно.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "å smile",
+     "tr": "улыбаться",
+     "pos": "verb",
+     "forms": "smiler, smilte, smilt",
+     "ex": "Han smiler alltid når han ser deg.",
+     "ex_tr": "Он всегда улыбается, когда видит тебя.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "å frykte",
+     "tr": "бояться, опасаться",
+     "pos": "verb",
+     "forms": "frykter, fryktet, fryktet",
+     "ex": "Jeg frykter for min helse.",
+     "ex_tr": "Я боюсь за своё здоровье.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "å nyte",
+     "tr": "наслаждаться",
+     "pos": "verb",
+     "forms": "nyter, nyttet, nyttet",
+     "ex": "Vi nyter den varme solen på terrassen.",
+     "ex_tr": "Мы наслаждаемся тёплым солнцем на террасе.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "å gråte",
+     "tr": "плакать",
+     "pos": "verb",
+     "forms": "gråter, gråt, grått",
+     "ex": "Barnet gråter fordi det er sulten.",
+     "ex_tr": "Ребёнок плачет, потому что голоден.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "glad",
+     "tr": "рад, счастлив",
+     "pos": "adjective",
+     "forms": "glad, glade, gladere, gladest",
+     "ex": "Jeg er glad for å se deg igjen.",
+     "ex_tr": "Я рад снова тебя видеть.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "trist",
+     "tr": "грустный, печальный",
+     "pos": "adjective",
+     "forms": "trist, triste, tristere, tristest",
+     "ex": "Hun føler seg trist i dag.",
+     "ex_tr": "Она чувствует себя грустной сегодня.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "redd",
+     "tr": "испуганный, напуганный",
+     "pos": "adjective",
+     "forms": "redd, redde, reddere, reddest",
+     "ex": "Jeg er redd for mørket.",
+     "ex_tr": "Я боюсь темноты.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "stolt",
+     "tr": "гордый",
+     "pos": "adjective",
+     "forms": "stolt, stolte, stoltere, stoltest",
+     "ex": "Foreldrene er stolte av sine barn.",
+     "ex_tr": "Родители гордятся своими детьми.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "syk",
+     "tr": "больной, нездоровый",
+     "pos": "adjective",
+     "forms": "syk, syke, sykere, sykest",
+     "ex": "Han er syk og må bli hjemme.",
+     "ex_tr": "Он болен и должен остаться дома.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "en tristhet",
+     "tr": "печаль, грусть",
+     "pos": "noun",
+     "forms": "tristheten,tristheter,tristhetene",
+     "ex": "Han kjente en dyp tristhet etter filmen.",
+     "ex_tr": "Он почувствовал глубокую печаль после фильма.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "en irritasjon",
+     "tr": "раздражение",
+     "pos": "noun",
+     "forms": "irritasjonen,irritasjoner,irritasjonene",
+     "ex": "Hun hadde en sterk irritasjon mot støy.",
+     "ex_tr": "У неё было сильное раздражение от шума.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "en bekymring",
+     "tr": "беспокойство, тревога",
+     "pos": "noun",
+     "forms": "bekymringen,bekymringer,bekymringene",
+     "ex": "Jeg har en bekymring for eksamen.",
+     "ex_tr": "У меня беспокойство по поводу экзамена.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "en lettelse",
+     "tr": "облегчение",
+     "pos": "noun",
+     "forms": "lettelsen,lettelser,lettelsene",
+     "ex": "Etter at smerten gikk, følte jeg en lettelse.",
+     "ex_tr": "После того как боль прошла, я почувствовал облегчение.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "en misnøye",
+     "tr": "недовольство",
+     "pos": "noun",
+     "forms": "misnøyen,misnøyer,misnøyene",
+     "ex": "Det er misnøye blant de ansatte.",
+     "ex_tr": "Среди сотрудников недовольство.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "en entusiasme",
+     "tr": "энтузиазм",
+     "pos": "noun",
+     "forms": "entusiasmen,entusiasmer,entusiasmene",
+     "ex": "Hun viser stor entusiasme for prosjektet.",
+     "ex_tr": "Она проявляет большой энтузиазм к проекту.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "en selvsikkerhet",
+     "tr": "уверенность в себе",
+     "pos": "noun",
+     "forms": "selvsikkerheten,selvsikkerheter,selvsikkerhetene",
+     "ex": "Hans selvsikkerhet imponerte alle.",
+     "ex_tr": "Его уверенность в себе впечатлила всех.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "en forvirring",
+     "tr": "замешательство",
+     "pos": "noun",
+     "forms": "forvirringen,forvirringer,forvirringene",
+     "ex": "Det oppstod forvirring etter kunngjøringen.",
+     "ex_tr": "После объявления возникло замешательство.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "en tilfredshet",
+     "tr": "удовлетворённость",
+     "pos": "noun",
+     "forms": "tilfredsheten,tilfredsheter,tilfredshetene",
+     "ex": "Hun uttrykte sin tilfredshet med resultatet.",
+     "ex_tr": "Она выразила свою удовлетворённость результатом.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "en oppmerksomhet",
+     "tr": "внимание",
+     "pos": "noun",
+     "forms": "oppmerksomheten,oppmerksomheter,oppmerksomhetene",
+     "ex": "Barnet krever konstant oppmerksomhet.",
+     "ex_tr": "Ребёнок требует постоянного внимания.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "rolig",
+     "tr": "спокойный, уравновешенный",
+     "pos": "adjective",
+     "forms": "rogt,rolige,roligere,roligst",
+     "ex": "Det er en rolig atmosfære i parken.",
+     "ex_tr": "В парке спокойная атмосфера.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "irritert",
+     "tr": "раздражённый",
+     "pos": "adjective",
+     "forms": "irritert,irriterte",
+     "ex": "Han så irritert ut etter møtet.",
+     "ex_tr": "Он выглядел раздражённым после встречи.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "bekymret",
+     "tr": "обеспокоенный",
+     "pos": "adjective",
+     "forms": "bekymret,bekymrede",
+     "ex": "Hun er bekymret for helsen sin.",
+     "ex_tr": "Она обеспокоена своим здоровьем.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "misfornøyd",
+     "tr": "недовольный",
+     "pos": "adjective",
+     "forms": "misfornøyd,misfornøyde",
+     "ex": "Kunden var misfornøyd med servicen.",
+     "ex_tr": "Клиент был недоволен обслуживанием.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "entusiastisk",
+     "tr": "энтузиастичный",
+     "pos": "adjective",
+     "forms": "entusiastisk,entusiastiske,mer entusiastisk,mest entusiastisk",
+     "ex": "Han er entusiastisk om den nye jobben.",
+     "ex_tr": "Он в восторге от новой работы.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "å irritere",
+     "tr": "раздражать",
+     "pos": "verb",
+     "forms": "irriterer,irriterte,har irritert",
+     "ex": "Lyden begynner å irritere meg.",
+     "ex_tr": "Звук начинает меня раздражать.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "å bekymre",
+     "tr": "беспокоить",
+     "pos": "verb",
+     "forms": "bekymrer,bekymret,har bekymret",
+     "ex": "Tankene hans begynner å bekymre ham.",
+     "ex_tr": "Его мысли начинают его беспокоить.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "å roe",
+     "tr": "успокаивать, успокаиваться",
+     "pos": "verb",
+     "forms": "roer,roet,har roet",
+     "ex": "Musikken kan roe deg ned.",
+     "ex_tr": "Музыка может тебя успокоить.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "å mislike",
+     "tr": "не любить, не нравиться",
+     "pos": "verb",
+     "forms": "misliker,mislikte,har mislikt",
+     "ex": "Jeg misliker å stå i kø.",
+     "ex_tr": "Я не люблю стоять в очереди.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "å forvirre",
+     "tr": "смущать, путать",
+     "pos": "verb",
+     "forms": "forvirrer,forvirret,har forvirret",
+     "ex": "Den kompliserte instruksen kan forvirre brukeren.",
+     "ex_tr": "Сложная инструкция может запутать пользователя.",
+     "level": "B1",
+     "chk": 0
+    }
+   ],
+   "greetings": [
+    {
+     "term": "hei",
+     "tr": "привет, здравствуйте",
+     "pos": "interjection",
+     "forms": "",
+     "ex": "Hei, hvordan går det?",
+     "ex_tr": "Привет, как дела?",
+     "level": "A1",
+     "chk": 0
+    },
+    {
+     "term": "hallo",
+     "tr": "алло, привет",
+     "pos": "interjection",
+     "forms": "",
+     "ex": "Hallo! Kan du høre meg?",
+     "ex_tr": "Алло! Ты меня слышишь?",
+     "level": "A1",
+     "chk": 0
+    },
+    {
+     "term": "god dag",
+     "tr": "добрый день",
+     "pos": "phrase",
+     "forms": "",
+     "ex": "God dag, jeg heter Per.",
+     "ex_tr": "Добрый день, меня зовут Пэр.",
+     "level": "A1",
+     "chk": 0
+    },
+    {
+     "term": "god morgen",
+     "tr": "доброе утро",
+     "pos": "phrase",
+     "forms": "",
+     "ex": "God morgen, alle sammen!",
+     "ex_tr": "Доброе утро, все!",
+     "level": "A1",
+     "chk": 0
+    },
+    {
+     "term": "god kveld",
+     "tr": "добрый вечер",
+     "pos": "phrase",
+     "forms": "",
+     "ex": "God kveld, velkommen!",
+     "ex_tr": "Добрый вечер, добро пожаловать!",
      "level": "A1",
      "chk": 0
     },
@@ -140,8 +2134,18 @@
      "tr": "пока, до свидания",
      "pos": "phrase",
      "forms": "",
-     "ex": "Vi ses i morgen. Ha det!",
-     "ex_tr": "Увидимся завтра. Пока!",
+     "ex": "Ha det, vi ses i morgen.",
+     "ex_tr": "Пока, увидимся завтра.",
+     "level": "A1",
+     "chk": 0
+    },
+    {
+     "term": "farvel",
+     "tr": "прощай, до свидания",
+     "pos": "interjection",
+     "forms": "",
+     "ex": "Farvel, ha en fin dag.",
+     "ex_tr": "Прощай, хорошего дня.",
      "level": "A1",
      "chk": 0
     },
@@ -160,8 +2164,8 @@
      "tr": "пожалуйста",
      "pos": "phrase",
      "forms": "",
-     "ex": "Kan du gi meg salt, vær så snill?",
-     "ex_tr": "Можно соль, пожалуйста?",
+     "ex": "Vær så snill, gi meg vann.",
+     "ex_tr": "Пожалуйста, дай мне воды.",
      "level": "A1",
      "chk": 0
     },
@@ -176,14 +2180,344 @@
      "chk": 0
     },
     {
+     "term": "jeg",
+     "tr": "я",
+     "pos": "pronoun",
+     "forms": "",
+     "ex": "Jeg heter Anna.",
+     "ex_tr": "Меня зовут Анна.",
+     "level": "A1",
+     "chk": 0
+    },
+    {
+     "term": "du",
+     "tr": "ты, вы",
+     "pos": "pronoun",
+     "forms": "",
+     "ex": "Hvordan har du det?",
+     "ex_tr": "Как ты?",
+     "level": "A1",
+     "chk": 0
+    },
+    {
+     "term": "han",
+     "tr": "он",
+     "pos": "pronoun",
+     "forms": "",
+     "ex": "Han er her.",
+     "ex_tr": "Он здесь.",
+     "level": "A1",
+     "chk": 0
+    },
+    {
+     "term": "hun",
+     "tr": "она",
+     "pos": "pronoun",
+     "forms": "",
+     "ex": "Hun er snill.",
+     "ex_tr": "Она добра.",
+     "level": "A1",
+     "chk": 0
+    },
+    {
+     "term": "en venn",
+     "tr": "друг, подруга",
+     "pos": "noun",
+     "forms": "vennen, venner, vennene",
+     "ex": "Dette er min venn.",
+     "ex_tr": "Это мой друг.",
+     "level": "A1",
+     "chk": 1
+    },
+    {
+     "term": "en person",
+     "tr": "человек, персона",
+     "pos": "noun",
+     "forms": "personen, personer, personene",
+     "ex": "Jeg ser en person i parken.",
+     "ex_tr": "Я вижу человека в парке.",
+     "level": "A1",
+     "chk": 1
+    },
+    {
+     "term": "en kollega",
+     "tr": "коллега",
+     "pos": "noun",
+     "forms": "kollegaen, kolleger, kollegene",
+     "ex": "Min kollega heter Anne.",
+     "ex_tr": "Моя коллега зовут Анна.",
+     "level": "A1",
+     "chk": 1
+    },
+    {
+     "term": "en gjest",
+     "tr": "гость",
+     "pos": "noun",
+     "forms": "gjesten, gjester, gjestene",
+     "ex": "Velkommen, kjære gjest!",
+     "ex_tr": "Добро пожаловать, дорогой гость!",
+     "level": "A1",
+     "chk": 1
+    },
+    {
+     "term": "en nabo",
+     "tr": "сосед",
+     "pos": "noun",
+     "forms": "naboen, naboer, naboene",
+     "ex": "Min nabo bor i huset ved siden.",
+     "ex_tr": "Мой сосед живет в доме рядом.",
+     "level": "A1",
+     "chk": 1
+    },
+    {
+     "term": "en lærer",
+     "tr": "учитель",
+     "pos": "noun",
+     "forms": "læreren, lærere, lærerne",
+     "ex": "Læreren sier hei til klassen.",
+     "ex_tr": "Учитель говорит привет классу.",
+     "level": "A1",
+     "chk": 1
+    },
+    {
+     "term": "en student",
+     "tr": "студент",
+     "pos": "noun",
+     "forms": "studenten, studenter, studentene",
+     "ex": "Studenten spør om veien.",
+     "ex_tr": "Студент спрашивает дорогу.",
+     "level": "A1",
+     "chk": 1
+    },
+    {
+     "term": "en samtale",
+     "tr": "разговор",
+     "pos": "noun",
+     "forms": "samtalen, samtaler, samtalene",
+     "ex": "Vi har en kort samtale.",
+     "ex_tr": "У нас короткий разговор.",
+     "level": "A1",
+     "chk": 1
+    },
+    {
      "term": "en hilsen",
-     "tr": "приветствие, привет",
+     "tr": "приветствие",
      "pos": "noun",
      "forms": "hilsenen, hilsener, hilsenene",
      "ex": "Jeg sender en hilsen til deg.",
      "ex_tr": "Я посылаю тебе приветствие.",
      "level": "A1",
+     "chk": 1
+    },
+    {
+     "term": "en introduksjon",
+     "tr": "введение, представление",
+     "pos": "noun",
+     "forms": "introduksjonen, introduksjoner, introduksjonene",
+     "ex": "Dette er en enkel introduksjon.",
+     "ex_tr": "Это простое представление.",
+     "level": "A1",
+     "chk": 1
+    },
+    {
+     "term": "en adresse",
+     "tr": "адрес",
+     "pos": "noun",
+     "forms": "adressen, adresser, adressene",
+     "ex": "Kan du gi meg din adresse?",
+     "ex_tr": "Можешь дать мне свой адрес?",
+     "level": "A1",
+     "chk": 1
+    },
+    {
+     "term": "å møte",
+     "tr": "встречать, встретиться",
+     "pos": "verb",
+     "forms": "møter, møtte, har møtt",
+     "ex": "Vi skal møte hverandre i morgen.",
+     "ex_tr": "Мы встретимся завтра.",
+     "level": "A1",
+     "chk": 1
+    },
+    {
+     "term": "å presentere",
+     "tr": "представлять, представиться",
+     "pos": "verb",
+     "forms": "presenterer, presenterte, har presentert",
+     "ex": "Jeg vil gjerne presentere min venn.",
+     "ex_tr": "Я хотел бы представить своего друга.",
+     "level": "A1",
+     "chk": 1
+    },
+    {
+     "term": "å si",
+     "tr": "сказать",
+     "pos": "verb",
+     "forms": "sier, sa, har sagt",
+     "ex": "Kan du si navnet ditt?",
+     "ex_tr": "Можешь сказать своё имя?",
+     "level": "A1",
+     "chk": 1
+    },
+    {
+     "term": "å spørre",
+     "tr": "спрашивать",
+     "pos": "verb",
+     "forms": "spør, spurte, har spurt",
+     "ex": "Jeg vil spørre om veien.",
+     "ex_tr": "Я хочу спросить дорогу.",
+     "level": "A1",
      "chk": 0
+    },
+    {
+     "term": "å svare",
+     "tr": "отвечать",
+     "pos": "verb",
+     "forms": "svarer, svarte, har svart",
+     "ex": "Kan du svare på spørsmålet?",
+     "ex_tr": "Можешь ответить на вопрос?",
+     "level": "A1",
+     "chk": 0
+    },
+    {
+     "term": "å hilse",
+     "tr": "приветствовать",
+     "pos": "verb",
+     "forms": "hilser, hilste, har hilst",
+     "ex": "Jeg hilser på deg.",
+     "ex_tr": "Я приветствую тебя.",
+     "level": "A1",
+     "chk": 0
+    },
+    {
+     "term": "å beklage",
+     "tr": "извиняться, сожалеть",
+     "pos": "verb",
+     "forms": "beklager, beklaget, har beklaget",
+     "ex": "Jeg vil beklage feilen.",
+     "ex_tr": "Я хочу извиниться за ошибку.",
+     "level": "A1",
+     "chk": 0
+    },
+    {
+     "term": "å kalle",
+     "tr": "называть",
+     "pos": "verb",
+     "forms": "kaller, kalte, har kalt",
+     "ex": "Hva vil du kalle barnet?",
+     "ex_tr": "Как ты хочешь назвать ребёнка?",
+     "level": "A1",
+     "chk": 0
+    },
+    {
+     "term": "hyggelig",
+     "tr": "приятный, дружелюбный",
+     "pos": "adjective",
+     "forms": "hyggelig, hyggelige, hyggeligere, hyggeligst",
+     "ex": "Det var en hyggelig samtale.",
+     "ex_tr": "Это был приятный разговор.",
+     "level": "A1",
+     "chk": 0
+    },
+    {
+     "term": "snill",
+     "tr": "добрый, милый",
+     "pos": "adjective",
+     "forms": "snilt, snille, snillere, snillest",
+     "ex": "Han er en snill person.",
+     "ex_tr": "Он добрый человек.",
+     "level": "A1",
+     "chk": 0
+    },
+    {
+     "term": "hei",
+     "tr": "привет",
+     "pos": "interjection",
+     "forms": "",
+     "ex": "Hei, hvordan har du det?",
+     "ex_tr": "Привет, как ты?",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "god dag",
+     "tr": "добрый день",
+     "pos": "phrase",
+     "forms": "",
+     "ex": "God dag, jeg heter Anna.",
+     "ex_tr": "Добрый день, меня зовут Анна.",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "ha det",
+     "tr": "пока",
+     "pos": "phrase",
+     "forms": "",
+     "ex": "Ha det! Vi sees i morgen.",
+     "ex_tr": "Пока! Увидимся завтра.",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "takk",
+     "tr": "спасибо",
+     "pos": "interjection",
+     "forms": "",
+     "ex": "Takk for hjelpen.",
+     "ex_tr": "Спасибо за помощь.",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "vær så snill",
+     "tr": "пожалуйста",
+     "pos": "phrase",
+     "forms": "",
+     "ex": "Kan du være så snill å åpne døren?",
+     "ex_tr": "Можешь, пожалуйста, открыть дверь?",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "unnskyld",
+     "tr": "извини",
+     "pos": "interjection",
+     "forms": "",
+     "ex": "Unnskyld, jeg kom for sent.",
+     "ex_tr": "Извини, я опоздал.",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "en person",
+     "tr": "человек",
+     "pos": "noun",
+     "forms": "personen, personer, personene",
+     "ex": "En person står ved døren.",
+     "ex_tr": "Человек стоит у двери.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "en venn",
+     "tr": "друг",
+     "pos": "noun",
+     "forms": "vennen, venner, vennene",
+     "ex": "Han er en god venn.",
+     "ex_tr": "Он хороший друг.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "ei jente",
+     "tr": "девушка, девочка",
+     "pos": "noun",
+     "forms": "jenta, jenter, jentene",
+     "ex": "Ei jente smiler.",
+     "ex_tr": "Девочка улыбается.",
+     "level": "A2",
+     "chk": 1
     },
     {
      "term": "et navn",
@@ -192,17 +2526,3977 @@
      "forms": "navnet, navn, navnene",
      "ex": "Hva er ditt navn?",
      "ex_tr": "Как тебя зовут?",
-     "level": "A1",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "å hete",
+     "tr": "зваться, называться",
+     "pos": "verb",
+     "forms": "heter, het/hette, har hett",
+     "ex": "Jeg heter Maria.",
+     "ex_tr": "Меня зовут Мария.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "å si",
+     "tr": "говорить",
+     "pos": "verb",
+     "forms": "sier, sa, har sagt",
+     "ex": "Kan du si det igjen?",
+     "ex_tr": "Можешь сказать это снова?",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "å spørre",
+     "tr": "спрашивать",
+     "pos": "verb",
+     "forms": "spør, spurte, har spurt",
+     "ex": "Jeg vil gjerne spørre om veien.",
+     "ex_tr": "Я хотел бы спросить дорогу.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "snill",
+     "tr": "добр(ый)",
+     "pos": "adjective",
+     "forms": "snilt, snille, snillere, snillest",
+     "ex": "Han er en snill mann.",
+     "ex_tr": "Он добрый мужчина.",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "vennlig",
+     "tr": "дружелюбный",
+     "pos": "adjective",
+     "forms": "vennlig, vennlige, vennligere, vennligst",
+     "ex": "Hun er veldig vennlig.",
+     "ex_tr": "Она очень дружелюбна.",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "hvordan har du det",
+     "tr": "как ты?",
+     "pos": "phrase",
+     "forms": "",
+     "ex": "Hei, hvordan har du det?",
+     "ex_tr": "Привет, как ты?",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "jeg heter",
+     "tr": "меня зовут",
+     "pos": "phrase",
+     "forms": "",
+     "ex": "Jeg heter Ole.",
+     "ex_tr": "Меня зовут Оле.",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "takk for i dag",
+     "tr": "спасибо за сегодня",
+     "pos": "phrase",
+     "forms": "",
+     "ex": "Takk for i dag, vi ses i morgen.",
+     "ex_tr": "Спасибо за сегодня, увидимся завтра.",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "beklager",
+     "tr": "извиняюсь",
+     "pos": "interjection",
+     "forms": "",
+     "ex": "Beklager at jeg er sen.",
+     "ex_tr": "Извиняюсь, что опоздал.",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "en hilsen",
+     "tr": "приветствие",
+     "pos": "noun",
+     "forms": "hilsenen, hilsener, hilsenene",
+     "ex": "En hilsen fra familien.",
+     "ex_tr": "Привет от семьи.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "hei",
+     "tr": "привет",
+     "pos": "interjection",
+     "forms": "",
+     "ex": "Hei, hvordan går det?",
+     "ex_tr": "Привет, как дела?",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "hallo",
+     "tr": "здравствуйте",
+     "pos": "interjection",
+     "forms": "",
+     "ex": "Hallo! Jeg heter Anna.",
+     "ex_tr": "Здравствуйте! Меня зовут Анна.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "god dag",
+     "tr": "добрый день",
+     "pos": "phrase",
+     "forms": "",
+     "ex": "God dag, kan jeg hjelpe deg?",
+     "ex_tr": "Добрый день, могу я вам помочь?",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "god morgen",
+     "tr": "доброе утро",
+     "pos": "phrase",
+     "forms": "",
+     "ex": "God morgen! Har du sovet godt?",
+     "ex_tr": "Доброе утро! Ты хорошо спал?",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "god kveld",
+     "tr": "добрый вечер",
+     "pos": "phrase",
+     "forms": "",
+     "ex": "God kveld, velkommen til møtet.",
+     "ex_tr": "Добрый вечер, добро пожаловать на встречу.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "god natt",
+     "tr": "спокойной ночи",
+     "pos": "phrase",
+     "forms": "",
+     "ex": "God natt, vi ses i morgen.",
+     "ex_tr": "Спокойной ночи, увидимся завтра.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "ha det",
+     "tr": "пока",
+     "pos": "phrase",
+     "forms": "",
+     "ex": "Ha det, vi snakkes senere!",
+     "ex_tr": "Пока, поговорим позже!",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "farvel",
+     "tr": "прощай",
+     "pos": "interjection",
+     "forms": "",
+     "ex": "Farvel, ha en fin dag!",
+     "ex_tr": "Прощай, хорошего дня!",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "takk",
+     "tr": "спасибо",
+     "pos": "interjection",
+     "forms": "",
+     "ex": "Takk for hjelpen.",
+     "ex_tr": "Спасибо за помощь.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "vær så snill",
+     "tr": "пожалуйста",
+     "pos": "phrase",
+     "forms": "",
+     "ex": "Kan du gi meg salt, vær så snill?",
+     "ex_tr": "Можно мне соль, пожалуйста?",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "unnskyld",
+     "tr": "извините",
+     "pos": "interjection",
+     "forms": "",
+     "ex": "Unnskyld, jeg kom for sent.",
+     "ex_tr": "Извините, я опоздал.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "jeg heter",
+     "tr": "меня зовут",
+     "pos": "phrase",
+     "forms": "",
+     "ex": "Jeg heter Lars.",
+     "ex_tr": "Меня зовут Ларс.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "jeg er",
+     "tr": "я (есть)",
+     "pos": "phrase",
+     "forms": "",
+     "ex": "Jeg er lærer.",
+     "ex_tr": "Я учитель.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "hvordan har du det?",
+     "tr": "как ты?",
+     "pos": "phrase",
+     "forms": "",
+     "ex": "Hei, hvordan har du det?",
+     "ex_tr": "Привет, как ты?",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "hvordan går det?",
+     "tr": "как дела?",
+     "pos": "phrase",
+     "forms": "",
+     "ex": "Hvordan går det med deg?",
+     "ex_tr": "Как у тебя дела?",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "en venn",
+     "tr": "друг",
+     "pos": "noun",
+     "forms": "vennen, venner, vennene",
+     "ex": "Han er en god venn.",
+     "ex_tr": "Он хороший друг.",
+     "level": "B1",
+     "chk": 1
+    },
+    {
+     "term": "en person",
+     "tr": "человек",
+     "pos": "noun",
+     "forms": "personen, personer, personene",
+     "ex": "En person kan hjelpe deg.",
+     "ex_tr": "Человек может помочь вам.",
+     "level": "B1",
+     "chk": 1
+    },
+    {
+     "term": "et navn",
+     "tr": "имя",
+     "pos": "noun",
+     "forms": "navnet, navn, navnene",
+     "ex": "Hva er ditt navn?",
+     "ex_tr": "Как тебя зовут?",
+     "level": "B1",
+     "chk": 1
+    },
+    {
+     "term": "å si",
+     "tr": "говорить, сказать",
+     "pos": "verb",
+     "forms": "sier, sa, har sagt",
+     "ex": "Kan du si det igjen?",
+     "ex_tr": "Можешь сказать это снова?",
+     "level": "B1",
+     "chk": 1
+    },
+    {
+     "term": "å takke",
+     "tr": "благодарить",
+     "pos": "verb",
+     "forms": "takker, takket, har takket",
+     "ex": "Jeg vil takke deg for alt.",
+     "ex_tr": "Я хочу поблагодарить тебя за всё.",
+     "level": "B1",
+     "chk": 1
+    },
+    {
+     "term": "en hilsen",
+     "tr": "приветствие, привет",
+     "pos": "noun",
+     "forms": "hilsenen, hilsener, hilsenene",
+     "ex": "Jeg ga ham en hilsen før jeg gikk inn.",
+     "ex_tr": "Я дал ему приветствие, прежде чем вошёл.",
+     "level": "B2",
+     "chk": 0
+    },
+    {
+     "term": "en avskjed",
+     "tr": "прощание, прощание",
+     "pos": "noun",
+     "forms": "avskjeden, avskjeder, avskjedene",
+     "ex": "Vi tok en kort avskjed på stasjonen.",
+     "ex_tr": "Мы попрощались коротко на станции.",
+     "level": "B2",
+     "chk": 0
+    },
+    {
+     "term": "en takk",
+     "tr": "благодарность, спасибо",
+     "pos": "noun",
+     "forms": "takken, takker, takkene",
+     "ex": "En stor takk til alle som hjalp.",
+     "ex_tr": "Большое спасибо всем, кто помог.",
+     "level": "B2",
      "chk": 0
     },
     {
      "term": "en unnskyldning",
-     "tr": "извинение, извинения",
+     "tr": "извинение, извиняться",
      "pos": "noun",
      "forms": "unnskyldningen, unnskyldninger, unnskyldningene",
-     "ex": "Han ga en unnskyldning for feilen.",
-     "ex_tr": "Он извинился за ошибку.",
+     "ex": "Han ba om unnskyldning for sen ankomst.",
+     "ex_tr": "Он извинился за опоздание.",
+     "level": "B2",
+     "chk": 0
+    },
+    {
+     "term": "å hilse",
+     "tr": "приветствовать, здороваться",
+     "pos": "verb",
+     "forms": "hilser, hilste, har hilst",
+     "ex": "Vi hilser på hverandre hver morgen.",
+     "ex_tr": "Мы приветствуем друг друга каждое утро.",
+     "level": "B2",
+     "chk": 0
+    },
+    {
+     "term": "å presentere seg",
+     "tr": "представляться",
+     "pos": "verb",
+     "forms": "presenterer seg, presenterte seg, har presentert seg",
+     "ex": "Hun presenterte seg som ny kollega.",
+     "ex_tr": "Она представилась как новая коллега.",
+     "level": "B2",
+     "chk": 0
+    },
+    {
+     "term": "å takke",
+     "tr": "благодарить",
+     "pos": "verb",
+     "forms": "takker, takket, har takket",
+     "ex": "Jeg takker deg for hjelpen.",
+     "ex_tr": "Я благодарю тебя за помощь.",
+     "level": "B2",
+     "chk": 0
+    },
+    {
+     "term": "å be",
+     "tr": "просить",
+     "pos": "verb",
+     "forms": "ber, ba, har bedt",
+     "ex": "Kan du be ham om å komme tidligere?",
+     "ex_tr": "Можешь попросить его прийти пораньше?",
+     "level": "B2",
+     "chk": 0
+    },
+    {
+     "term": "vennlig",
+     "tr": "дружелюбный, любезный",
+     "pos": "adjective",
+     "forms": "vennlig, vennlige, vennligere, vennligst",
+     "ex": "Han er alltid så vennlig mot kundene.",
+     "ex_tr": "Он всегда так дружелюбен к клиентам.",
+     "level": "B2",
+     "chk": 0
+    },
+    {
+     "term": "høflig",
+     "tr": "вежливый",
+     "pos": "adjective",
+     "forms": "høflig, høflige, høfligere, høfligst",
+     "ex": "Det er høflig å holde døren for andre.",
+     "ex_tr": "Вежливо держать дверь для других.",
+     "level": "B2",
+     "chk": 0
+    },
+    {
+     "term": "god dag",
+     "tr": "добрый день",
+     "pos": "phrase",
+     "forms": "",
+     "ex": "God dag, hvordan har du det?",
+     "ex_tr": "Добрый день, как ты?",
+     "level": "B2",
+     "chk": 0
+    },
+    {
+     "term": "hei",
+     "tr": "привет",
+     "pos": "interjection",
+     "forms": "",
+     "ex": "Hei, har du tid til en kaffe?",
+     "ex_tr": "Привет, есть время на кофе?",
+     "level": "B2",
+     "chk": 0
+    },
+    {
+     "term": "ha det",
+     "tr": "пока",
+     "pos": "phrase",
+     "forms": "",
+     "ex": "Vi ses i morgen, ha det!",
+     "ex_tr": "Увидимся завтра, пока!",
+     "level": "B2",
+     "chk": 0
+    },
+    {
+     "term": "takk skal du ha",
+     "tr": "спасибо (вежливо)",
+     "pos": "phrase",
+     "forms": "",
+     "ex": "Takk skal du ha for gaven.",
+     "ex_tr": "Спасибо за подарок.",
+     "level": "B2",
+     "chk": 0
+    },
+    {
+     "term": "vær så snill",
+     "tr": "пожалуйста",
+     "pos": "phrase",
+     "forms": "",
+     "ex": "Vær så snill, kan du lukke vinduet?",
+     "ex_tr": "Пожалуйста, можешь закрыть окно?",
+     "level": "B2",
+     "chk": 0
+    },
+    {
+     "term": "unnskyld",
+     "tr": "извини",
+     "pos": "interjection",
+     "forms": "",
+     "ex": "Unnskyld, jeg så deg ikke.",
+     "ex_tr": "Извини, я тебя не увидел.",
+     "level": "B2",
+     "chk": 0
+    },
+    {
+     "term": "jeg heter",
+     "tr": "меня зовут",
+     "pos": "phrase",
+     "forms": "",
+     "ex": "Hei, jeg heter Anna.",
+     "ex_tr": "Привет, меня зовут Анна.",
+     "level": "B2",
+     "chk": 0
+    },
+    {
+     "term": "hvordan har du det?",
+     "tr": "как ты?",
+     "pos": "phrase",
+     "forms": "",
+     "ex": "Hei, hvordan har du det i dag?",
+     "ex_tr": "Привет, как ты сегодня?",
+     "level": "B2",
+     "chk": 0
+    },
+    {
+     "term": "en person",
+     "tr": "человек",
+     "pos": "noun",
+     "forms": "personen, personer, personene",
+     "ex": "En person kan alltid si unnskyld.",
+     "ex_tr": "Человек всегда может извиниться.",
+     "level": "B2",
+     "chk": 0
+    },
+    {
+     "term": "et navn",
+     "tr": "имя",
+     "pos": "noun",
+     "forms": "navnet, navn, navnene",
+     "ex": "Mitt navn er Lars.",
+     "ex_tr": "Моё имя Ларс.",
+     "level": "B2",
+     "chk": 0
+    }
+   ],
+   "home": [
+    {
+     "term": "en sofa",
+     "tr": "диван",
+     "pos": "noun",
+     "forms": "sofaen, sofaer, sofaene",
+     "ex": "Sofaen er veldig komfortabel.",
+     "ex_tr": "Диван очень удобный.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "en seng",
+     "tr": "кровать",
+     "pos": "noun",
+     "forms": "sengen, senger, sengene",
+     "ex": "Sengen er laget av tre.",
+     "ex_tr": "Кровать сделана из дерева.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "en kommode",
+     "tr": "комод",
+     "pos": "noun",
+     "forms": "kommoden, kommoder, kommodene",
+     "ex": "Kommoden har seks skuffer.",
+     "ex_tr": "В комоде шесть ящиков.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "en bokhylle",
+     "tr": "книжная полка",
+     "pos": "noun",
+     "forms": "bokhyllen, bokhyller, bokhyllene",
+     "ex": "Bokhyllen står ved vinduet.",
+     "ex_tr": "Книжная полка стоит у окна.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "en lampe",
+     "tr": "лампа",
+     "pos": "noun",
+     "forms": "lampen, lamper, lampene",
+     "ex": "Lampe lyser opp rommet.",
+     "ex_tr": "Лампа освещает комнату.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "en dør",
+     "tr": "дверь",
+     "pos": "noun",
+     "forms": "døren, dører, dørene",
+     "ex": "Døren er åpen.",
+     "ex_tr": "Дверь открыта.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "et kjøkken",
+     "tr": "кухня",
+     "pos": "noun",
+     "forms": "kjøkkenet, kjøkken, kjøkkenene",
+     "ex": "Kjøkkenet har en ny ovn.",
+     "ex_tr": "На кухне новая печь.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "et bad",
+     "tr": "ванная",
+     "pos": "noun",
+     "forms": "badet, bad, badene",
+     "ex": "Badet er lite, men rent.",
+     "ex_tr": "Ванная небольшая, но чистая.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "en gang",
+     "tr": "коридор",
+     "pos": "noun",
+     "forms": "gangen, ganger, gangene",
+     "ex": "Gangene er smale.",
+     "ex_tr": "Коридоры узкие.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "en trapp",
+     "tr": "лестница",
+     "pos": "noun",
+     "forms": "trappen, trapper, trappene",
+     "ex": "Trappen er bratt.",
+     "ex_tr": "Лестница крутая.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "en peis",
+     "tr": "камин",
+     "pos": "noun",
+     "forms": "peisen, peiser, peisene",
+     "ex": "Peisen varmer stuen.",
+     "ex_tr": "Камин согревает гостиную.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "en vaskemaskin",
+     "tr": "стиральная машина",
+     "pos": "noun",
+     "forms": "vaskemaskinen, vaskemaskiner, vaskemaskinene",
+     "ex": "Vaskemaskinen er i kjelleren.",
+     "ex_tr": "Стиральная машина в подвале.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "en oppvaskmaskin",
+     "tr": "посудомоечная машина",
+     "pos": "noun",
+     "forms": "oppvaskmaskinen, oppvaskmaskiner, oppvaskmaskinene",
+     "ex": "Oppvaskmaskinen gjør jobben.",
+     "ex_tr": "Посудомоечная машина делает работу.",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "en TV",
+     "tr": "телевизор",
+     "pos": "noun",
+     "forms": "TV-en, TV-er, TV-ene",
+     "ex": "TV-en står i hjørnet.",
+     "ex_tr": "Телевизор стоит в углу.",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "en gardin",
+     "tr": "занавеска",
+     "pos": "noun",
+     "forms": "gardinen, gardiner, gardinene",
+     "ex": "Gardinen er blå.",
+     "ex_tr": "Занавеска синяя.",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "å rydde",
+     "tr": "убирать, приводить в порядок",
+     "pos": "verb",
+     "forms": "rydder, ryddet, har ryddet",
+     "ex": "Jeg rydder rommet hver dag.",
+     "ex_tr": "Я убираю комнату каждый день.",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "å støvsuge",
+     "tr": "пылесосить",
+     "pos": "verb",
+     "forms": "støvsuger, støvsugde, har støvsugd",
+     "ex": "Han støvsuger gulvet hver uke.",
+     "ex_tr": "Он пылесосит пол каждую неделю.",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "ren",
+     "tr": "чистый",
+     "pos": "adjective",
+     "forms": "rent, rene, renere, renest",
+     "ex": "Kjøkkenet er rent.",
+     "ex_tr": "Кухня чистая.",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "myk",
+     "tr": "мягкий",
+     "pos": "adjective",
+     "forms": "mykt, myke, mykere, mykest",
+     "ex": "Puten er myk.",
+     "ex_tr": "Подушка мягкая.",
+     "level": "A2",
+     "chk": 0
+    }
+   ],
+   "numbers": [
+    {
+     "term": "en ett",
+     "tr": "один",
+     "pos": "numeral",
+     "forms": "",
+     "ex": "Jeg har ett hus.",
+     "ex_tr": "У меня один дом.",
      "level": "A1",
+     "chk": 0
+    },
+    {
+     "term": "en to",
+     "tr": "два",
+     "pos": "numeral",
+     "forms": "",
+     "ex": "Jeg har to katter.",
+     "ex_tr": "У меня две кошки.",
+     "level": "A1",
+     "chk": 0
+    },
+    {
+     "term": "en tre",
+     "tr": "три",
+     "pos": "numeral",
+     "forms": "",
+     "ex": "Vi er tre personer.",
+     "ex_tr": "Нас трое.",
+     "level": "A1",
+     "chk": 0
+    },
+    {
+     "term": "en fire",
+     "tr": "четыре",
+     "pos": "numeral",
+     "forms": "",
+     "ex": "Det er fire dager.",
+     "ex_tr": "Это четыре дня.",
+     "level": "A1",
+     "chk": 0
+    },
+    {
+     "term": "en fem",
+     "tr": "пять",
+     "pos": "numeral",
+     "forms": "",
+     "ex": "Jeg er fem år.",
+     "ex_tr": "Мне пять лет.",
+     "level": "A1",
+     "chk": 0
+    },
+    {
+     "term": "en ti",
+     "tr": "десять",
+     "pos": "numeral",
+     "forms": "",
+     "ex": "Det koster ti kroner.",
+     "ex_tr": "Это стоит десять крон.",
+     "level": "A1",
+     "chk": 0
+    },
+    {
+     "term": "en hundre",
+     "tr": "сто",
+     "pos": "numeral",
+     "forms": "",
+     "ex": "Jeg har hundre kroner.",
+     "ex_tr": "У меня сто крон.",
+     "level": "A1",
+     "chk": 0
+    },
+    {
+     "term": "en halv",
+     "tr": "половина",
+     "pos": "adjective",
+     "forms": "halvt, halve, halv, halv",
+     "ex": "Jeg spiser en halv eple.",
+     "ex_tr": "Я ем половину яблока.",
+     "level": "A1",
+     "chk": 0
+    },
+    {
+     "term": "en del",
+     "tr": "часть, немного",
+     "pos": "noun",
+     "forms": "delen, deler, delene",
+     "ex": "Jeg har en del penger.",
+     "ex_tr": "У меня немного денег.",
+     "level": "A1",
+     "chk": 1
+    },
+    {
+     "term": "et par",
+     "tr": "пара",
+     "pos": "noun",
+     "forms": "paret, par, para/parene",
+     "ex": "Jeg kjøper et par sko.",
+     "ex_tr": "Я покупаю пару обуви.",
+     "level": "A1",
+     "chk": 1
+    },
+    {
+     "term": "en mengde",
+     "tr": "количество, масса",
+     "pos": "noun",
+     "forms": "mengden, mengder, mengdene",
+     "ex": "Det er en stor mengde vann.",
+     "ex_tr": "Это большое количество воды.",
+     "level": "A1",
+     "chk": 1
+    },
+    {
+     "term": "et antall",
+     "tr": "число, количество",
+     "pos": "noun",
+     "forms": "antallet, antall, antallene",
+     "ex": "Antallet studenter er stort.",
+     "ex_tr": "Количество студентов велико.",
+     "level": "A1",
+     "chk": 1
+    },
+    {
+     "term": "en pris",
+     "tr": "цена",
+     "pos": "noun",
+     "forms": "prisen, priser, prisene",
+     "ex": "Prisen er lav.",
+     "ex_tr": "Цена низкая.",
+     "level": "A1",
+     "chk": 1
+    },
+    {
+     "term": "en vekt",
+     "tr": "вес",
+     "pos": "noun",
+     "forms": "vekten, vekter, vektene",
+     "ex": "Hva er vekten på boka?",
+     "ex_tr": "Каков вес книги?",
+     "level": "A1",
+     "chk": 1
+    },
+    {
+     "term": "en lengde",
+     "tr": "длина",
+     "pos": "noun",
+     "forms": "lengden, lengder, lengdene",
+     "ex": "Lengden på veien er lang.",
+     "ex_tr": "Длина дороги большая.",
+     "level": "A1",
+     "chk": 1
+    },
+    {
+     "term": "en høyde",
+     "tr": "высота",
+     "pos": "noun",
+     "forms": "høyden, høyder, høydene",
+     "ex": "Høyden på huset er stor.",
+     "ex_tr": "Высота дома большая.",
+     "level": "A1",
+     "chk": 1
+    },
+    {
+     "term": "en bredde",
+     "tr": "ширина",
+     "pos": "noun",
+     "forms": "bredden, bredder, breddene",
+     "ex": "Bredde på bordet er liten.",
+     "ex_tr": "Ширина стола маленькая.",
+     "level": "A1",
+     "chk": 1
+    },
+    {
+     "term": "en størrelse",
+     "tr": "размер",
+     "pos": "noun",
+     "forms": "størrelsen, størrelser, størrelsene",
+     "ex": "Hvilken størrelse har du?",
+     "ex_tr": "Какой у тебя размер?",
+     "level": "A1",
+     "chk": 1
+    },
+    {
+     "term": "å telle",
+     "tr": "считать",
+     "pos": "verb",
+     "forms": "teller, telte, talt",
+     "ex": "Jeg kan telle til ti.",
+     "ex_tr": "Я могу считать до десяти.",
+     "level": "A1",
+     "chk": 1
+    },
+    {
+     "term": "et kilo",
+     "tr": "килограмм, кило",
+     "pos": "noun",
+     "forms": "kiloet, kilo, kiloa/kiloene",
+     "ex": "Jeg kjøpte to kilo epler.",
+     "ex_tr": "Я купил два килограмма яблок.",
+     "level": "A1",
+     "chk": 1
+    },
+    {
+     "term": "en liter",
+     "tr": "литр",
+     "pos": "noun",
+     "forms": "literen, liter, literne",
+     "ex": "Vannet er en liter.",
+     "ex_tr": "Вода — один литр.",
+     "level": "A1",
+     "chk": 1
+    },
+    {
+     "term": "en meter",
+     "tr": "метр",
+     "pos": "noun",
+     "forms": "meteren, meter, meterne",
+     "ex": "Bordet er en meter langt.",
+     "ex_tr": "Стол длиной один метр.",
+     "level": "A1",
+     "chk": 1
+    },
+    {
+     "term": "en prosent",
+     "tr": "процент",
+     "pos": "noun",
+     "forms": "prosenten, prosent, prosentene",
+     "ex": "Det er fem prosent rabatt.",
+     "ex_tr": "Это пять процентов скидки.",
+     "level": "A1",
+     "chk": 1
+    },
+    {
+     "term": "en tomme",
+     "tr": "дюйм",
+     "pos": "noun",
+     "forms": "tommen, tommer, tommene",
+     "ex": "Skjermen er fem tommer bred.",
+     "ex_tr": "Экран шириной пять дюймов.",
+     "level": "A1",
+     "chk": 1
+    },
+    {
+     "term": "et gram",
+     "tr": "грамм",
+     "pos": "noun",
+     "forms": "grammet, gram, grammene",
+     "ex": "Dette koster et gram gull.",
+     "ex_tr": "Это стоит один грамм золота.",
+     "level": "A1",
+     "chk": 1
+    },
+    {
+     "term": "en time",
+     "tr": "час",
+     "pos": "noun",
+     "forms": "timen, timer, timene",
+     "ex": "Møtet varer en time.",
+     "ex_tr": "Встреча длится один час.",
+     "level": "A1",
+     "chk": 1
+    },
+    {
+     "term": "en dag",
+     "tr": "день",
+     "pos": "noun",
+     "forms": "dagen, dager, dagene",
+     "ex": "Jeg jobber hver dag.",
+     "ex_tr": "Я работаю каждый день.",
+     "level": "A1",
+     "chk": 1
+    },
+    {
+     "term": "en uke",
+     "tr": "неделя",
+     "pos": "noun",
+     "forms": "uken, uker, ukene",
+     "ex": "Vi møtes hver uke.",
+     "ex_tr": "Мы встречаемся каждую неделю.",
+     "level": "A1",
+     "chk": 1
+    },
+    {
+     "term": "et tall",
+     "tr": "число",
+     "pos": "noun",
+     "forms": "tallet, tall, tallene",
+     "ex": "Tallet er fem.",
+     "ex_tr": "Число пять.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "en mengde",
+     "tr": "количество, множество",
+     "pos": "noun",
+     "forms": "mengden, mengder, mengdene",
+     "ex": "Vi har en stor mengde vann.",
+     "ex_tr": "У нас большое количество воды.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "en prosent",
+     "tr": "процент",
+     "pos": "noun",
+     "forms": "prosenten, prosent, prosentene",
+     "ex": "Det er ti prosent av totalen.",
+     "ex_tr": "Это десять процентов от общей суммы.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "et kilo",
+     "tr": "килограмм",
+     "pos": "noun",
+     "forms": "kiloet, kilo, kiloa/kiloene",
+     "ex": "Jeg kjøpte to kilo epler.",
+     "ex_tr": "Я купил два килограмма яблок.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "et gram",
+     "tr": "грамм",
+     "pos": "noun",
+     "forms": "grammet, gram, grammene",
+     "ex": "Et gram sukker er nok.",
+     "ex_tr": "Грамм сахара достаточно.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "en liter",
+     "tr": "литр",
+     "pos": "noun",
+     "forms": "literen, liter, literne",
+     "ex": "Vannflasken rommer en liter.",
+     "ex_tr": "Бутылка воды вмещает один литр.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "en meter",
+     "tr": "метр",
+     "pos": "noun",
+     "forms": "meteren, meter, meterne",
+     "ex": "Stolen er en meter høy.",
+     "ex_tr": "Стул высотой один метр.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "en kilometer",
+     "tr": "километр",
+     "pos": "noun",
+     "forms": "kilometeren, kilometer, kilometerne",
+     "ex": "Skolen er fem kilometer unna.",
+     "ex_tr": "Школа находится в пяти километрах.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "en desimal",
+     "tr": "десятичная часть, десятичная",
+     "pos": "noun",
+     "forms": "desimalen, desimaler, desimalene",
+     "ex": "Skriv tallet med en desimal.",
+     "ex_tr": "Запишите число с одной десятичной.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "en brøk",
+     "tr": "дробь",
+     "pos": "noun",
+     "forms": "brøken, brøker, brøkene",
+     "ex": "Halvparten er en brøk av helheten.",
+     "ex_tr": "Половина — это дробь от целого.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "en prosentandel",
+     "tr": "доля, процентная часть",
+     "pos": "noun",
+     "forms": "prosentandelen, prosentandeler, prosentandelene",
+     "ex": "Prosentandelen er fem prosent.",
+     "ex_tr": "Доля составляет пять процентов.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "en pris",
+     "tr": "цена",
+     "pos": "noun",
+     "forms": "prisen, priser, prisene",
+     "ex": "Prisen er hundre kroner.",
+     "ex_tr": "Цена — сто крон.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "en vekt",
+     "tr": "вес",
+     "pos": "noun",
+     "forms": "vekten, vekter, vektene",
+     "ex": "Vekten er fem kilo.",
+     "ex_tr": "Вес — пять килограммов.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "en sum",
+     "tr": "сумма",
+     "pos": "noun",
+     "forms": "summen, summer, summene",
+     "ex": "Summen blir ti kroner.",
+     "ex_tr": "Сумма будет десять крон.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "å telle",
+     "tr": "считать, пересчитывать",
+     "pos": "verb",
+     "forms": "teller, talte, har telt",
+     "ex": "Jeg teller til ti.",
+     "ex_tr": "Я считаю до десяти.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "en halv",
+     "tr": "половина",
+     "pos": "adjective",
+     "forms": "halvt, halve, halv, halv",
+     "ex": "Jeg har en halv time igjen.",
+     "ex_tr": "У меня осталось полчаса.",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "en hel",
+     "tr": "целый, целый",
+     "pos": "adjective",
+     "forms": "helt, hele, hel, helest",
+     "ex": "Jeg spiste en hel pizza.",
+     "ex_tr": "Я съел целую пиццу.",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "en del",
+     "tr": "часть, немного",
+     "pos": "noun",
+     "forms": "delen, deler, delene",
+     "ex": "Det er en del snø i dag.",
+     "ex_tr": "Сегодня много снега.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "en halvdel",
+     "tr": "половина",
+     "pos": "noun",
+     "forms": "halvdelen, halvdeler, halvdelene",
+     "ex": "Jeg tok halvdelen av kaken.",
+     "ex_tr": "Я взял половину торта.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "en kvart",
+     "tr": "четверть",
+     "pos": "noun",
+     "forms": "kvarten, kvarter, kvartene",
+     "ex": "Det er en kvart i fem.",
+     "ex_tr": "Четверть пятого.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "en time",
+     "tr": "час",
+     "pos": "noun",
+     "forms": "timen, timer, timene",
+     "ex": "Filmen varer to timer.",
+     "ex_tr": "Фильм длится два часа.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "en uke",
+     "tr": "неделя",
+     "pos": "noun",
+     "forms": "uken, uker, ukene",
+     "ex": "Vi ses neste uke.",
+     "ex_tr": "Увидимся на следующей неделе.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "en måned",
+     "tr": "месяц",
+     "pos": "noun",
+     "forms": "måneden, måneder, månedene",
+     "ex": "Vi bor her i en måned.",
+     "ex_tr": "Мы живём здесь один месяц.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "et år",
+     "tr": "год",
+     "pos": "noun",
+     "forms": "året, år, årene",
+     "ex": "Det er et nytt år.",
+     "ex_tr": "Это новый год.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "en halvtime",
+     "tr": "полчаса",
+     "pos": "noun",
+     "forms": "halvtimen, halvtimer, halvtimene",
+     "ex": "Vent meg i en halvtime.",
+     "ex_tr": "Жди меня полчаса.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "en kvart time",
+     "tr": "четверть часа",
+     "pos": "phrase",
+     "forms": "",
+     "ex": "Det tar en kvart time å gå dit.",
+     "ex_tr": "Туда идти четверть часа.",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "en halv meter",
+     "tr": "полметра",
+     "pos": "phrase",
+     "forms": "",
+     "ex": "Barnet er en halv meter høyt.",
+     "ex_tr": "Ребёнок ростом полметра.",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "en halv kilo",
+     "tr": "полкило",
+     "pos": "phrase",
+     "forms": "",
+     "ex": "Jeg kjøpte en halv kilo epler.",
+     "ex_tr": "Я купил полкило яблок.",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "en halv liter",
+     "tr": "поллитра",
+     "pos": "phrase",
+     "forms": "",
+     "ex": "Kan jeg få en halv liter melk?",
+     "ex_tr": "Можно мне поллитра молока?",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "en halv gram",
+     "tr": "полграмма",
+     "pos": "phrase",
+     "forms": "",
+     "ex": "Det veier bare en halv gram.",
+     "ex_tr": "Это весит всего полграмма.",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "en halv kilometer",
+     "tr": "полкилометра",
+     "pos": "phrase",
+     "forms": "",
+     "ex": "Bussen stikker en halv kilometer unna.",
+     "ex_tr": "Автобус остановился в полкилометре отсюда.",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "en halv prosent",
+     "tr": "полпроцента",
+     "pos": "phrase",
+     "forms": "",
+     "ex": "Prisen steg med en halv prosent.",
+     "ex_tr": "Цена выросла на полпроцента.",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "en meter",
+     "tr": "метр",
+     "pos": "noun",
+     "forms": "meteren,meter,meterne",
+     "ex": "Dette rommet er fem meter langt.",
+     "ex_tr": "Эта комната длиной пять метров.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "et kilogram",
+     "tr": "килограмм",
+     "pos": "noun",
+     "forms": "kilogrammet,kilogram,kilogrammene",
+     "ex": "Jeg kjøpte to kilogram epler.",
+     "ex_tr": "Я купил два килограмма яблок.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "en liter",
+     "tr": "литр",
+     "pos": "noun",
+     "forms": "litren,liter,literne",
+     "ex": "Vannflasken rommer en liter.",
+     "ex_tr": "Бутылка воды вмещает один литр.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "en prosent",
+     "tr": "процент",
+     "pos": "noun",
+     "forms": "prosenten,prosent,prosentene",
+     "ex": "Renten er fem prosent.",
+     "ex_tr": "Процентная ставка составляет пять процентов.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "en desimal",
+     "tr": "десятичная дробь, десятичное число",
+     "pos": "noun",
+     "forms": "desimalen,desimaler,desimalene",
+     "ex": "Tal 2,5 har én desimal.",
+     "ex_tr": "Число 2,5 имеет одну десятичную часть.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "en brøk",
+     "tr": "дробь",
+     "pos": "noun",
+     "forms": "brøken,brøker,brøkene",
+     "ex": "En halv er en brøk.",
+     "ex_tr": "Одна вторая — это дробь.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "en mengde",
+     "tr": "количество, множество",
+     "pos": "noun",
+     "forms": "mengden,mengder,mengdene",
+     "ex": "Det er en stor mengde sukker i oppskriften.",
+     "ex_tr": "В рецепте много сахара.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "et tall",
+     "tr": "число",
+     "pos": "noun",
+     "forms": "tallet,tall,tallene",
+     "ex": "Sju er et oddetall.",
+     "ex_tr": "Семь — нечетное число.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "et kilo",
+     "tr": "килограмм",
+     "pos": "noun",
+     "forms": "kilogrammet,kilo,kilogrammene",
+     "ex": "Jeg løftet et kilo vekter.",
+     "ex_tr": "Я поднял килограмм гантелей.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "et gram",
+     "tr": "грамм, граммы",
+     "pos": "noun",
+     "forms": "grammet, gram, gramma/grammene",
+     "ex": "Jeg kjøpte fem gram sukker.",
+     "ex_tr": "Я купил пять грамм сахара.",
+     "level": "B1",
+     "chk": 1
+    },
+    {
+     "term": "et milligram",
+     "tr": "миллиграмм, миллиграммы",
+     "pos": "noun",
+     "forms": "milligrammet, milligram, milligramma/milligrammene",
+     "ex": "Dosen inneholder to milligram vitamin C.",
+     "ex_tr": "В таблетке содержится два миллиграмма витамина C.",
+     "level": "B1",
+     "chk": 1
+    },
+    {
+     "term": "en centimeter",
+     "tr": "сантиметр, сантиметры",
+     "pos": "noun",
+     "forms": "centimeteren, centimeter, centimeterne",
+     "ex": "Bordet er 80 centimeter langt.",
+     "ex_tr": "Стол длиной 80 сантиметров.",
+     "level": "B1",
+     "chk": 1
+    },
+    {
+     "term": "en kilometer",
+     "tr": "километр, километры",
+     "pos": "noun",
+     "forms": "kilometeren, kilometer, kilometerne",
+     "ex": "Vi gikk fem kilometer i dag.",
+     "ex_tr": "Мы прошли пять километров сегодня.",
+     "level": "B1",
+     "chk": 1
+    },
+    {
+     "term": "en milliliter",
+     "tr": "миллилитр, миллилитры",
+     "pos": "noun",
+     "forms": "milliliteren, milliliter, milliliterne",
+     "ex": "Han drakk en milliliter vann.",
+     "ex_tr": "Он выпил один миллилитр воды.",
+     "level": "B1",
+     "chk": 1
+    },
+    {
+     "term": "en desibel",
+     "tr": "децибель, децибелы",
+     "pos": "noun",
+     "forms": "desibelen, desibel, desibelene",
+     "ex": "Støyen var 85 desibel.",
+     "ex_tr": "Шум был 85 децибел.",
+     "level": "B1",
+     "chk": 1
+    },
+    {
+     "term": "en prosentandel",
+     "tr": "процентная доля, процентные доли",
+     "pos": "noun",
+     "forms": "prosentandelen, prosentandeler, prosentandelene",
+     "ex": "Prosentandelen av befolkningen er høy.",
+     "ex_tr": "Процент населения высокий.",
+     "level": "B1",
+     "chk": 1
+    },
+    {
+     "term": "en dose",
+     "tr": "доза, дозы",
+     "pos": "noun",
+     "forms": "dosen, doser, dosene",
+     "ex": "Ta en dose medisin hver dag.",
+     "ex_tr": "Принимайте одну дозу лекарства каждый день.",
+     "level": "B1",
+     "chk": 1
+    },
+    {
+     "term": "en hastighet",
+     "tr": "скорость, скорости",
+     "pos": "noun",
+     "forms": "hastigheten, hastigheter, hastighetene",
+     "ex": "Bilen har en hastighet på 80 km/t.",
+     "ex_tr": "Машина имеет скорость 80 км/ч.",
+     "level": "B1",
+     "chk": 1
+    },
+    {
+     "term": "å måle",
+     "tr": "измерять, измерить",
+     "pos": "verb",
+     "forms": "måler, målte, har målt",
+     "ex": "Vi måler temperaturen med et termometer.",
+     "ex_tr": "Мы измеряем температуру термометром.",
+     "level": "B1",
+     "chk": 1
+    },
+    {
+     "term": "å veie",
+     "tr": "взвешивать, взвесить",
+     "pos": "verb",
+     "forms": "veier, veide, har veid",
+     "ex": "Han veier seg hver morgen.",
+     "ex_tr": "Он взвешивается каждое утро.",
+     "level": "B1",
+     "chk": 1
+    },
+    {
+     "term": "å telle",
+     "tr": "считать, подсчитать",
+     "pos": "verb",
+     "forms": "teller, talte, har telt",
+     "ex": "Hun teller pengene sine.",
+     "ex_tr": "Она считает свои деньги.",
+     "level": "B1",
+     "chk": 1
+    },
+    {
+     "term": "å beregne",
+     "tr": "рассчитывать, вычислять",
+     "pos": "verb",
+     "forms": "beregner, beregnet, har beregnet",
+     "ex": "Vi beregner kostnadene for prosjektet.",
+     "ex_tr": "Мы рассчитываем затраты на проект.",
+     "level": "B1",
+     "chk": 1
+    },
+    {
+     "term": "å estimere",
+     "tr": "оценивать, оценить",
+     "pos": "verb",
+     "forms": "estimerer, estimerte, har estimert",
+     "ex": "Han estimerer tiden det tar.",
+     "ex_tr": "Он оценивает, сколько времени займет.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "tung",
+     "tr": "тяжёлый, тяжёлые",
+     "pos": "adjective",
+     "forms": "tungt, tunge, tyngre, tyngst",
+     "ex": "Dette er en tung bok.",
+     "ex_tr": "Это тяжёлая книга.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "lett",
+     "tr": "лёгкий, лёгкие",
+     "pos": "adjective",
+     "forms": "lett, lette, lettere, lettest",
+     "ex": "Dette er en lett oppgave.",
+     "ex_tr": "Это лёгкое задание.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "lang",
+     "tr": "длинный, длинные",
+     "pos": "adjective",
+     "forms": "langt, lange, lenger, lengst",
+     "ex": "Stien er lang.",
+     "ex_tr": "Тропа длинная.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "kort",
+     "tr": "короткий, короткие",
+     "pos": "adjective",
+     "forms": "kort, korte, kortere, kortest",
+     "ex": "Han har en kort pause.",
+     "ex_tr": "У него короткий перерыв.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "bred",
+     "tr": "широкий, широкие",
+     "pos": "adjective",
+     "forms": "bredt, brede, bredere, bredest",
+     "ex": "Veien er bred.",
+     "ex_tr": "Дорога широкая.",
+     "level": "B1",
+     "chk": 0
+    }
+   ],
+   "official": [
+    {
+     "term": "en søknad",
+     "tr": "заявление, заявка",
+     "pos": "noun",
+     "forms": "søknaden, søknader, søknadene",
+     "ex": "Jeg leverte søknaden i går, men fikk ingen bekreftelse ennå.",
+     "ex_tr": "Я подал заявление вчера, но пока не получил подтверждения.",
+     "level": "C1",
+     "chk": 1
+    },
+    {
+     "term": "en tillatelse",
+     "tr": "разрешение, лицензия",
+     "pos": "noun",
+     "forms": "tillatelsen, tillatelser, tillatelsene",
+     "ex": "Du trenger en tillatelse for å starte egen virksomhet i Norge.",
+     "ex_tr": "Тебе требуется разрешение, чтобы открыть собственный бизнес в Норвегии.",
+     "level": "C1",
+     "chk": 1
+    },
+    {
+     "term": "en oppholdstillatelse",
+     "tr": "разрешение на проживание",
+     "pos": "noun",
+     "forms": "oppholdstillatelsen, oppholdstillatelser, oppholdstillatelsene",
+     "ex": "Oppholdstillatelsen må fornyes hvert år, ellers kan du miste retten til å bo her.",
+     "ex_tr": "Разрешение на проживание нужно продлевать каждый год, иначе вы можете потерять право жить здесь.",
+     "level": "C1",
+     "chk": 1
+    },
+    {
+     "term": "et skattekort",
+     "tr": "налоговая карта",
+     "pos": "noun",
+     "forms": "skattekortet, skattekort, skattekortene",
+     "ex": "Skattekortet ditt viser hvilken skatteprosent som trekkes fra lønnen.",
+     "ex_tr": "Ваша налоговая карта показывает, какой процент налога удерживается из зарплаты.",
+     "level": "C1",
+     "chk": 1
+    },
+    {
+     "term": "et skattekontor",
+     "tr": "налоговый офис",
+     "pos": "noun",
+     "forms": "skattekontoret, skattekontorer, skattekontorene",
+     "ex": "Jeg har en avtale på skattekontoret for å diskutere skattefradrag.",
+     "ex_tr": "У меня назначена встреча в налоговом офисе, чтобы обсудить налоговые вычеты.",
+     "level": "C1",
+     "chk": 1
+    },
+    {
+     "term": "en bankkonto",
+     "tr": "банковский счёт",
+     "pos": "noun",
+     "forms": "bankkontoen, bankkontoer, bankkontoene",
+     "ex": "For å motta lønn må du ha en bankkonto i en norsk bank.",
+     "ex_tr": "Чтобы получать зарплату, вам нужен банковский счёт в норвежском банке.",
+     "level": "C1",
+     "chk": 1
+    }
+   ],
+   "preps": [
+    {
+     "term": "å være",
+     "tr": "быть, находиться",
+     "pos": "verb",
+     "forms": "er, var, vært",
+     "ex": "Boka er på bordet.",
+     "ex_tr": "Книга на столе.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "å ligge",
+     "tr": "лежать",
+     "pos": "verb",
+     "forms": "ligger, lå, ligget",
+     "ex": "Nøkkelen ligger i veska.",
+     "ex_tr": "Ключ лежит в сумке.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "å stå",
+     "tr": "стоять",
+     "pos": "verb",
+     "forms": "står, sto, stått",
+     "ex": "Huset står på en høyde.",
+     "ex_tr": "Дом стоит на возвышенности.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "å sitte",
+     "tr": "сидеть",
+     "pos": "verb",
+     "forms": "sitter, satt, sittet",
+     "ex": "Hun sitter ved vinduet.",
+     "ex_tr": "Она сидит у окна.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "å komme",
+     "tr": "приходить, приехать",
+     "pos": "verb",
+     "forms": "kommer, kom, kommet",
+     "ex": "Toget kommer klokka ni.",
+     "ex_tr": "Поезд приходит в девять часов.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "å dra",
+     "tr": "уезжать, уходить",
+     "pos": "verb",
+     "forms": "drar, dro, dratt",
+     "ex": "Vi drar til Bergen i sommer.",
+     "ex_tr": "Мы едем в Берген летом.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "å reise",
+     "tr": "путешествовать, ехать",
+     "pos": "verb",
+     "forms": "reiser, reiste, reist",
+     "ex": "Hun reiser til Paris i morgen.",
+     "ex_tr": "Она едет в Париж завтра.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "å bo",
+     "tr": "жить, проживать",
+     "pos": "verb",
+     "forms": "bor, bodde, bodd",
+     "ex": "Jeg bor i Oslo.",
+     "ex_tr": "Я живу в Осло.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "å leve",
+     "tr": "жить (в бытовом смысле)",
+     "pos": "verb",
+     "forms": "lever, levde, levd",
+     "ex": "De lever et enkelt liv.",
+     "ex_tr": "Они ведут простой образ жизни.",
+     "level": "B1",
+     "chk": 0
+    }
+   ],
+   "questions": [
+    {
+     "term": "hvem",
+     "tr": "кто",
+     "pos": "pronoun",
+     "forms": "",
+     "ex": "Hvem er du?",
+     "ex_tr": "Кто ты?",
+     "level": "A1",
+     "chk": 0
+    },
+    {
+     "term": "hva",
+     "tr": "что",
+     "pos": "pronoun",
+     "forms": "",
+     "ex": "Hva heter du?",
+     "ex_tr": "Как тебя зовут?",
+     "level": "A1",
+     "chk": 0
+    },
+    {
+     "term": "hvilken",
+     "tr": "какой",
+     "pos": "pronoun",
+     "forms": "",
+     "ex": "Hvilken bok vil du lese?",
+     "ex_tr": "Какую книгу ты хочешь прочитать?",
+     "level": "A1",
+     "chk": 0
+    },
+    {
+     "term": "hvor",
+     "tr": "где",
+     "pos": "adverb",
+     "forms": "",
+     "ex": "Hvor bor du?",
+     "ex_tr": "Где ты живёшь?",
+     "level": "A1",
+     "chk": 0
+    },
+    {
+     "term": "når",
+     "tr": "когда",
+     "pos": "adverb",
+     "forms": "",
+     "ex": "Når kommer bussen?",
+     "ex_tr": "Когда приходит автобус?",
+     "level": "A1",
+     "chk": 0
+    },
+    {
+     "term": "hvorfor",
+     "tr": "почему,зачем",
+     "pos": "adverb",
+     "forms": "",
+     "ex": "Hvorfor er du trist?",
+     "ex_tr": "Почему ты грустный?",
+     "level": "A1",
+     "chk": 0
+    },
+    {
+     "term": "hvordan",
+     "tr": "как",
+     "pos": "adverb",
+     "forms": "",
+     "ex": "Hvordan går det?",
+     "ex_tr": "Как дела?",
+     "level": "A1",
+     "chk": 0
+    },
+    {
+     "term": "hvor lenge",
+     "tr": "как долго",
+     "pos": "phrase",
+     "forms": "",
+     "ex": "Hvor lenge skal du bli?",
+     "ex_tr": "Как долго ты останешься?",
+     "level": "A1",
+     "chk": 0
+    },
+    {
+     "term": "hvor ofte",
+     "tr": "как часто",
+     "pos": "phrase",
+     "forms": "",
+     "ex": "Hvor ofte trener du?",
+     "ex_tr": "Как часто ты тренируешься?",
+     "level": "A1",
+     "chk": 0
+    },
+    {
+     "term": "fordi",
+     "tr": "потому что",
+     "pos": "conjunction",
+     "forms": "",
+     "ex": "Jeg er hjemme fordi jeg er syk.",
+     "ex_tr": "Я дома, потому что болен.",
+     "level": "A1",
+     "chk": 0
+    },
+    {
+     "term": "men",
+     "tr": "но",
+     "pos": "conjunction",
+     "forms": "",
+     "ex": "Jeg vil gå, men det regner.",
+     "ex_tr": "Я хочу идти, но идёт дождь.",
+     "level": "A1",
+     "chk": 0
+    },
+    {
+     "term": "og",
+     "tr": "и",
+     "pos": "conjunction",
+     "forms": "",
+     "ex": "Hun liker kaffe og te.",
+     "ex_tr": "Она любит кофе и чай.",
+     "level": "A1",
+     "chk": 0
+    },
+    {
+     "term": "eller",
+     "tr": "или",
+     "pos": "conjunction",
+     "forms": "",
+     "ex": "Vil du ha te eller kaffe?",
+     "ex_tr": "Хочешь чай или кофе?",
+     "level": "A1",
+     "chk": 0
+    },
+    {
+     "term": "hvis",
+     "tr": "если",
+     "pos": "conjunction",
+     "forms": "",
+     "ex": "Hvis det regner, blir vi inne.",
+     "ex_tr": "Если будет дождь, мы останемся внутри.",
+     "level": "A1",
+     "chk": 0
+    },
+    {
+     "term": "så",
+     "tr": "тогда,так",
+     "pos": "adverb",
+     "forms": "",
+     "ex": "Jeg var trøtt, så jeg sov.",
+     "ex_tr": "Я был устал, тогда я спал.",
+     "level": "A1",
+     "chk": 0
+    },
+    {
+     "term": "da",
+     "tr": "тогда,когда",
+     "pos": "adverb",
+     "forms": "",
+     "ex": "Da kom han hjem.",
+     "ex_tr": "Когда он пришёл домой.",
+     "level": "A1",
+     "chk": 0
+    },
+    {
+     "term": "derfor",
+     "tr": "поэтому",
+     "pos": "adverb",
+     "forms": "",
+     "ex": "Det er kaldt, derfor bruker jeg jakke.",
+     "ex_tr": "Холодно, поэтому я ношу куртку.",
+     "level": "A1",
+     "chk": 0
+    },
+    {
+     "term": "selv om",
+     "tr": "хотя",
+     "pos": "phrase",
+     "forms": "",
+     "ex": "Selv om det er dyrt, kjøper jeg den.",
+     "ex_tr": "Хотя это дорого, я покупаю его.",
+     "level": "A1",
+     "chk": 0
+    },
+    {
+     "term": "mens",
+     "tr": "пока,в то время как",
+     "pos": "conjunction",
+     "forms": "",
+     "ex": "Jeg leser mens du skriver.",
+     "ex_tr": "Я читаю, пока ты пишешь.",
+     "level": "A1",
+     "chk": 0
+    },
+    {
+     "term": "siden",
+     "tr": "поскольку,с тех пор как",
+     "pos": "conjunction",
+     "forms": "",
+     "ex": "Siden du kom, har jeg vært glad.",
+     "ex_tr": "С тех пор как ты пришёл, я был рад.",
+     "level": "A1",
+     "chk": 0
+    },
+    {
+     "term": "hvem",
+     "tr": "кто",
+     "pos": "pronoun",
+     "forms": "",
+     "ex": "Hvem er du?",
+     "ex_tr": "Кто ты?",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "hva",
+     "tr": "что",
+     "pos": "pronoun",
+     "forms": "",
+     "ex": "Hva gjør du?",
+     "ex_tr": "Что ты делаешь?",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "hvilken",
+     "tr": "какую (ж.)",
+     "pos": "pronoun",
+     "forms": "",
+     "ex": "Hvilken bok liker du?",
+     "ex_tr": "Какую книгу ты любишь?",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "hvilket",
+     "tr": "какое (ср.)",
+     "pos": "pronoun",
+     "forms": "",
+     "ex": "Hvilket hus er stort?",
+     "ex_tr": "Какой дом большой?",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "hvilke",
+     "tr": "какие (мн.)",
+     "pos": "pronoun",
+     "forms": "",
+     "ex": "Hvilke biler er nye?",
+     "ex_tr": "Какие машины новые?",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "hvor",
+     "tr": "где",
+     "pos": "adverb",
+     "forms": "",
+     "ex": "Hvor bor du?",
+     "ex_tr": "Где ты живёшь?",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "når",
+     "tr": "когда",
+     "pos": "adverb",
+     "forms": "",
+     "ex": "Når kommer bussen?",
+     "ex_tr": "Когда приходит автобус?",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "hvorfor",
+     "tr": "почему",
+     "pos": "adverb",
+     "forms": "",
+     "ex": "Hvorfor er du trist?",
+     "ex_tr": "Почему ты грустный?",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "hvordan",
+     "tr": "как",
+     "pos": "adverb",
+     "forms": "",
+     "ex": "Hvordan lager du kaffe?",
+     "ex_tr": "Как ты готовишь кофе?",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "hva med",
+     "tr": "а как насчёт",
+     "pos": "phrase",
+     "forms": "",
+     "ex": "Hva med kaffe?",
+     "ex_tr": "А как насчёт кофе?",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "fordi",
+     "tr": "потому что",
+     "pos": "conjunction",
+     "forms": "",
+     "ex": "Jeg går hjem fordi det regner.",
+     "ex_tr": "Я иду домой, потому что идёт дождь.",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "men",
+     "tr": "но",
+     "pos": "conjunction",
+     "forms": "",
+     "ex": "Jeg liker sjokolade, men jeg er allergisk.",
+     "ex_tr": "Мне нравится шоколад, но я аллергик.",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "eller",
+     "tr": "или",
+     "pos": "conjunction",
+     "forms": "",
+     "ex": "Vil du ha te eller kaffe?",
+     "ex_tr": "Ты хочешь чай или кофе?",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "hvis",
+     "tr": "если",
+     "pos": "conjunction",
+     "forms": "",
+     "ex": "Hvis det regner, blir vi inne.",
+     "ex_tr": "Если будет дождь, мы останемся внутри.",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "så",
+     "tr": "тогда, так",
+     "pos": "adverb",
+     "forms": "",
+     "ex": "Jeg spiser, så jeg blir mett.",
+     "ex_tr": "Я ем, так что я сыт.",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "da",
+     "tr": "тогда",
+     "pos": "adverb",
+     "forms": "",
+     "ex": "Da gikk jeg hjem.",
+     "ex_tr": "Тогда я пошёл домой.",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "derfor",
+     "tr": "поэтому",
+     "pos": "adverb",
+     "forms": "",
+     "ex": "Det er kaldt, derfor bruker jeg jakke.",
+     "ex_tr": "Холодно, поэтому я надеваю куртку.",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "likevel",
+     "tr": "тем не менее",
+     "pos": "adverb",
+     "forms": "",
+     "ex": "Han er trøtt, likevel jobber han.",
+     "ex_tr": "Он устал, тем не менее работает.",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "enten ... eller",
+     "tr": "либо ... либо",
+     "pos": "phrase",
+     "forms": "",
+     "ex": "Enten du kommer, eller du blir hjemme.",
+     "ex_tr": "Либо ты придёшь, либо останешься дома.",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "hva om",
+     "tr": "а если",
+     "pos": "phrase",
+     "forms": "",
+     "ex": "Hva om vi går på kino?",
+     "ex_tr": "А если мы пойдем в кино?",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "i så fall",
+     "tr": "в таком случае",
+     "pos": "phrase",
+     "forms": "",
+     "ex": "Kom du for sent, i så fall må du vente.",
+     "ex_tr": "Если ты пришёл поздно, в таком случае тебе придётся ждать.",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "selv om",
+     "tr": "хотя",
+     "pos": "conjunction",
+     "forms": "",
+     "ex": "Selv om det er dyrt, kjøper jeg den.",
+     "ex_tr": "Хотя это дорого, я покупаю её.",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "dermed",
+     "tr": "тем самым",
+     "pos": "conjunction",
+     "forms": "",
+     "ex": "Han skrev brevet, dermed fikk hun svar.",
+     "ex_tr": "Он написал письмо, тем самым она получила ответ.",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "hvem",
+     "tr": "кто",
+     "pos": "pronoun",
+     "forms": "",
+     "ex": "Hvem er ansvarlig for prosjektet?",
+     "ex_tr": "Кто отвечает за проект?",
+     "level": "B2",
+     "chk": 0
+    },
+    {
+     "term": "hvor",
+     "tr": "где",
+     "pos": "adverb",
+     "forms": "",
+     "ex": "Hvor bor du?",
+     "ex_tr": "Где ты живёшь?",
+     "level": "B2",
+     "chk": 0
+    },
+    {
+     "term": "hvorfor",
+     "tr": "почему",
+     "pos": "adverb",
+     "forms": "",
+     "ex": "Hvorfor kom du sent?",
+     "ex_tr": "Почему ты пришёл поздно?",
+     "level": "B2",
+     "chk": 0
+    },
+    {
+     "term": "fordi",
+     "tr": "потому что",
+     "pos": "conjunction",
+     "forms": "",
+     "ex": "Jeg ble hjemme fordi jeg var syk.",
+     "ex_tr": "Я остался дома, потому что был болен.",
+     "level": "B2",
+     "chk": 0
+    },
+    {
+     "term": "men",
+     "tr": "но",
+     "pos": "conjunction",
+     "forms": "",
+     "ex": "Jeg liker kaffe, men jeg drikker te.",
+     "ex_tr": "Мне нравится кофе, но я пью чай.",
+     "level": "B2",
+     "chk": 0
+    },
+    {
+     "term": "hvis",
+     "tr": "если",
+     "pos": "conjunction",
+     "forms": "",
+     "ex": "Hvis det regner, blir vi inne.",
+     "ex_tr": "Если пойдёт дождь, мы останемся внутри.",
+     "level": "B2",
+     "chk": 0
+    },
+    {
+     "term": "da",
+     "tr": "тогда",
+     "pos": "adverb",
+     "forms": "",
+     "ex": "Da jeg ankom, var møtet allerede i gang.",
+     "ex_tr": "Когда я прибыл, встреча уже шла.",
+     "level": "B2",
+     "chk": 0
+    },
+    {
+     "term": "når",
+     "tr": "когда",
+     "pos": "adverb",
+     "forms": "",
+     "ex": "Når begynner filmen?",
+     "ex_tr": "Когда начинается фильм?",
+     "level": "B2",
+     "chk": 0
+    },
+    {
+     "term": "hvordan",
+     "tr": "как",
+     "pos": "adverb",
+     "forms": "",
+     "ex": "Hvordan løser du problemet?",
+     "ex_tr": "Как ты решаешь проблему?",
+     "level": "B2",
+     "chk": 0
+    },
+    {
+     "term": "derfor",
+     "tr": "поэтому",
+     "pos": "adverb",
+     "forms": "",
+     "ex": "Det er kaldt, derfor bruker jeg en jakke.",
+     "ex_tr": "Холодно, поэтому я ношу куртку.",
+     "level": "B2",
+     "chk": 0
+    },
+    {
+     "term": "likevel",
+     "tr": "тем не менее",
+     "pos": "adverb",
+     "forms": "",
+     "ex": "Det var vanskelig, likevel klarte jeg det.",
+     "ex_tr": "Было трудно, тем не менее я справился.",
+     "level": "B2",
+     "chk": 0
+    },
+    {
+     "term": "selv om",
+     "tr": "хотя",
+     "pos": "phrase",
+     "forms": "",
+     "ex": "Selv om det er dyrt, kjøper jeg den.",
+     "ex_tr": "Хотя это дорого, я покупаю его.",
+     "level": "B2",
+     "chk": 0
+    },
+    {
+     "term": "enten ... eller",
+     "tr": "или ... или",
+     "pos": "phrase",
+     "forms": "",
+     "ex": "Du kan enten gå hjem eller bli her.",
+     "ex_tr": "Ты можешь либо пойти домой, либо остаться здесь.",
+     "level": "B2",
+     "chk": 0
+    },
+    {
+     "term": "både ... og",
+     "tr": "и ... и",
+     "pos": "phrase",
+     "forms": "",
+     "ex": "Jeg liker både kaffe og te.",
+     "ex_tr": "Мне нравятся и кофе, и чай.",
+     "level": "B2",
+     "chk": 0
+    },
+    {
+     "term": "altså",
+     "tr": "значит",
+     "pos": "adverb",
+     "forms": "",
+     "ex": "Han er forsinket, altså må vi starte uten ham.",
+     "ex_tr": "Он опоздал, значит, мы начнём без него.",
+     "level": "B2",
+     "chk": 0
+    },
+    {
+     "term": "et spørsmål",
+     "tr": "вопрос",
+     "pos": "noun",
+     "forms": "spørsmålet, spørsmål, spørsmålene",
+     "ex": "Jeg har et viktig spørsmål.",
+     "ex_tr": "У меня важный вопрос.",
+     "level": "B2",
+     "chk": 0
+    },
+    {
+     "term": "et svar",
+     "tr": "ответ",
+     "pos": "noun",
+     "forms": "svaret, svar, svarene",
+     "ex": "Kan du gi meg et kort svar?",
+     "ex_tr": "Можешь дать мне короткий ответ?",
+     "level": "B2",
+     "chk": 0
+    },
+    {
+     "term": "en årsak",
+     "tr": "причина",
+     "pos": "noun",
+     "forms": "årsaken, årsaker, årsakene",
+     "ex": "Dette er hovedårsaken til problemet.",
+     "ex_tr": "Это главная причина проблемы.",
+     "level": "B2",
+     "chk": 0
+    },
+    {
+     "term": "å spørre",
+     "tr": "спрашивать, задать вопрос",
+     "pos": "verb",
+     "forms": "spør, spurte, har spurt",
+     "ex": "Jeg liker å spørre når jeg er usikker.",
+     "ex_tr": "Мне нравится спрашивать, когда я не уверен.",
+     "level": "B2",
+     "chk": 0
+    },
+    {
+     "term": "å svare",
+     "tr": "отвечать",
+     "pos": "verb",
+     "forms": "svarer, svarte, har svart",
+     "ex": "Han klarte å svare på alle spørsmålene.",
+     "ex_tr": "Он смог ответить на все вопросы.",
+     "level": "B2",
+     "chk": 0
+    }
+   ],
+   "shopping": [
+    {
+     "term": "en butikk",
+     "tr": "магазин",
+     "pos": "noun",
+     "forms": "butikken, butikker, butikkene",
+     "ex": "Jeg går inn i en butikk.",
+     "ex_tr": "Я иду в магазин.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "en lommebok",
+     "tr": "бумажник",
+     "pos": "noun",
+     "forms": "lommeboken, lommebøker, lommebøkene",
+     "ex": "Jeg har en lommebok i vesken.",
+     "ex_tr": "У меня в сумке бумажник.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "et kredittkort",
+     "tr": "кредитная карта",
+     "pos": "noun",
+     "forms": "kredittkortet, kredittkort, kredittkortene",
+     "ex": "Jeg bruker et kredittkort for å betale.",
+     "ex_tr": "Я использую кредитную карту, чтобы оплатить.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "en rabatt",
+     "tr": "скидка",
+     "pos": "noun",
+     "forms": "rabatten, rabatter, rabattene",
+     "ex": "Det er en rabatt på denne jakken.",
+     "ex_tr": "На этом пальто есть скидка.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "en handleliste",
+     "tr": "список покупок",
+     "pos": "noun",
+     "forms": "handlelisten, handlelister, handlelistene",
+     "ex": "Jeg skrev en handleliste.",
+     "ex_tr": "Я написал список покупок.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "en handlekurv",
+     "tr": "корзина",
+     "pos": "noun",
+     "forms": "handlekurven, handlekurver, handlekurvene",
+     "ex": "Handlekurven er full.",
+     "ex_tr": "Корзина полная.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "en butikkmedarbeider",
+     "tr": "продавец",
+     "pos": "noun",
+     "forms": "butikkmedarbeideren, butikkmedarbeidere, butikkmedarbeiderne",
+     "ex": "Butikkmedarbeideren hjalp meg.",
+     "ex_tr": "Продавец помог мне.",
+     "level": "A2",
+     "chk": 1
+    }
+   ],
+   "tech": [
+    {
+     "term": "en telefon",
+     "tr": "телефон",
+     "pos": "noun",
+     "forms": "telefonen, telefoner, telefonene",
+     "ex": "Jeg bruker en telefon hver dag.",
+     "ex_tr": "Я использую телефон каждый день.",
+     "level": "B1",
+     "chk": 1
+    },
+    {
+     "term": "en datamaskin",
+     "tr": "компьютер",
+     "pos": "noun",
+     "forms": "datamaskinen, datamaskiner, datamaskinene",
+     "ex": "Datamaskinen min er gammel.",
+     "ex_tr": "Мой компьютер старый.",
+     "level": "B1",
+     "chk": 1
+    },
+    {
+     "term": "en mobiltelefon",
+     "tr": "мобильный телефон",
+     "pos": "noun",
+     "forms": "mobiltelefonen, mobiltelefoner, mobiltelefonene",
+     "ex": "Han har en mobiltelefon som han bruker til alt.",
+     "ex_tr": "У него есть мобильный телефон, который он использует для всего.",
+     "level": "B1",
+     "chk": 1
+    },
+    {
+     "term": "en smarttelefon",
+     "tr": "смарт-телефон",
+     "pos": "noun",
+     "forms": "smarttelefonen, smarttelefoner, smarttelefonene",
+     "ex": "Smarttelefonen har mange apper.",
+     "ex_tr": "Смарт-телефон имеет много приложений.",
+     "level": "B1",
+     "chk": 1
+    },
+    {
+     "term": "en app",
+     "tr": "приложение",
+     "pos": "noun",
+     "forms": "appen, apper, appene",
+     "ex": "Jeg laster ned en app for å holde styr på treningen.",
+     "ex_tr": "Я скачиваю приложение, чтобы отслеживать тренировку.",
+     "level": "B1",
+     "chk": 1
+    },
+    {
+     "term": "en nettside",
+     "tr": "веб‑страница",
+     "pos": "noun",
+     "forms": "nettsiden, nettsider, nettsidene",
+     "ex": "Du kan finne mye informasjon på en nettside.",
+     "ex_tr": "Вы можете найти много информации на веб‑странице.",
+     "level": "B1",
+     "chk": 1
+    },
+    {
+     "term": "en e-post",
+     "tr": "электронная почта",
+     "pos": "noun",
+     "forms": "e-posten, e-poster, e-postene",
+     "ex": "Jeg sendte en e-post til kollegaen.",
+     "ex_tr": "Я отправил электронную почту коллеге.",
+     "level": "B1",
+     "chk": 1
+    },
+    {
+     "term": "en nettleser",
+     "tr": "браузер",
+     "pos": "noun",
+     "forms": "nettleseren, nettlesere, nettleserne",
+     "ex": "Nettleseren min er oppdatert til siste versjon.",
+     "ex_tr": "Мой браузер обновлен до последней версии.",
+     "level": "B1",
+     "chk": 1
+    },
+    {
+     "term": "en søkemotor",
+     "tr": "поисковая система",
+     "pos": "noun",
+     "forms": "søkemotoren, søkemotorer, søkemotorene",
+     "ex": "Google er en populær søkemotor.",
+     "ex_tr": "Google — популярная поисковая система.",
+     "level": "B1",
+     "chk": 1
+    },
+    {
+     "term": "en Wi-Fi",
+     "tr": "Wi‑Fi",
+     "pos": "noun",
+     "forms": "Wi-Fien,Wi-Fier,Wi-Fiene",
+     "ex": "Vi bruker Wi-Fi for å koble til internett.",
+     "ex_tr": "Мы используем Wi‑Fi, чтобы подключиться к интернету.",
+     "level": "B1",
+     "chk": 1
+    },
+    {
+     "term": "en trådløs enhet",
+     "tr": "беспроводное устройство",
+     "pos": "noun",
+     "forms": "trådløse enheten,trådløse enheter,trådløse enhetene",
+     "ex": "Den trådløse enheten kan kobles til telefonen.",
+     "ex_tr": "Это беспроводное устройство можно подключить к телефону.",
+     "level": "B1",
+     "chk": 1
+    },
+    {
+     "term": "en skjerm",
+     "tr": "экран, дисплей",
+     "pos": "noun",
+     "forms": "skjermen, skjermer, skjermene",
+     "ex": "Jeg kjøpte en ny skjerm til datamaskinen.",
+     "ex_tr": "Я купил новый экран для компьютера.",
+     "level": "B1",
+     "chk": 1
+    },
+    {
+     "term": "en lader",
+     "tr": "зарядное устройство, адаптер",
+     "pos": "noun",
+     "forms": "laderen, ladere, laderne",
+     "ex": "Telefonen min trenger en ny lader.",
+     "ex_tr": "Моему телефону нужен новый зарядный устройство.",
+     "level": "B1",
+     "chk": 1
+    },
+    {
+     "term": "et tastatur",
+     "tr": "клавиатура",
+     "pos": "noun",
+     "forms": "tastaturet, tastaturer, tastaturene",
+     "ex": "Jeg bruker et trådløst tastatur når jeg jobber.",
+     "ex_tr": "Я использую беспроводную клавиатуру, когда работаю.",
+     "level": "B1",
+     "chk": 1
+    },
+    {
+     "term": "en mus",
+     "tr": "мышь",
+     "pos": "noun",
+     "forms": "musen, mus, musene",
+     "ex": "Den nye musen har flere knapper.",
+     "ex_tr": "Новая мышь имеет несколько кнопок.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "en fil",
+     "tr": "файл",
+     "pos": "noun",
+     "forms": "filen, filer, filene",
+     "ex": "Kan du sende meg filen?",
+     "ex_tr": "Можешь отправить мне файл?",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "en mappe",
+     "tr": "папка, каталог",
+     "pos": "noun",
+     "forms": "mappen, mapper, mappene",
+     "ex": "Legg dokumentet i en mappe på skrivebordet.",
+     "ex_tr": "Положи документ в папку на рабочем столе.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "en nettsky",
+     "tr": "облачное хранилище, облако",
+     "pos": "noun",
+     "forms": "nettskyen, nettskyer, nettskyene",
+     "ex": "Alle bildene er lagret i en nettsky.",
+     "ex_tr": "Все фотографии хранятся в облаке.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "et virus",
+     "tr": "вирус",
+     "pos": "noun",
+     "forms": "viruset, virus, virusene",
+     "ex": "Datamaskinen fikk et virus i går.",
+     "ex_tr": "Вчера компьютер подхватил вирус.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "en oppdatering",
+     "tr": "обновление",
+     "pos": "noun",
+     "forms": "oppdateringen, oppdateringer, oppdateringene",
+     "ex": "Det er en viktig oppdatering tilgjengelig.",
+     "ex_tr": "Доступно важное обновление.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "et nettverk",
+     "tr": "сеть, сеть (Wi‑Fi)",
+     "pos": "noun",
+     "forms": "nettverket, nettverk, nettverkene",
+     "ex": "Wi‑Fi‑nettverket er tregt i dag.",
+     "ex_tr": "Wi‑Fi сеть сегодня медленная.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "å laste ned",
+     "tr": "скачать, загрузить",
+     "pos": "verb",
+     "forms": "laster ned, lastet ned, har lastet ned",
+     "ex": "Jeg skal laste ned filmen i kveld.",
+     "ex_tr": "Я собираюсь скачать фильм сегодня вечером.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "å laste opp",
+     "tr": "загрузить, отправить",
+     "pos": "verb",
+     "forms": "laster opp, lastet opp, har lastet opp",
+     "ex": "Hun må laste opp oppgaven til Canvas.",
+     "ex_tr": "Ей нужно загрузить задание в Canvas.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "å koble til",
+     "tr": "подключить, соединить",
+     "pos": "verb",
+     "forms": "kobler til, koblet til, har koblet til",
+     "ex": "Kan du koble til printeren?",
+     "ex_tr": "Можешь подключить принтер?",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "å surfe",
+     "tr": "просматривать (интернет), серфить",
+     "pos": "verb",
+     "forms": "surfer, surfet, har surfet",
+     "ex": "Vi liker å surfe på nettet etter nyheter.",
+     "ex_tr": "Мы любим просматривать интернет в поисках новостей.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "å chatte",
+     "tr": "чатиться, переписываться",
+     "pos": "verb",
+     "forms": "chatter, chatta, har chatta",
+     "ex": "De pleier å chatte hver dag.",
+     "ex_tr": "Они обычно чатятся каждый день.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "å logge inn",
+     "tr": "войти, залогиниться",
+     "pos": "verb",
+     "forms": "logger inn, logget inn, har logget inn",
+     "ex": "Du må logge inn for å se meldingen.",
+     "ex_tr": "Тебе нужно войти, чтобы увидеть сообщение.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "å oppdatere",
+     "tr": "обновлять, актуализировать",
+     "pos": "verb",
+     "forms": "oppdaterer, oppdaterte, har oppdatert",
+     "ex": "Programvaren skal oppdatere automatisk.",
+     "ex_tr": "Программное обеспечение должно обновляться автоматически.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "å slå av",
+     "tr": "выключать, отключать",
+     "pos": "verb",
+     "forms": "slår av, slo av, har slått av",
+     "ex": "Husk å slå av mobilen før du legger deg.",
+     "ex_tr": "Не забудь выключить телефон перед сном.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "rask",
+     "tr": "быстрый, скорый",
+     "pos": "adjective",
+     "forms": "raskt, raske, raskere, raskest",
+     "ex": "Den nye telefonen er veldig rask.",
+     "ex_tr": "Новый телефон очень быстрый.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "pålitelig",
+     "tr": "надежный, достоверный",
+     "pos": "adjective",
+     "forms": "pålitelig, pålitelige, mer pålitelig, mest pålitelig",
+     "ex": "Dette merket er kjent for å være pålitelig.",
+     "ex_tr": "Этот бренд известен своей надежностью.",
+     "level": "B1",
+     "chk": 0
+    }
+   ],
+   "time": [
+    {
+     "term": "ei uke",
+     "tr": "неделя, неделя (время)",
+     "pos": "noun",
+     "forms": "uka, uker, ukene",
+     "ex": "Jeg har en uke fri.",
+     "ex_tr": "У меня есть свободная неделя.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "en måned",
+     "tr": "месяц",
+     "pos": "noun",
+     "forms": "måneden, måneder, månedene",
+     "ex": "Månedens første dag er viktig.",
+     "ex_tr": "Первый день месяца важен.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "en årstid",
+     "tr": "время года, сезон",
+     "pos": "noun",
+     "forms": "årstiden, årstider, årstidene",
+     "ex": "Vinter er en av de kaldeste årstidene.",
+     "ex_tr": "Зима — один из самых холодных сезонов.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "en time",
+     "tr": "час (время)",
+     "pos": "noun",
+     "forms": "timen, timer, timene",
+     "ex": "Det er to timer til møtet.",
+     "ex_tr": "До встречи осталось два часа.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "en mandag",
+     "tr": "понедельник",
+     "pos": "noun",
+     "forms": "mandagen, mandager, mandagene",
+     "ex": "Mandagen er starten på arbeidsuken.",
+     "ex_tr": "Понедельник — начало рабочей недели.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "en tirsdag",
+     "tr": "вторник",
+     "pos": "noun",
+     "forms": "tirsdagen, tirsdager, tirsdagene",
+     "ex": "Tirsdagen har jeg norsk time.",
+     "ex_tr": "Во вторник у меня урок норвежского.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "en onsdag",
+     "tr": "среда",
+     "pos": "noun",
+     "forms": "onsdagen, onsdager, onsdagene",
+     "ex": "Onsdag er midt i uken.",
+     "ex_tr": "Среда — середина недели.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "en torsdag",
+     "tr": "четверг",
+     "pos": "noun",
+     "forms": "torsdagen, torsdager, torsdagene",
+     "ex": "Torsdag spiser vi fisk.",
+     "ex_tr": "В четверг мы едим рыбу.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "en fredag",
+     "tr": "пятница",
+     "pos": "noun",
+     "forms": "fredagen, fredager, fredagene",
+     "ex": "Fredag er min favorittdag.",
+     "ex_tr": "Пятница — мой любимый день.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "en lørdag",
+     "tr": "суббота",
+     "pos": "noun",
+     "forms": "lørdagen, lørdager, lørdagene",
+     "ex": "Lørdag skal vi gå på kino.",
+     "ex_tr": "В субботу мы пойдем в кино.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "en søndag",
+     "tr": "воскресенье",
+     "pos": "noun",
+     "forms": "søndagen, søndager, søndagene",
+     "ex": "Søndag slapper jeg av.",
+     "ex_tr": "В воскресенье я отдыхаю.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "en januar",
+     "tr": "январь",
+     "pos": "noun",
+     "forms": "januaren, januarer, januarene",
+     "ex": "Januar er kaldt i Norge.",
+     "ex_tr": "Январь холодный в Норвегии.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "en februar",
+     "tr": "февраль",
+     "pos": "noun",
+     "forms": "februaren, februarer, februarene",
+     "ex": "Februar har mange snødager.",
+     "ex_tr": "В феврале много снежных дней.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "en april",
+     "tr": "апрель",
+     "pos": "noun",
+     "forms": "aprilen, apriler, aprilene",
+     "ex": "April bringer vårens blomster.",
+     "ex_tr": "Апрель приносит весенние цветы.",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "en mai",
+     "tr": "май",
+     "pos": "noun",
+     "forms": "maien, maier, maiene",
+     "ex": "Mai er en vakker måned.",
+     "ex_tr": "Май — красивый месяц.",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "en juni",
+     "tr": "июнь",
+     "pos": "noun",
+     "forms": "junien, junier, juniene",
+     "ex": "Juni markerer starten på sommeren.",
+     "ex_tr": "Июнь отмечает начало лета.",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "en juli",
+     "tr": "июль",
+     "pos": "noun",
+     "forms": "julién, juliere, juliene",
+     "ex": "Juli er ofte veldig varmt.",
+     "ex_tr": "Июль часто очень жаркий.",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "en august",
+     "tr": "август",
+     "pos": "noun",
+     "forms": "augusten, auguster, augustene",
+     "ex": "August er siste sommermåned.",
+     "ex_tr": "Август — последний летний месяц.",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "en september",
+     "tr": "сентябрь",
+     "pos": "noun",
+     "forms": "septemberen, septemberer, septemberene",
+     "ex": "September betyr at høsten begynner.",
+     "ex_tr": "Сентябрь означает начало осени.",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "en oktober",
+     "tr": "октябрь",
+     "pos": "noun",
+     "forms": "oktoberen, oktoberer, oktoberene",
+     "ex": "Oktober er kjent for fargerike blader.",
+     "ex_tr": "Октябрь известен яркими листьями.",
+     "level": "A2",
+     "chk": 0
+    }
+   ],
+   "verbs": [
+    {
+     "term": "å kunne",
+     "tr": "мочь, уметь",
+     "pos": "verb",
+     "forms": "kan, kunne, har kunnet",
+     "ex": "Jeg kan snakke norsk.",
+     "ex_tr": "Я могу говорить по-норвежски.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "å måtte",
+     "tr": "должен, нужно",
+     "pos": "verb",
+     "forms": "må, måtte, har måttet",
+     "ex": "Du må gå hjem nå.",
+     "ex_tr": "Тебе нужно идти домой сейчас.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "å ville",
+     "tr": "хотеть",
+     "pos": "verb",
+     "forms": "vil, ville, har villet",
+     "ex": "Vi vil reise til Oslo.",
+     "ex_tr": "Мы хотим поехать в Осло.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "å skulle",
+     "tr": "должен, будет",
+     "pos": "verb",
+     "forms": "skal, skulle, har skullet",
+     "ex": "Han skal møte meg i morgen.",
+     "ex_tr": "Он встретится со мной завтра.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "å tro",
+     "tr": "верить",
+     "pos": "verb",
+     "forms": "tror, trodde, har trodd",
+     "ex": "Hun tror på seg selv.",
+     "ex_tr": "Она верит в себя.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "å huske",
+     "tr": "помнить",
+     "pos": "verb",
+     "forms": "husker, husket, har husket",
+     "ex": "Jeg husker den dagen.",
+     "ex_tr": "Я помню тот день.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "å hjelpe",
+     "tr": "помогать",
+     "pos": "verb",
+     "forms": "hjelper, hjalp, har hjulpet",
+     "ex": "Kan du hjelpe meg?",
+     "ex_tr": "Можешь помочь мне?",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "å tenke",
+     "tr": "думать",
+     "pos": "verb",
+     "forms": "tenker, tenkte, har tenkt",
+     "ex": "Vi tenker på ferien.",
+     "ex_tr": "Мы думаем о отпуске.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "å vente",
+     "tr": "ждать",
+     "pos": "verb",
+     "forms": "venter, ventet, har ventet",
+     "ex": "Jeg venter på bussen.",
+     "ex_tr": "Я жду автобус.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "å begynne",
+     "tr": "начинать",
+     "pos": "verb",
+     "forms": "begynner, begynte, har begynt",
+     "ex": "Skolen begynner klokken åtte.",
+     "ex_tr": "Школа начинается в восемь часов.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "å bli",
+     "tr": "стать, становиться",
+     "pos": "verb",
+     "forms": "blir, ble, har blitt",
+     "ex": "Jeg vil bli lege.",
+     "ex_tr": "Я хочу стать врачом.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "å få",
+     "tr": "получать, получить",
+     "pos": "verb",
+     "forms": "får, fikk, har fått",
+     "ex": "Han får en gave i dag.",
+     "ex_tr": "Он получает подарок сегодня.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "å føle",
+     "tr": "чувствовать, ощущать",
+     "pos": "verb",
+     "forms": "føler, følte, har følt",
+     "ex": "Jeg føler meg glad.",
+     "ex_tr": "Я чувствую себя радостным.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "å glemme",
+     "tr": "забывать, забыть",
+     "pos": "verb",
+     "forms": "glemmer, glemte, har glemt",
+     "ex": "Ikke glem boken!",
+     "ex_tr": "Не забудь книгу!",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "å slutte",
+     "tr": "прекращать, закончить",
+     "pos": "verb",
+     "forms": "slutter, sluttet, har sluttet",
+     "ex": "Vi slutter arbeidet klokken fem.",
+     "ex_tr": "Мы заканчиваем работу в пять.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "å møte",
+     "tr": "встречать, встретить",
+     "pos": "verb",
+     "forms": "møter, møtte, har møtt",
+     "ex": "Jeg møter ham i morgen.",
+     "ex_tr": "Я встречу его завтра.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "å åpne",
+     "tr": "открывать, открыть",
+     "pos": "verb",
+     "forms": "åpner, åpnet, har åpnet",
+     "ex": "Kan du åpne vinduet?",
+     "ex_tr": "Ты можешь открыть окно?",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "å lukke",
+     "tr": "закрывать, закрыть",
+     "pos": "verb",
+     "forms": "lukker, lukket, har lukket",
+     "ex": "Lukk døren, vær så snill.",
+     "ex_tr": "Закрой дверь, пожалуйста.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "å betale",
+     "tr": "платить, заплатить",
+     "pos": "verb",
+     "forms": "betaler, betalte, har betalt",
+     "ex": "Jeg betaler regningen nå.",
+     "ex_tr": "Я плачу счёт сейчас.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "å jobbe",
+     "tr": "работать",
+     "pos": "verb",
+     "forms": "jobber, jobbet, har jobbet",
+     "ex": "Hun jobber på en butikk.",
+     "ex_tr": "Она работает в магазине.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "å reise",
+     "tr": "путешествовать, ехать",
+     "pos": "verb",
+     "forms": "reiser, reiste, har reist",
+     "ex": "Vi reiser til Bergen neste uke.",
+     "ex_tr": "Мы едем в Берген на следующей неделе.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "å sove",
+     "tr": "спать",
+     "pos": "verb",
+     "forms": "sover, sov, har sovet",
+     "ex": "Jeg sover åtte timer hver natt.",
+     "ex_tr": "Я сплю восемь часов каждую ночь.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "å håpe",
+     "tr": "надеяться",
+     "pos": "verb",
+     "forms": "håper, håpet, har håpet",
+     "ex": "Vi håper på fint vær.",
+     "ex_tr": "Мы надеемся на хорошую погоду.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "å elske",
+     "tr": "любить",
+     "pos": "verb",
+     "forms": "elsker, elsket, har elsket",
+     "ex": "Hun elsker musikk.",
+     "ex_tr": "Она любит музыку.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "å fryse",
+     "tr": "замерзать, мёрзнуть",
+     "pos": "verb",
+     "forms": "fryser, frøs/frøys, har frosset",
+     "ex": "Det fryser ute.",
+     "ex_tr": "На улице мороз.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "å sitte",
+     "tr": "сидеть",
+     "pos": "verb",
+     "forms": "sitter, satt, har sittet",
+     "ex": "Han sitter på stolen.",
+     "ex_tr": "Он сидит на стуле.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "å stå",
+     "tr": "стоять",
+     "pos": "verb",
+     "forms": "står, stod, har stått",
+     "ex": "De står i kø.",
+     "ex_tr": "Они стоят в очереди.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "å legge",
+     "tr": "класть, помещать",
+     "pos": "verb",
+     "forms": "legger, la, har lagt",
+     "ex": "Jeg legger boken på bordet.",
+     "ex_tr": "Я кладу книгу на стол.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "å ta",
+     "tr": "брать, взять",
+     "pos": "verb",
+     "forms": "tar, tok, har tatt",
+     "ex": "Hun tar bussen.",
+     "ex_tr": "Она садится в автобус.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "å gi",
+     "tr": "давать, подарить",
+     "pos": "verb",
+     "forms": "gir, ga, har gitt",
+     "ex": "Jeg gir deg en gave.",
+     "ex_tr": "Я даю тебе подарок.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "å drikke",
+     "tr": "пить",
+     "pos": "verb",
+     "forms": "drikker, drakk, har drukket",
+     "ex": "Jeg drikker vann.",
+     "ex_tr": "Я пью воду.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "å våkne",
+     "tr": "просыпаться, проснуться",
+     "pos": "verb",
+     "forms": "våkner, våknet, har våknet",
+     "ex": "Jeg våkner tidlig.",
+     "ex_tr": "Я просыпаюсь рано.",
+     "level": "A2",
+     "chk": 1
+    }
+   ],
+   "work": [
+    {
+     "term": "en kollega",
+     "tr": "коллега",
+     "pos": "noun",
+     "forms": "kollegaen, kollegaer, kollegaene",
+     "ex": "Jeg jobber med mange gode kollegaer.",
+     "ex_tr": "Я работаю со многими хорошими коллегами.",
+     "level": "B1",
+     "chk": 1
+    },
+    {
+     "term": "et kontor",
+     "tr": "офис, кабинет",
+     "pos": "noun",
+     "forms": "kontoret, kontorer, kontorene",
+     "ex": "Hun har et stort kontor på sjette etasje.",
+     "ex_tr": "У неё большой офис на шестом этаже.",
+     "level": "B1",
+     "chk": 1
+    },
+    {
+     "term": "en ansatt",
+     "tr": "сотрудник, работник",
+     "pos": "noun",
+     "forms": "ansatte, ansatte, ansatte",
+     "ex": "Alle ansatte får en bonus i desember.",
+     "ex_tr": "Все сотрудники получают бонус в декабре.",
+     "level": "B1",
+     "chk": 1
+    },
+    {
+     "term": "en leder",
+     "tr": "руководитель, начальник",
+     "pos": "noun",
+     "forms": "lederen, ledere, lederne",
+     "ex": "Vår leder er veldig opptatt i dag.",
+     "ex_tr": "Наш руководитель очень занят сегодня.",
+     "level": "B1",
+     "chk": 1
+    },
+    {
+     "term": "en lønn",
+     "tr": "зарплата",
+     "pos": "noun",
+     "forms": "lønnen, lønner, lønnene",
+     "ex": "Jeg er fornøyd med den nye lønnen min.",
+     "ex_tr": "Я доволен своей новой зарплатой.",
+     "level": "B1",
+     "chk": 1
+    },
+    {
+     "term": "en kontrakt",
+     "tr": "контракт, договор",
+     "pos": "noun",
+     "forms": "kontrakten, kontrakter, kontraktene",
+     "ex": "Du må signere kontrakten før du starter.",
+     "ex_tr": "Ты должен подписать контракт, прежде чем начнёшь.",
+     "level": "B1",
+     "chk": 1
+    },
+    {
+     "term": "en pause",
+     "tr": "перерыв",
+     "pos": "noun",
+     "forms": "pausen, pauser, pausene",
+     "ex": "Vi tar en kort pause klokken ti.",
+     "ex_tr": "Мы делаем короткий перерыв в десять часов.",
+     "level": "B1",
+     "chk": 1
+    },
+    {
+     "term": "et møte",
+     "tr": "встреча, совещание",
+     "pos": "noun",
+     "forms": "møtet, møter, møtene",
+     "ex": "Møtet ble utsatt til morgen.",
+     "ex_tr": "Совещание было перенесено на утро.",
+     "level": "B1",
+     "chk": 1
+    },
+    {
+     "term": "et prosjekt",
+     "tr": "проект",
+     "pos": "noun",
+     "forms": "prosjektet, prosjekter, prosjektene",
+     "ex": "Vi jobber med et nytt prosjekt nå.",
+     "ex_tr": "Сейчас мы работаем над новым проектом.",
+     "level": "B1",
+     "chk": 1
+    },
+    {
+     "term": "en deadline",
+     "tr": "дедлайн, срок",
+     "pos": "noun",
+     "forms": "deadlinen, deadliner, deadlinene",
+     "ex": "Deadlineen er i morgen kl. 12.",
+     "ex_tr": "Дедлайн завтра в 12:00.",
+     "level": "B1",
+     "chk": 1
+    },
+    {
+     "term": "en ferdighet",
+     "tr": "навык",
+     "pos": "noun",
+     "forms": "ferdigheten, ferdigheter, ferdighetene",
+     "ex": "Språkferdigheter er viktige i denne jobben.",
+     "ex_tr": "Языковые навыки важны в этой работе.",
+     "level": "B1",
+     "chk": 1
+    },
+    {
+     "term": "et ansvarsområde",
+     "tr": "область ответственности",
+     "pos": "noun",
+     "forms": "ansvarsområdet, ansvarsområder, ansvarsområdene",
+     "ex": "Hans ansvarsområde er markedsføring.",
+     "ex_tr": "Его область ответственности — маркетинг.",
+     "level": "B1",
+     "chk": 1
+    },
+    {
+     "term": "å søke",
+     "tr": "искать, подавать заявку",
+     "pos": "verb",
+     "forms": "søker, søkte, søkt",
+     "ex": "Jeg søkte på stillingen i går.",
+     "ex_tr": "Я подал заявку на вакансию вчера.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "å ansette",
+     "tr": "наём, нанимать",
+     "pos": "verb",
+     "forms": "ansetter, ansatte, ansatt",
+     "ex": "Vi skal ansette to nye utviklere.",
+     "ex_tr": "Мы наёмим двух новых разработчиков.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "å oppfylle",
+     "tr": "выполнять, удовлетворять",
+     "pos": "verb",
+     "forms": "oppfyller, oppfylte, oppfylt",
+     "ex": "Du må oppfylle kravene for å få jobben.",
+     "ex_tr": "Ты должен выполнить требования, чтобы получить работу.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "å forhandle",
+     "tr": "торговаться",
+     "pos": "verb",
+     "forms": "forhandler, forhandlet, forhandlet",
+     "ex": "Vi forhandlet om lønnen i to timer.",
+     "ex_tr": "Мы торговались о зарплате два часа.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "å delegere",
+     "tr": "делегировать",
+     "pos": "verb",
+     "forms": "delegerer, delegerte, delegert",
+     "ex": "En god leder vet å delegere oppgaver.",
+     "ex_tr": "Хороший руководитель умеет делегировать задачи.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "ansvarlig",
+     "tr": "ответственный",
+     "pos": "adjective",
+     "forms": "ansvarlig, ansvarlige, mer ansvarlig, mest ansvarlig",
+     "ex": "Hun er den som er ansvarlig for prosjektet.",
+     "ex_tr": "Она та, кто отвечает за проект.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "krevende",
+     "tr": "требовательный, сложный",
+     "pos": "adjective",
+     "forms": "krevende, krevende, mer krevende, mest krevende",
+     "ex": "Det er en krevende jobb, men jeg liker den.",
+     "ex_tr": "Это требовательная работа, но мне она нравится.",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "arbeidsmiljø",
+     "tr": "рабочая среда",
+     "pos": "noun",
+     "forms": "arbeidsmiljøet, arbeidsmiljøer, arbeidsmiljøene",
+     "ex": "Vi har et godt arbeidsmiljø på kontoret.",
+     "ex_tr": "У нас хорошая рабочая среда в офисе.",
+     "level": "B1",
+     "chk": 0
+    }
+   ]
+  },
+  "uk": {
+   "greetings": [
+    {
+     "term": "hei",
+     "tr": "привіт",
+     "pos": "interjection",
+     "forms": "",
+     "ex": "Hei, hvordan går det?",
+     "ex_tr": "Привіт, як справи?",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "hallo",
+     "tr": "привіт",
+     "pos": "interjection",
+     "forms": "",
+     "ex": "Hallo! Jeg heter Anna.",
+     "ex_tr": "Привіт! Мене звати Анна.",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "god dag",
+     "tr": "доброго дня",
+     "pos": "phrase",
+     "forms": "",
+     "ex": "God dag, kan jeg hjelpe deg?",
+     "ex_tr": "Доброго дня, чи можу я вам допомогти?",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "ha det",
+     "tr": "до побачення",
+     "pos": "phrase",
+     "forms": "",
+     "ex": "Vi ses i morgen, ha det!",
+     "ex_tr": "Бачимося завтра, до побачення!",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "takk",
+     "tr": "дякую",
+     "pos": "interjection",
+     "forms": "",
+     "ex": "Takk for hjelpen.",
+     "ex_tr": "Дякую за допомогу.",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "vær så snill",
+     "tr": "будь ласка",
+     "pos": "phrase",
+     "forms": "",
+     "ex": "Kan du gi meg vann, vær så snill?",
+     "ex_tr": "Можеш дати мені воду, будь ласка?",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "unnskyld",
+     "tr": "вибачте",
+     "pos": "interjection",
+     "forms": "",
+     "ex": "Unnskyld, jeg kom for sent.",
+     "ex_tr": "Вибачте, я запізнився.",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "jeg",
+     "tr": "я",
+     "pos": "pronoun",
+     "forms": "",
+     "ex": "Jeg heter Ole.",
+     "ex_tr": "Мене звати Оле.",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "du",
+     "tr": "ти",
+     "pos": "pronoun",
+     "forms": "",
+     "ex": "Hvordan har du det?",
+     "ex_tr": "Як у тебе справи?",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "han",
+     "tr": "він",
+     "pos": "pronoun",
+     "forms": "",
+     "ex": "Han er lærer.",
+     "ex_tr": "Він вчитель.",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "hun",
+     "tr": "вона",
+     "pos": "pronoun",
+     "forms": "",
+     "ex": "Hun er student.",
+     "ex_tr": "Вона студентка.",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "et navn",
+     "tr": "ім'я",
+     "pos": "noun",
+     "forms": "navnet, navn, navnene",
+     "ex": "Hva er ditt navn?",
+     "ex_tr": "Як твоє ім'я?",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "en hilsen",
+     "tr": "привітання",
+     "pos": "noun",
+     "forms": "hilsenen, hilsener, hilsenene",
+     "ex": "En venn sendte meg en hilsen.",
+     "ex_tr": "Друг надіслав мені привітання.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "en dag",
+     "tr": "день",
+     "pos": "noun",
+     "forms": "dagen, dager, dagene",
+     "ex": "God dag!",
+     "ex_tr": "Доброго дня!",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "en morgen",
+     "tr": "ранок",
+     "pos": "noun",
+     "forms": "morgenen, morgener/morgner, morgenene/morgnene",
+     "ex": "God morgen!",
+     "ex_tr": "Доброго ранку!",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "å si",
+     "tr": "казати",
+     "pos": "verb",
+     "forms": "sier, sa, har sagt",
+     "ex": "Jeg sier hei.",
+     "ex_tr": "Я кажу привіт.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "å hete",
+     "tr": "звати",
+     "pos": "verb",
+     "forms": "heter, het/hette, har hett",
+     "ex": "Jeg heter Maria.",
+     "ex_tr": "Мене звати Марія.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "å være",
+     "tr": "бути",
+     "pos": "verb",
+     "forms": "er, var, har vært",
+     "ex": "Jeg er student.",
+     "ex_tr": "Я студент.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "god",
+     "tr": "добрий",
+     "pos": "adjective",
+     "forms": "godt, gode, bedre, best",
+     "ex": "Dette er en god bok.",
+     "ex_tr": "Це хороша книга.",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "vær så god",
+     "tr": "будь ласка (вручити)",
+     "pos": "phrase",
+     "forms": "",
+     "ex": "Her er boken, vær så god.",
+     "ex_tr": "Ось книга, будь ласка.",
+     "level": "A2",
+     "chk": 0
+    }
+   ],
+   "work": [
+    {
+     "term": "et kontor",
+     "tr": "офіс",
+     "pos": "noun",
+     "forms": "kontoret, kontorer, kontorene",
+     "ex": "Jeg jobber på et kontor i Oslo.",
+     "ex_tr": "Я працюю в офісі в Осло.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "et arbeid",
+     "tr": "робота",
+     "pos": "noun",
+     "forms": "arbeidet, arbeid, arbeidene",
+     "ex": "Jeg har et arbeid i dag.",
+     "ex_tr": "У мене сьогодні робота.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "en lønn",
+     "tr": "зарплата",
+     "pos": "noun",
+     "forms": "lønnen, lønner, lønnene",
+     "ex": "Lønnen min er 50000 kroner.",
+     "ex_tr": "Моя зарплата 50000 крон.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "en arbeidstaker",
+     "tr": "працівник",
+     "pos": "noun",
+     "forms": "arbeidstakeren, arbeidstakere, arbeidstakerne",
+     "ex": "Arbeidstakere må følge reglene.",
+     "ex_tr": "Працівники повинні дотримуватися правил.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "en arbeidsgiver",
+     "tr": "роботодавець",
+     "pos": "noun",
+     "forms": "arbeidsgiveren, arbeidsgivere, arbeidsgiverne",
+     "ex": "Arbeidsgiveren tilbyr fleksibel arbeidstid.",
+     "ex_tr": "Роботодавець пропонує гнучкий робочий час.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "en stilling",
+     "tr": "посада",
+     "pos": "noun",
+     "forms": "stillingen, stillinger, stillingene",
+     "ex": "Jeg søker en stilling som saksbehandler.",
+     "ex_tr": "Я шукаю посаду як офіцер.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "en rekrutterer",
+     "tr": "рекрутер",
+     "pos": "noun",
+     "forms": "rekruttereren, rekrutterere, rekruttererne",
+     "ex": "Rekruttereren snakket med meg i går.",
+     "ex_tr": "Рекрутер поговорив зі мною вчора.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "en ansatt",
+     "tr": "працівник",
+     "pos": "noun",
+     "forms": "ansatte, ansatte, ansatte",
+     "ex": "Alle ansatte møttes i konferanserommet.",
+     "ex_tr": "Усі працівники зібралися в конференц-залі.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "en sjef",
+     "tr": "керівник",
+     "pos": "noun",
+     "forms": "sjefen, sjefer, sjefene",
+     "ex": "Sjefen min er veldig hyggelig.",
+     "ex_tr": "Мій керівник дуже дружелюбний.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "en kollega",
+     "tr": "колега",
+     "pos": "noun",
+     "forms": "kollegaen, kollegaer, kollegaene",
+     "ex": "Kollegaen min hjelper meg ofte.",
+     "ex_tr": "Колега часто допомагає мені.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "et møte",
+     "tr": "зустріч",
+     "pos": "noun",
+     "forms": "møtet, møter, møtene",
+     "ex": "Vi har et møte i morgen.",
+     "ex_tr": "У нас завтра зустріч.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "en e-post",
+     "tr": "електронна пошта",
+     "pos": "noun",
+     "forms": "e-posten, e-poster, e-postene",
+     "ex": "Send meg en e-post.",
+     "ex_tr": "Надішліть мені електронну пошту.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "en telefon",
+     "tr": "телефон",
+     "pos": "noun",
+     "forms": "telefonen, telefoner, telefonene",
+     "ex": "Telefonen min er full.",
+     "ex_tr": "Мій телефон повний.",
+     "level": "A2",
+     "chk": 1
+    },
+    {
+     "term": "en datamaskin",
+     "tr": "комп'ютер",
+     "pos": "noun",
+     "forms": "datamaskinen, datamaskiner, datamaskinene",
+     "ex": "Datamaskinen min er ny.",
+     "ex_tr": "Мій комп'ютер новий.",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "en kontrakt",
+     "tr": "контракт",
+     "pos": "noun",
+     "forms": "kontrakten, kontrakter, kontraktene",
+     "ex": "Jeg signerte kontrakten i går.",
+     "ex_tr": "Я підписав контракт вчора.",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "løpende",
+     "tr": "постійний",
+     "pos": "adjective",
+     "forms": "løpende, løpende, løpende, mer løpende, mest løpende",
+     "ex": "Det er en løpende prosess.",
+     "ex_tr": "Це постійний процес.",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "å jobbe",
+     "tr": "працювати",
+     "pos": "verb",
+     "forms": "jobber, jobbet, har jobbet",
+     "ex": "Jeg jobber hver dag.",
+     "ex_tr": "Я працюю щодня.",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "å signere",
+     "tr": "підписувати",
+     "pos": "verb",
+     "forms": "signerer, signerte, har signert",
+     "ex": "Jeg signerer kontrakten.",
+     "ex_tr": "Я підписую контракт.",
+     "level": "A2",
+     "chk": 0
+    },
+    {
+     "term": "å organisere",
+     "tr": "організовувати",
+     "pos": "verb",
+     "forms": "organiserer, organiserte, har organisert",
+     "ex": "Vi organiserer en workshop.",
+     "ex_tr": "Ми організовуємо семінар.",
+     "level": "A2",
+     "chk": 0
+    }
+   ]
+  },
+  "zh": {
+   "tech": [
+    {
+     "term": "en datamaskin",
+     "tr": "电脑",
+     "pos": "noun",
+     "forms": "datamaskinen, datamaskiner, datamaskinene",
+     "ex": "Jeg bruker datamaskinen min til å jobbe.",
+     "ex_tr": "我用我的电脑工作。",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "en mobiltelefon",
+     "tr": "手机",
+     "pos": "noun",
+     "forms": "mobiltelefonen, mobiltelefoner, mobiltelefonene",
+     "ex": "Jeg glemte mobiltelefonen min hjemme.",
+     "ex_tr": "我把手机忘在家里了。",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "et nettverk",
+     "tr": "网络",
+     "pos": "noun",
+     "forms": "nettverket, nettverk, nettverkene",
+     "ex": "Nettverket er raskt i dag.",
+     "ex_tr": "今天的网络很快。",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "en nettside",
+     "tr": "网站",
+     "pos": "noun",
+     "forms": "nettsiden, nettsider, nettsidene",
+     "ex": "Jeg leser nyheter på en nettside.",
+     "ex_tr": "我在一个网站上读新闻。",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "en e-post",
+     "tr": "电子邮件",
+     "pos": "noun",
+     "forms": "e-posten, e-poster, e-postene",
+     "ex": "Send meg en e-post når du har tid.",
+     "ex_tr": "你有空时给我发封邮件。",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "en passord",
+     "tr": "密码",
+     "pos": "noun",
+     "forms": "passordet, passord, passordene",
+     "ex": "Jeg har glemt passordet mitt.",
+     "ex_tr": "我忘记密码了。",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "å laste ned",
+     "tr": "下载",
+     "pos": "verb",
+     "forms": "laster ned, lastet ned, lastet ned",
+     "ex": "Jeg laster ned en film fra internett.",
+     "ex_tr": "我从网上下载一部电影。",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "å søke",
+     "tr": "搜索",
+     "pos": "verb",
+     "forms": "søker, søkte, søkt",
+     "ex": "Jeg søker etter en restaurant i Oslo.",
+     "ex_tr": "我在奥斯陆搜索一家餐厅。",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "rask",
+     "tr": "快的",
+     "pos": "adjective",
+     "forms": "raskt, raske, raskere, raskest",
+     "ex": "Denne telefonen er veldig rask.",
+     "ex_tr": "这部手机非常快。",
+     "level": "B1",
+     "chk": 0
+    },
+    {
+     "term": "online",
+     "tr": "在线的",
+     "pos": "adjective",
+     "forms": "online, online, online, online",
+     "ex": "Jeg handler ofte online.",
+     "ex_tr": "我经常在线购物。",
+     "level": "B1",
      "chk": 0
     }
    ]

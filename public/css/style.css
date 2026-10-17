@@ -233,6 +233,11 @@ img, svg { flex-shrink: 0; }
   background: linear-gradient(transparent 60%, var(--marker) 60%, var(--marker) 92%, transparent 92%);
   padding: 0 0.06em;
 }
+/* the marker blends with the letters under it: a look that fills a heading's letters with a gradient (color:
+   transparent; background-clip: text) would otherwise have it paint over the highlighted word */
+.display em, .onb-hero h1 em { mix-blend-mode: multiply; }
+:root[data-theme='dark'] .display em, :root[data-theme='dark'] .onb-hero h1 em { mix-blend-mode: screen; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme='light']) .display em, :root:not([data-theme='light']) .onb-hero h1 em { mix-blend-mode: screen; } }
 .lede { font-size: 17.5px; color: var(--ink-2); max-width: 62ch; margin: 12px 0 0; text-wrap: pretty; }
 .muted { color: var(--ink-2); }
 .small { font-size: 13.5px; }
@@ -885,6 +890,17 @@ dialog.modal::backdrop { background: rgba(20, 16, 10, 0.45); backdrop-filter: bl
   box-shadow: 0 1px 0 var(--line-2), 0 28px 50px -30px rgba(40, 30, 10, 0.55);
 }
 .face.back { transform: rotateY(180deg); }
+/* The card's geometry holds whatever a look's card CSS says (position: relative on .face.own stacked the sides one
+   under the other, so the front shrank and the back hung below the card when it turned): both sides lie on each
+   other and the back is turned. Colours, borders, padding, shadows and animations of the look stay its own. */
+.flash .flash-inner.flash-inner { position: relative !important; width: 100% !important; height: 100% !important; transform-style: preserve-3d !important; }
+.flash:not(.flipped) .flash-inner.flash-inner { transform: none !important; }
+.flash.flipped .flash-inner.flash-inner { transform: rotateY(180deg) !important; }
+.flash .face.face { position: absolute !important; inset: 0 !important; margin: 0 !important; width: auto !important; height: auto !important;
+  backface-visibility: hidden !important; -webkit-backface-visibility: hidden !important; }
+.flash:not(.look-flash) .face.face.front { transform: none !important; }
+.flash:not(.look-flash) .face.face.back { transform: rotateY(180deg) !important; }
+.look-flash .face.face { transform: none !important; }
 .flash.failed .face.back { border-color: var(--red); }
 .flash.partial .face.back { border-color: var(--yellow); }
 .flash-tag { display: flex; align-items: center; justify-content: space-between; gap: 10px; height: 34px; font-size: 12.5px; color: var(--ink-2); }
@@ -896,6 +912,8 @@ dialog.modal::backdrop { background: rgba(20, 16, 10, 0.45); backdrop-filter: bl
    of a long word or a tall picture off for good */
 .face-body { flex: 1; min-height: 0; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 10px; padding: 18px 4px 8px; text-align: center; overflow: auto; overscroll-behavior: contain; }
 .face-body > *, .face-body > .tpl > * { flex-shrink: 0; }
+/* a scrollbar only as wide as a hint: a look's 3D tilts push its content a little past the edge */
+.face-body { overflow-x: hidden; scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--ink-3) 45%, transparent) transparent; }
 .face-body > :first-child, .face-body > .tpl:first-child > :first-child { margin-top: auto; }
 .face-body > :last-child, .face-body > .tpl:last-child > :last-child { margin-bottom: auto; }
 .flash-word { font-size: clamp(34px, 7vw, 56px); font-weight: 620; line-height: 1.1; letter-spacing: -0.02em; overflow-wrap: anywhere; max-width: 100%; }
@@ -1439,6 +1457,26 @@ dialog.modal::backdrop { background: rgba(20, 16, 10, 0.45); backdrop-filter: bl
 .toasts { position: fixed; bottom: 24px; left: 50%; z-index: 1000; display: flex; flex-direction: column; align-items: center; gap: 8px; width: max-content; max-width: calc(100vw - 32px); transform: translateX(-50%); pointer-events: none; }
 .toast { padding: 11px 18px; border-radius: 14px; background: var(--ink); color: var(--paper); font-weight: 550; font-size: 14.5px; box-shadow: 0 12px 30px -10px rgba(0, 0, 0, 0.45); animation: toast-in 0.25s cubic-bezier(0.2, 0.9, 0.3, 1.2); transition: opacity 0.3s, transform 0.3s; }
 .toast.ok { background: var(--green); color: #fff; }
+/* the interface being translated by the AI (js/i18n.js): how far it is, a hello in the new language, the line just done */
+.xl8 { position: fixed; z-index: 1001; left: 50%; bottom: calc(env(safe-area-inset-bottom) + 84px); width: min(440px, calc(100vw - 24px)); transform: translateX(-50%);
+  padding: 12px 14px 11px; border-radius: 16px; background: var(--card); color: var(--ink); border: 1.5px solid var(--line-2); box-shadow: var(--shadow-lg);
+  animation: toast-in 0.3s cubic-bezier(0.2, 0.9, 0.3, 1.2); }
+@media (min-width: 900px) { .xl8 { bottom: 24px; } }
+.xl8-head { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 14.5px; }
+.xl8-head > span { flex: 1; min-width: 0; }
+.xl8-hello { font: 600 17px/1.2 var(--font-serif); color: var(--blue-ink); animation: xl8-wave 2.4s ease-in-out infinite; transform-origin: 70% 80%; }
+.xl8-x { border: 0; background: none; color: var(--ink-3); font-size: 20px; line-height: 1; padding: 0 4px; cursor: pointer; }
+.xl8-bar { position: relative; height: 6px; margin: 10px 0 7px; border-radius: 999px; background: var(--paper-2); overflow: hidden; }
+.xl8-bar i { position: absolute; inset: 0 auto 0 0; width: 0; border-radius: inherit; background: linear-gradient(90deg, var(--blue), var(--green)); transition: width 0.6s cubic-bezier(0.3, 1, 0.4, 1); }
+.xl8-bar.wait i { width: 35% !important; animation: xl8-slide 1.3s ease-in-out infinite; }
+.xl8-foot { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 4px 10px; font-size: 12.5px; color: var(--ink-2); }
+.xl8-sample { font-family: var(--font-serif); font-style: italic; color: var(--ink); }
+.xl8-sample.in { animation: xl8-pop 0.5s ease; }
+.xl8.failed .xl8-bar i { background: var(--red); }
+@keyframes xl8-slide { from { left: -35%; } to { left: 100%; } }
+@keyframes xl8-pop { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+@keyframes xl8-wave { 0%, 60%, 100% { transform: rotate(0); } 70% { transform: rotate(-8deg); } 80% { transform: rotate(6deg); } 90% { transform: rotate(-3deg); } }
+@media (prefers-reduced-motion: reduce) { .xl8, .xl8-hello, .xl8-sample.in, .xl8-bar.wait i { animation: none; } .xl8-bar i { transition: none; } }
 .toast.error { background: var(--red); color: #fff; }
 .toast.out { opacity: 0; transform: translateY(8px); }
 @keyframes toast-in { from { opacity: 0; transform: translateY(12px) scale(0.96); } to { opacity: 1; transform: none; } }
@@ -1728,6 +1766,25 @@ dialog.modal::backdrop { background: rgba(20, 16, 10, 0.45); backdrop-filter: bl
 .flash-ask { font: 700 12px/1.3 var(--font-ui); letter-spacing: 0.07em; text-transform: uppercase; color: var(--ink-3); }
 .listen-big { display: grid; place-items: center; width: 96px; height: 96px; border-radius: 50%; border: 2px solid var(--line-2); background: var(--blue-soft); color: var(--blue-ink); cursor: pointer; box-shadow: 0 4px 0 var(--line-2); }
 .listen-big:active { transform: translateY(2px); box-shadow: 0 2px 0 var(--line-2); }
+
+/* a speaker button while its sound loads (a ring turns round it) and while it plays (it glows, the arcs answer) */
+.speak, .listen-big { position: relative; }
+.speak.is-loading::after, .listen-big.is-loading::after {
+  content: ''; position: absolute; inset: -4px; border-radius: 50%; pointer-events: none;
+  border: 2px solid transparent; border-top-color: var(--blue); border-right-color: color-mix(in srgb, var(--blue) 45%, transparent);
+  animation: spk-spin 0.8s linear infinite;
+}
+.speak.is-loading svg, .listen-big.is-loading svg { opacity: 0.55; transition: opacity 0.2s; }
+.speak.is-playing, .listen-big.is-playing { background: var(--blue-soft); color: var(--blue-ink); animation: spk-glow 1.3s ease-out infinite; }
+.speak.is-playing svg path:nth-child(2), .listen-big.is-playing svg path:nth-child(2) { animation: spk-wave 0.9s ease-in-out infinite; }
+.speak.is-playing svg path:nth-child(3), .listen-big.is-playing svg path:nth-child(3) { animation: spk-wave 0.9s ease-in-out 0.22s infinite; }
+@keyframes spk-spin { to { transform: rotate(360deg); } }
+@keyframes spk-glow { from { box-shadow: 0 0 0 0 color-mix(in srgb, var(--blue) 40%, transparent); } to { box-shadow: 0 0 0 10px color-mix(in srgb, var(--blue) 0%, transparent); } }
+@keyframes spk-wave { 0%, 100% { opacity: 0.25; } 50% { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  .speak.is-loading::after, .listen-big.is-loading::after { animation-duration: 2.4s; }
+  .speak.is-playing, .listen-big.is-playing, .speak.is-playing svg path, .listen-big.is-playing svg path { animation: none; }
+}
 .cloze { max-width: 30ch; margin: 0; font-size: clamp(20px, 5vw, 26px); line-height: 1.5; }
 .cloze .gap { padding: 0 4px; color: var(--blue); font-weight: 700; }
 .goal-done { display: inline-flex; align-items: center; gap: 8px; margin: 10px 0 0; color: var(--green); font-weight: 600; }
@@ -1928,9 +1985,31 @@ dialog.modal::backdrop { background: rgba(20, 16, 10, 0.45); backdrop-filter: bl
 /* ---------- your own look (js/look.js) ---------- */
 .look-card { grid-column: 1 / -1; }
 .look-sub { margin: 18px 0 4px; padding-top: 16px; border-top: 1.5px dashed var(--line); font: 650 16px/1.3 var(--font-ui); }
-.look-preview { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 6px 0 4px; }
+/* contain: a shared look's card CSS stays inside the preview (js/look.js) */
+.look-preview { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 6px 0 4px; contain: paint; }
 /* a real card's size (--w × --h), scaled to the column by --z (set from its width in js/look.js) */
 .look-side { position: relative; min-width: 0; aspect-ratio: 480 / 430; }
+.look-sides { display: none; }
+/* a phone: one side at a time, so the page fits one screen; the switch (or a tap on the card) turns it */
+@media (max-width: 719px) {
+  .look-preview { grid-template-columns: 1fr; gap: 10px; }
+  .look-sides { display: inline-flex; justify-self: center; }
+  .look-preview[data-side="front"] .look-side.is-back, .look-preview[data-side="back"] .look-side.is-front { display: none; }
+  .look-side { cursor: pointer; }
+}
+/* the page of a look made for you: wide enough for two real-size sides on a computer, compact on a phone */
+.link-card.look-open { max-width: 940px; }
+@media (max-width: 560px) {
+  .link-page:has(.look-open) { min-height: 0; }
+  .link-card.look-open { padding: 18px 14px 20px; border-radius: 22px; }
+  .link-card.look-open .link-ico { display: none; }
+  .link-card.look-open .display { margin: 0 0 6px; font-size: 26px; }
+  .link-card.look-open > p { font-size: 14.5px; margin: 0 0 10px; }
+  .link-card.look-open .row { margin-top: 12px; }
+  .link-card.look-open .look-note > span { display: none; } /* the try-on button says it */
+  .link-card.look-open .look-go { flex-wrap: nowrap; }
+  .link-card.look-open .look-go .btn-lg { min-height: 48px; padding-inline: 16px; font-size: 15.5px; }
+}
 .look-preview .look-flash.flash { position: absolute; inset: auto; left: 0; top: 0; width: var(--w); height: var(--h); opacity: 1; transform: scale(var(--z, 0.5)); transform-origin: 0 0; cursor: default; }
 .look-flash .face { transform: none; }
 .look-flash .face.look-back { transform: none; }

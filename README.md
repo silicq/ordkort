@@ -114,6 +114,10 @@ Ordkort is a lightweight site for learning almost any language from almost any o
 
 Ordkort is also an [MCP](https://modelcontextprotocol.io) server, so your own AI can make decks and looks for it.
 Address: **`https://ordkort.com/mcp`** (Streamable HTTP; no account, no key).
+It is in the [official MCP Registry](https://registry.modelcontextprotocol.io/v0/servers?search=com.ordkort) as `com.ordkort/ordkort`.
+
+[![Install in VS Code](https://img.shields.io/badge/VS_Code-Install_Ordkort_MCP-0098FF?logo=visualstudiocode&logoColor=white)](https://insiders.vscode.dev/redirect/mcp/install?name=ordkort&config=%7B%22type%22%3A%22http%22%2C%22url%22%3A%22https%3A%2F%2Fordkort.com%2Fmcp%22%7D)
+[![Install in Cursor](https://img.shields.io/badge/Cursor-Install_Ordkort_MCP-000000?logo=cursor&logoColor=white)](https://cursor.com/en-US/install-mcp?name=ordkort&config=eyJ1cmwiOiJodHRwczovL29yZGtvcnQuY29tL21jcCJ9)
 
 - **Claude** (claude.ai, desktop): Settings → Connectors → *Add custom connector* → paste the address.
 - **Claude Code**: `claude mcp add --transport http ordkort https://ordkort.com/mcp`
@@ -291,6 +295,18 @@ npm run deploy
   for shape and size before it enters the shared base.
 - Cross-site requests are rejected (`Origin` check); the API accepts JSON only.
 - Bursts are cut in memory, generations are counted in D1, plus a site-wide daily budget.
+- Room in the database: sync copies and their files, link codes, shared and library decks, looks and voices take
+  their bytes from a daily allowance, `STORE_PER_DAY_MB` = 100 per person and `STORE_SITE_DAY_MB` = 1000 for the
+  whole site, so a script cannot fill D1 in an hour. Request bodies and fetched pictures and recordings are read
+  as streams and cut off at their limit.
+- The library's check counts its requests to the moderating models (`GUARD_PER_DAY` = 60 per person,
+  `GUARD_SITE_DAY` = 400 for the site), so publishing big decks cannot spend Groq's daily tokens for everybody.
+  The models are told that a deck's text is data, and that a deck asking to be called safe is not.
+- What the browser sends as words it already has goes into the prompt only when it looks like words (or short
+  phrases), as a JSON list: nobody can write instructions for the AI into the shared word bank.
+- A look someone shares is previewed with its CSS scoped to the sample cards; it reaches the rest of the site
+  only after “Use this look”. If a look ever hides the controls, open the site with `?nolook`
+  (`https://ordkort.com/?nolook#/settings`) and reset it.
 - The CSP forbids third-party scripts and framing; fonts are self-hosted. WebAssembly is allowed
   ('wasm-unsafe-eval') only for SQLite, which reads and writes Anki packages and loads from the site itself
   the first time someone imports or exports. The only third-party

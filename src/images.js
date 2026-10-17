@@ -15,7 +15,7 @@
             (no SVG), at most 5 MB, under a per-person hourly limit. */
 import { cacheGet, cacheSet } from './db.js';
 import { takeSimple } from './limits.js';
-import { HttpError, json, readJSON, str, sha256 } from './util.js';
+import { HttpError, json, readJSON, readBytes, str, sha256 } from './util.js';
 
 // Wikimedia asks for a User-Agent that names the tool and how to reach its makers
 const UA = 'Ordkort/1.0 (https://ordkort.com; https://github.com/silicq/ordkort) language-learning flashcards';
@@ -230,11 +230,13 @@ export async function proxy(request, env, key) {
     cf: { cacheTtl: 7 * 86400, cacheEverything: true },
   }).catch(() => null);
   if (!res?.ok) throw new HttpError(502, 'unavailable');
+  // a redirect may not lead away from https
+  if (res.url && !/^https:\/\//i.test(res.url)) throw new HttpError(400, 'bad_url');
   const type = (res.headers.get('content-type') || '').split(';')[0].trim().toLowerCase();
   if (!TYPES.includes(type)) throw new HttpError(415, 'not_image');
   if (Number(res.headers.get('content-length') || 0) > MAX_BYTES) throw new HttpError(413, 'too_large');
-  const body = await res.arrayBuffer();
-  if (body.byteLength > MAX_BYTES) throw new HttpError(413, 'too_large');
+  // read as a stream and stopped at 5 MB: an answer without Content-Length cannot fill the Worker's memory
+  const body = await readBytes(res.body, MAX_BYTES);
   return new Response(body, {
     headers: {
       'Content-Type': type,

@@ -2,7 +2,7 @@
 // and server-side helpers clean untrusted input.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { existsSync, readdirSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import vm from 'node:vm';
 import { ROOT, read } from './helpers.mjs';
 import { str, int, norm, isCode, randomCode, safeEqual } from '../src/util.js';
@@ -136,7 +136,7 @@ test('the pages about the site are up to date, linked to each other and readable
 /* ---------- Norwegian topics and words (scripts/seo-pages.mjs) ---------- */
 
 test('the topic and word pages on disk are exactly what the generator writes, with nothing left over', () => {
-  for (const [f, html] of built.pages) {
+  for (const [f, html] of [...built.pages, ...built.embeds]) {
     assert.ok(existsSync(new URL('public/' + f, ROOT)), `public/${f} is missing: run npm run seo`);
     assert.equal(read('public/' + f), html, `public/${f} is out of date: run npm run seo`);
   }
@@ -149,12 +149,56 @@ test('the topic and word pages on disk are exactly what the generator writes, wi
     }
   };
   for (const d of S.OWNED) if (existsSync(new URL('public/' + d, ROOT))) walk(d);
-  assert.deepEqual(onDisk.filter((f) => !built.pages.has(f)), []);
+  assert.deepEqual(onDisk.filter((f) => !built.pages.has(f) && !built.embeds.has(f)), []);
   assert.ok(seoPages.length > 2000, `only ${seoPages.length} pages`);
+  // Arabic topic names are romanized by hand: every address stays plain ASCII
+  assert.deepEqual([...built.pages.keys(), ...built.embeds.keys()].filter((f) => /[^\x21-\x7e]/.test(f)), []);
   for (const ui of ['en', 'ru', 'uk', 'nb']) {
     assert.equal(built.live.topics[ui].size, 29, `${ui}: every topic has a page`);
     assert.ok(built.live.words[ui].size >= 500, `${ui}: ${built.live.words[ui].size} words`);
   }
+});
+
+test('the topic pages offer their Anki decks, and the decks on disk are what scripts/anki-decks.mjs writes', async () => {
+  const { decks } = await import('../scripts/anki-decks.mjs');
+  const made = await decks(built.live);
+  const linked = new Set();
+  for (const [, html] of built.pages) for (const m of html.matchAll(/href="(\/anki\/[^"]+)" download/g)) linked.add(m[1]);
+  assert.deepEqual([...linked].sort(), [...made.keys()].sort(), 'every deck is linked, and every link has its deck');
+  for (const [p, bytes] of made) {
+    assert.ok(existsSync(new URL('public' + p, ROOT)), `public${p} is missing: run npm run decks`);
+    assert.ok(Buffer.from(bytes).equals(readFileSync(new URL('public' + p, ROOT))), `public${p} is out of date: run npm run decks`);
+  }
+  assert.deepEqual(readdirSync(new URL('public/anki/', ROOT)).map((f) => '/anki/' + f).filter((p) => !made.has(p)), []);
+  // the Polish deck with every topic: one note for each word of the pages, a guid that stays, a link back in the description
+  const { default: initSqlJs } = await import('sql.js');
+  const pkg = await globalThis.App.apkg.read(made.get(S.deckPath('pl')), { SQL: await initSqlJs(), zstd: () => { throw new Error('not zstd'); } });
+  const words = S.TOPIC_IDS.filter((id) => built.live.topics.pl.has(id)).reduce((n, id) => n + S.topicWords('pl', id).filter((x) => x.tr).length, 0);
+  assert.equal(pkg.notes.length, words);
+  assert.equal(Object.values(pkg.decks).filter((d) => d.length === 2).length, built.live.topics.pl.size);
+  const hus = pkg.notes.find((n) => n.fields[0] === 'et hus');
+  assert.deepEqual(hus.fields.slice(0, 7), ['et hus', 'dom', '', 'rzeczownik', 'huset, hus, husene', 'De bor i et rødt hus.', 'Mieszkają w czerwonym domu.']);
+});
+
+test('the cards for other sites: one frame per topic, framable anywhere, not indexed, linked from their topic', () => {
+  const headers = read('public/_headers');
+  const rule = headers.slice(headers.indexOf('/embed/*'));
+  assert.match(rule, /! Content-Security-Policy/);
+  assert.match(rule, /! X-Frame-Options/);
+  assert.match(rule, /frame-ancestors \*/);
+  assert.doesNotMatch(rule.split('frame-ancestors')[0], /'unsafe-inline'/, 'the frame runs no inline script or style');
+  for (const ui of ['en', 'ru', 'uk', 'pl', 'ar']) assert.equal([...built.embeds.keys()].filter((f) => f.startsWith(`embed/${ui}/`)).length, built.live.topics[ui].size);
+  for (const [f, html] of built.embeds) {
+    assert.match(html, /<meta name="robots" content="noindex">/, f);
+    assert.doesNotMatch(html, /<script>|style="/, `${f}: the frame's own rules allow no inline script or style`);
+    const words = JSON.parse(one(html, /<script type="application\/json" id="data">([^<]*)<\/script>/));
+    assert.ok(words.length >= 10 && words.every((w) => w.term && w.tr), f);
+    const home = one(html, /<link rel="canonical" href="([^"]+)">/);
+    const topic = built.pages.get(fileOf(pathOf(home)));
+    assert.ok(topic, `${f}: its topic page is published`);
+    assert.ok(topic.includes(SITE + '/' + f.replace(/index\.html$/, '')), `${f}: the topic page gives the code with this frame`);
+  }
+  assert.ok(!read('public/sitemap.xml').includes('/embed/'));
 });
 
 test('every page has its own title, description, canonical address and a single h1', () => {
@@ -179,7 +223,7 @@ test('every page has its own title, description, canonical address and a single 
 });
 
 test('hreflang alternates exist, point back to each other and use valid codes', () => {
-  const codes = new Set(['en', 'ru', 'uk', 'nb', 'ar', 'zh-Hans', 'x-default']);
+  const codes = new Set(['en', 'ru', 'uk', 'nb', 'ar', 'zh-Hans', 'pl', 'x-default']);
   const alt = (html) => [...html.matchAll(/<link rel="alternate" hreflang="([^"]+)" href="([^"]+)">/g)].map((m) => [m[1], m[2]]);
   for (const [f, html] of built.pages) {
     const own = one(html, /<link rel="canonical" href="([^"]+)">/);
@@ -297,7 +341,7 @@ test('structured data: a DefinedTerm for each word, an ItemList for each topic, 
 test('the static pages stay out of the offline cache, and the Worker still runs only for the API and MCP', () => {
   const sw = read('public/sw.js');
   assert.match(sw, /if \(req\.mode === 'navigate' && !app\) return;/, 'pages other than the app are not cached by the service worker');
-  assert.match(read('wrangler.jsonc'), /"run_worker_first": \["\/api\/\*", "\/mcp"\]/);
+  assert.match(read('wrangler.jsonc'), /"run_worker_first": \["\/api\/\*", "\/mcp", "\/mcp\/\*", "\/s\/\*", "\/look\/\*", "\/\.well-known\/ai-catalog\.json", "\/\.well-known\/mcp-registry-auth"\]/);
   // the pages about the site link to both Norwegian hubs
   for (const [code, learn] of [['en', 'norwegian'], ['ru', 'norvezhskij'], ['uk', 'norvezka'], ['nb', 'norsk']]) {
     const html = read(`public/${code}/index.html`);

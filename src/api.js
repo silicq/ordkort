@@ -4,7 +4,7 @@
 import { App } from './shared.js';
 import { groq } from './groq.js';
 import { cacheGet, cacheSet, cacheForget } from './db.js';
-import { takeAI, aiLeft, takeSimple } from './limits.js';
+import { takeAI, aiLeft, takeSimple, takeStore } from './limits.js';
 import { HttpError, json, readJSON, str, arr, int, sha256, norm, randomCode, isCode } from './util.js';
 import * as P from './prompts.js';
 import * as W from './wiktionary.js';
@@ -78,6 +78,9 @@ export async function words(request, env, key) {
   const { tp, custom, level, grp, phrases } = await groupOf(b, target, native);
 
   const have = new Set(arr(b.have, 3000).map((x) => norm(str(x, 80))).filter(Boolean));
+  // what the browser says it has goes into the prompt, and the answer into the bank everybody shares:
+  // only things that look like words, so nobody can write instructions for the AI into the shared bank
+  const wordLike = (s) => s.length <= (phrases ? 80 : 40) && s.split(' ').length <= (phrases ? 9 : 4) && /^[\p{L}\p{M}\p{N}'’ -]+$/u.test(s);
   // topics that are a word class ("prepositions and adverbs") get only words of that class — also from the bank,
   // which may still hold words generated before this rule (verbs such as "å ligge" among prepositions)
   const fits = (w) => !tp?.pos || tp.pos.includes(w.pos);
@@ -91,7 +94,7 @@ export async function words(request, env, key) {
 
   const quota = await takeAI(env, key);
   try {
-    const avoid = [...new Set([...bank.map((r) => r.norm), ...have])].slice(-220);
+    const avoid = [...new Set([...bank.map((r) => r.norm), ...[...have].filter(wordLike)])].slice(-220);
     const raw = await groq(env, phrases
       ? P.phrasesPrompt({ target, native, topic: custom, level, n, avoid })
       : P.wordsPrompt({ target, native, topic: tp ? tp.en : custom, hint: tp?.hint, only: tp?.pos, level, n, avoid }));
@@ -426,10 +429,12 @@ function cover(d) {
   return by ? { cover: c, cover_by: by } : { cover: c };
 }
 // kept for a year under a random 8-letter code (a deck, or a look made through MCP)
-export async function storeShare(env, data) {
+export async function storeShare(env, key, data) {
+  const d = JSON.stringify(data);
+  await takeStore(env, key, d.length);
   for (let i = 0; i < 5; i++) {
     const id = randomCode(8);
-    const r = await env.DB.prepare('INSERT OR IGNORE INTO shares (id, d, t) VALUES (?, ?, ?)').bind(id, JSON.stringify(data), Date.now()).run();
+    const r = await env.DB.prepare('INSERT OR IGNORE INTO shares (id, d, t) VALUES (?, ?, ?)').bind(id, d, Date.now()).run();
     if (r.meta.changes) return id;
   }
   throw new HttpError(503, 'busy');
@@ -438,7 +443,7 @@ export async function storeShare(env, data) {
 export async function shareCreate(request, env, key) {
   await takeSimple(env, 'share', key, 20, 36e5);
   const b = await readJSON(request, 400000);
-  return json({ id: await storeShare(env, cleanDeck(b.deck || {})) });
+  return json({ id: await storeShare(env, key, cleanDeck(b.deck || {})) });
 }
 
 // words of the shared bank for a topic, without asking the AI: [] when the bank has none yet

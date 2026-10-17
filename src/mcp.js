@@ -7,7 +7,7 @@
    No account, no key; tool calls count against a per-client hourly limit like the rest of the API. */
 import { App } from './shared.js';
 import { takeSimple } from './limits.js';
-import { HttpError, str, arr, int } from './util.js';
+import { HttpError, str, arr, int, readText } from './util.js';
 import { cleanDeck, storeShare, bankWords } from './api.js';
 import * as images from './images.js';
 
@@ -60,7 +60,14 @@ Keep text readable at all of these: sizes in px or em with clamp(), not large fi
 The face has a ruled paper background, a border and a padding of 16px 22px. To make the whole card yours, style
 \`.face.own\` (background, border, border-radius, padding, box-shadow) and \`.face.own .face-body\` (padding: 0), and
 restyle or hide \`.face.own .flash-tag\`. A root element in a template can use width: 100%; height: 100%.
+The sides' geometry is fixed for the flip: position, inset, size and transform of .flash-inner and .face are
+kept by the site whatever card_css says (a side with position: relative would hang under the card). Style their
+look, not their place; animate backgrounds, colours or shadows, not .face's transform.
+Reverse cards (asking for the word from its translation) use the same templates with the fields swapped: the
+front shows the translation in {{term}} (nothing that gives the word away), the back the word in {{translation}}.
 Prefix every card_css rule with \`.tpl\` or \`.face.own\`: card_css applies to the whole page.
+The back template shows the answer in every study mode (flip, choice, typing, listening, gaps); the front one is
+used for flip cards, since the other modes ask their question there. .face.own dresses both sides in every mode.
 Without a template the site draws its own card: .flash-word (the word, serif), .flash-small, .flash-pron,
 .flash-gram, .flash-ex (the example), .flash-img (the picture); these can be styled from site_css too.
 Around the card: .study (the screen), .study-top with .progress (the bar), .stack and .stack-bg (the pile behind),
@@ -72,6 +79,7 @@ Around the card: .study (the screen), .study-top with .progress (the bar), .stac
 {{audio}} — a round button that reads the word aloud (class "speak"); keep it at least 40 px.
 {{image}} — the card's picture (see Pictures).
 {{#field}}…{{/field}} shows its inside only when the card has that field; {{^field}}…{{/field}} only when it has not.
+Sections may sit inside each other: {{#example}}…{{#example_translation}}…{{/example_translation}}{{/example}}.
 Values are escaped text. Fields are not filled inside CSS. Many cards have no example, forms or picture: always
 wrap optional parts in {{#…}}.
 
@@ -91,7 +99,8 @@ wrap optional parts in {{#…}}.
 
 ### Colours: change the variables first
 
-Set them on :root. The site has a light and a dark theme: \`:root[data-theme="dark"]\` when the person chose dark,
+Set them on :root; card_css can use them too (also new variables of your own, such as an accent), and the
+preview lends them to the sample cards before anything is applied. The site has a light and a dark theme: \`:root[data-theme="dark"]\` when the person chose dark,
 and \`@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { … } }\` when they follow the system.
 A look that sets only light colours should either set dark ones too, or keep its colours to
 \`:root:not([data-theme="dark"])\` so the dark theme stays readable.
@@ -384,8 +393,9 @@ async function callTool(name, a, env, key) {
         })),
       });
     } catch (e) { return fail(e.code === 'empty' ? 'The deck has no cards with both a term and a translation.' : `Cannot make that deck: ${e.code || e.message}. Check the language codes.`); }
-    const id = await storeShare(env, deck);
-    const url = `${SITE}/#/s/${id}`;
+    await takeSimple(env, 'share', key, 20, 36e5);
+    const id = await storeShare(env, key, deck);
+    const url = `${SITE}/s/${id}`; // its own address: chat apps show a preview of the deck (src/preview.js)
     return text(`The deck "${deck.title}" (${deck.words.length} cards) is ready. Opening this link adds it to the person's cards: ${url}\n${POWERED}`, { url, cards: deck.words.length });
   }
   if (name === 'create_design') {
@@ -395,8 +405,10 @@ async function callTool(name, a, env, key) {
       css: String(a.card_css || '').slice(0, 20000), site: String(a.site_css || '').slice(0, 20000),
     };
     if (!look.front && !look.back && !look.css && !look.site) return fail('The design is empty: give at least a template or some CSS.');
-    const id = await storeShare(env, look);
-    const url = `${SITE}/#/look/${id}`;
+    // a link is kept for a year: the same small hourly allowance as decks shared from the site
+    await takeSimple(env, 'share', key, 20, 36e5);
+    const id = await storeShare(env, key, look);
+    const url = `${SITE}/look/${id}`;
     const notes = designNotes(look);
     return text(`The look "${look.name}" is ready. Opening this link shows it and applies it if the person agrees: ${url}`
       + (notes.length ? `\n\nNotes (fix them with a new create_design if they matter):\n${notes.map((n) => '- ' + n).join('\n')}` : '')
@@ -438,8 +450,8 @@ export async function handle(request, env, key) {
   if (request.method !== 'POST') {
     return new Response(JSON.stringify({ name: 'ordkort', mcp: `${SITE}/mcp`, transport: 'streamable-http', docs: 'https://github.com/silicq/ordkort#mcp' }), { status: 405, headers: { ...HEADERS, Allow: 'POST' } });
   }
-  const raw = await request.text();
-  if (raw.length > MAX_BODY) return new Response(JSON.stringify({ jsonrpc: '2.0', id: null, error: { code: -32600, message: 'Too large' } }), { status: 413, headers: HEADERS });
+  const raw = await readText(request, MAX_BODY).catch(() => null);
+  if (raw === null) return new Response(JSON.stringify({ jsonrpc: '2.0', id: null, error: { code: -32600, message: 'Too large' } }), { status: 413, headers: HEADERS });
   let body;
   try { body = JSON.parse(raw); } catch { return new Response(JSON.stringify({ jsonrpc: '2.0', id: null, error: { code: -32700, message: 'Parse error' } }), { status: 400, headers: HEADERS }); }
   const list = Array.isArray(body) ? body.slice(0, 20) : [body];
@@ -450,6 +462,47 @@ export async function handle(request, env, key) {
   }
   if (!out.length) return new Response(null, { status: 202 });
   return new Response(JSON.stringify(Array.isArray(body) ? out : out[0]), { headers: HEADERS });
+}
+
+/* How AI clients find this server without being told: /.well-known/ai-catalog.json (Agentic Resource Discovery 1.0)
+   lists it, pointing at a server card at /mcp/server-card (the shape proposed for MCP server cards, SEP-2127: the
+   proposal is not merged yet, so the card says only what /mcp itself answers). Both are made from TOOLS, so they
+   never drift from what the server does. */
+export function serverCard() {
+  return {
+    serverInfo: { name: 'ordkort', title: 'Ordkort', version: '1.0.0' },
+    description: 'Make flashcard decks (with pictures) and card designs for Ordkort, a free vocabulary site with spaced '
+      + 'repetition in 60 languages. Returns links the person opens to add them; it never sees anyone\'s cards.',
+    websiteUrl: SITE,
+    documentationUrl: 'https://github.com/silicq/ordkort#mcp',
+    protocolVersions: VERSIONS,
+    transport: { type: 'streamable-http', url: `${SITE}/mcp` },
+    authentication: { required: false },
+    capabilities: { tools: { listChanged: false } },
+    instructions: INSTRUCTIONS,
+    tools: TOOLS.map(({ name, title, description, inputSchema, annotations }) => ({ name, title, description, inputSchema, annotations })),
+  };
+}
+// proof for the official MCP Registry that whoever publishes com.ordkort/* holds this key (server.json; the private
+// half never leaves the publisher's machine)
+export const REGISTRY_AUTH = 'v=MCPv1; k=ed25519; p=xnBXbvtS6/LtEMIhisb6Rl47Z/8UY1DqBpUCWMiI8g4=';
+
+export function aiCatalog() {
+  return {
+    specVersion: '1.0',
+    entries: [{
+      identifier: 'urn:air:ordkort.com:mcp:ordkort',
+      displayName: 'Ordkort MCP server',
+      description: 'Flashcard decks with pictures and card designs for Ordkort, as links to add them.',
+      type: 'application/mcp-server-card+json',
+      url: `${SITE}/mcp/server-card`,
+      representativeQueries: [
+        'Make me an A2 Norwegian deck about the kitchen with pictures',
+        'Give me 30 common Spanish words for travelling as flashcards',
+        'Design a dark, calm flashcard with the picture on top',
+      ],
+    }],
+  };
 }
 
 export const _test = { TOOLS, VERSIONS, DESIGN_GUIDE };

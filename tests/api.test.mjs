@@ -12,7 +12,7 @@ before(async () => {
   harness = createTestHarness({
     root: fileURLToPath(ROOT),
     // test secrets replace .dev.vars, so a real Groq key is never used here
-    workers: [{ configPath: './wrangler.jsonc', secrets: { GROQ_API_KEY: 'test-key-not-used', IP_SALT: 'test' } }],
+    workers: [{ configPath: './wrangler.jsonc', secrets: { GROQ_API_KEY: 'test-key-not-used', IP_SALT: 'test', STORE_PER_DAY_MB: '25' } }],
   });
   await harness.listen();
 });
@@ -146,6 +146,41 @@ test('sync: versioned writes, token check, conflicts, delete', async () => {
   assert.deepEqual(await (await call('sync/' + id, { method: 'DELETE', headers: { 'X-Sync-Token': token } })).json(), { deleted: true });
 });
 
+test('room in the database: new copies take from a daily allowance, rewriting one at the same size does not', async () => {
+  // a fresh IPv6 network every run: the counters live in the local D1 for the whole day
+  const r16 = () => Math.floor(Math.random() * 0xffff).toString(16);
+  const ip = `2001:db8:${r16()}:${r16()}::1`;
+  const big = Buffer.alloc(1_800_000, 7).toString('base64').slice(0, 1_850_000);
+  const put = (id, v) => call('sync/' + id, { method: 'PUT', body: { v, d: big }, headers: { 'X-Sync-Token': 'T'.repeat(43), 'CF-Connecting-IP': ip } });
+  const ids = [];
+  let r;
+  for (let i = 0; i < 20; i++) {
+    const id = Buffer.from(crypto.getRandomValues(new Uint8Array(16))).toString('hex');
+    r = await put(id, 0);
+    if (r.status !== 200) break;
+    ids.push(id);
+  }
+  assert.equal(r.status, 429, 'one network cannot fill the database');
+  assert.ok(ids.length >= 5 && ids.length < 20, `${ids.length} copies before the limit`);
+  assert.deepEqual(await (await put(ids[0], 1)).json(), { v: 2 }, 'a copy that does not grow is still written');
+});
+
+test('files of a copy take from the same room in the database; one already there costs nothing', async () => {
+  const r16 = () => Math.floor(Math.random() * 0xffff).toString(16);
+  const headers = { 'X-Sync-Token': 'M'.repeat(43), 'CF-Connecting-IP': `2001:db8:${r16()}:${r16()}::2` };
+  const id = Buffer.from(crypto.getRandomValues(new Uint8Array(16))).toString('hex');
+  assert.equal((await call('sync/' + id, { method: 'PUT', body: { v: 0, d: blob() }, headers })).status, 200);
+  const big = Buffer.alloc(1_800_000, 9).toString('base64').slice(0, 1_850_000);
+  const name = () => 'p' + Buffer.from(crypto.getRandomValues(new Uint8Array(12))).toString('hex');
+  const put = (n) => call(`media/${id}/${n}`, { method: 'PUT', body: { d: big }, headers });
+  const first = name();
+  let r, n = 0;
+  for (; n < 20; n++) { r = await put(n ? name() : first); if (r.status !== 200) break; }
+  assert.equal(r.status, 429, 'one network cannot fill the database with files');
+  assert.ok(n >= 5, `${n} files before the limit`);
+  assert.equal((await put(first)).status, 200, 'the same file again changes nothing and is not refused');
+});
+
 test('dictionary check: only languages that inflect, at most 10 words, no AI limit used', async () => {
   let r = await call('check', { method: 'POST', body: { target: 'zh', native: 'en', words: [{ term: '书', pos: 'noun' }] } });
   assert.equal(r.status, 400);
@@ -211,13 +246,63 @@ test('MCP: handshake, tools, and a version the client asked for', async () => {
   assert.equal(g.status, 405);
 });
 
+test('a shared deck has its own address, and chat apps see what it is', async () => {
+  const cover = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==';
+  let r = await rpc({ jsonrpc: '2.0', id: 1, method: 'tools/call', params: { name: 'create_deck', arguments: {
+    title: 'Kjøkken', emoji: '🍴', target: 'nb', native: 'uk', level: 'A1',
+    cards: [{ term: 'en gaffel', translation: 'виделка' }, { term: 'en kniv', translation: 'ніж' }, { term: 'en skje', translation: 'ложка' }],
+  } } });
+  const id = r.body.result.structuredContent.url.slice(-8);
+  const page = await harness.fetch(BASE + '/s/' + id);
+  assert.equal(page.status, 200);
+  const html = await page.text();
+  assert.match(html, /<link rel="stylesheet" href="\/css\/style\.css">/, 'the app\'s own files still load under /s/');
+  assert.doesNotMatch(html, /src="js\//);
+  assert.match(html, /<meta name="robots" content="noindex">/);
+  assert.match(html, /property="og:title" content="🍴 Kjøkken: слів: 3, Norsk bokmål → Українська · A1"/);
+  assert.match(html, /property="og:description" content="en gaffel — виделка · en kniv — ніж · en skje — ложка Безкоштовні картки/);
+  assert.match(html, /property="og:url" content="https:\/\/ordkort\.com\/s\/[0-9A-Z]{8}"/);
+  assert.match(html, /<script src="\/js\/bundle\.js"><\/script>/, 'it is the app itself');
+  // a cover made on the device is served as a picture the preview can load
+  const res = await call('share', { method: 'POST', body: { deck: { title: 'Med bilde', target: 'nb', native: 'en', cover, words: [{ term: 'et hus', tr: 'house' }] } } });
+  const { id: withCover } = await res.json();
+  const html2 = await (await harness.fetch(BASE + '/s/' + withCover)).text();
+  assert.match(html2, new RegExp(`property="og:image" content="https://ordkort\.com/s/${withCover}/cover"`));
+  const pic = await harness.fetch(BASE + `/s/${withCover}/cover`);
+  assert.equal(pic.headers.get('content-type'), 'image/png');
+  assert.equal((await pic.arrayBuffer()).byteLength, Buffer.from(cover.split(',')[1], 'base64').length);
+  // an unknown code still opens the app, which says the deck is gone
+  const gone = await harness.fetch(BASE + '/s/ZZZZZZZZ');
+  assert.equal(gone.status, 200);
+  assert.match(await gone.text(), /og:title" content="Ordkort — learn any language/);
+});
+
+test('MCP: AI clients can find the server through the ARD catalog and its card', async () => {
+  let r = await harness.fetch(BASE + '/.well-known/ai-catalog.json');
+  assert.equal(r.status, 200);
+  assert.match(r.headers.get('content-type'), /application\/json/);
+  const cat = await r.json();
+  assert.equal(cat.specVersion, '1.0');
+  const e = cat.entries[0];
+  assert.match(e.identifier, /^urn:air:ordkort\.com(:[a-z0-9-]+)+$/);
+  assert.equal(e.type, 'application/mcp-server-card+json');
+  assert.ok(e.representativeQueries.length >= 2 && e.representativeQueries.length <= 5);
+  r = await harness.fetch(BASE + '/mcp/server-card');
+  assert.equal(r.status, 200);
+  const card = await r.json();
+  assert.equal(card.transport.url, 'https://ordkort.com/mcp');
+  assert.ok(card.tools.some((t) => t.name === 'create_deck'), 'the card lists what /mcp offers');
+  r = await harness.fetch(BASE + '/mcp/server-card', { method: 'POST', body: '{}' });
+  assert.equal(r.status, 405);
+});
+
 test('MCP: a deck with pictures and a look become links that open them', async () => {
   let r = await rpc({ jsonrpc: '2.0', id: 1, method: 'tools/call', params: { name: 'create_deck', arguments: {
     title: 'Kjøkken', target: 'nb', native: 'en', level: 'A1', cover_url: 'https://example.org/kitchen.jpg', cover_credit: 'Ola, CC BY 4.0',
     cards: [{ term: 'en gaffel', translation: 'fork', image_url: 'https://example.org/fork.jpg', image_credit: 'Kari, CC BY 4.0' }, { term: 'en kniv', translation: 'knife' }, { term: '', translation: 'nothing' }],
   } } });
   const url = r.body.result.structuredContent.url;
-  assert.match(url, /^https:\/\/ordkort\.com\/#\/s\/[A-Za-z0-9]{8}$/);
+  assert.match(url, /^https:\/\/ordkort\.com\/s\/[A-Za-z0-9]{8}$/);
   assert.equal(r.body.result.structuredContent.cards, 2, 'a card without a word is dropped');
   let s = await call('share/' + url.slice(-8));
   const { deck } = await s.json();
@@ -231,7 +316,7 @@ test('MCP: a deck with pictures and a look become links that open them', async (
   const look = r.body.result.structuredContent.url;
   assert.match(r.body.result.content[0].text, /Powered by ordkort\.com/, 'the AI is asked to name the site');
   assert.equal(r.body.result.structuredContent.notes.length, 0, 'a tidy design has nothing to note');
-  assert.match(look, /#\/look\/[A-Za-z0-9]{8}$/);
+  assert.match(look, /\/look\/[A-Za-z0-9]{8}$/);
   s = await call('share/' + look.slice(-8));
   const d = (await s.json()).deck;
   assert.equal(d.kind, 'look');
@@ -257,4 +342,19 @@ test('limits endpoint reports the daily allowance', async () => {
   assert.equal(r.status, 200);
   assert.equal(typeof q.left, 'number');
   assert.ok(q.limit > 0);
+});
+
+// Keep this test last: in Wrangler's local runtime, a request whose body the Worker leaves unread (as it must
+// here) breaks the next request on the same connection ("Network connection lost"). Cloudflare itself does not.
+test('a body without Content-Length is cut off at the limit, not read whole', async () => {
+  const chunk = new TextEncoder().encode('{"q":"' + 'a'.repeat(5000));
+  // 100 KB in pieces, with no Content-Length: far over the 2 KB limit (a stream that never ends keeps Node writing
+  // after the answer and runs it out of memory)
+  let left = 20;
+  const body = new ReadableStream({ pull(c) { if (left-- > 0) c.enqueue(chunk); else c.close(); } });
+  const r = await harness.fetch(BASE + '/api/images', {
+    method: 'POST', body, duplex: 'half',
+    headers: { 'CF-Connecting-IP': '203.0.113.7', 'Content-Type': 'application/json' },
+  });
+  assert.equal(r.status, 413);
 });
