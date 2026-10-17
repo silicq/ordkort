@@ -383,6 +383,7 @@ textarea.input { resize: vertical; min-height: 64px; line-height: 1.45; }
   position: relative;
   cursor: pointer;
   margin: 0;
+  flex-shrink: 0; /* in a row with other controls it keeps its size */
   transition: background 0.2s;
 }
 .switch::before {
@@ -901,6 +902,17 @@ dialog.modal::backdrop { background: rgba(20, 16, 10, 0.45); backdrop-filter: bl
 .flash:not(.look-flash) .face.face.front { transform: none !important; }
 .flash:not(.look-flash) .face.face.back { transform: rotateY(180deg) !important; }
 .look-flash .face.face { transform: none !important; }
+/* The side turned away is also hidden half-way through the turn (js/views/study.js sets .turned). A look's filter,
+   opacity or blur on the card makes the browser lay the 3D card flat (Safari above all), and then the hidden side
+   showed through the other one, mirrored. */
+/* what lays the card flat is not let on the turning part itself */
+.flash .flash-inner.flash-inner { filter: none !important; opacity: 1 !important; overflow: visible !important; clip-path: none !important;
+  mask: none !important; -webkit-mask: none !important; mix-blend-mode: normal !important; backdrop-filter: none !important; }
+/* the side in view is drawn whichever way the browser thinks it faces; the other one is hidden */
+.flash:not(.look-flash) .face.face.front { backface-visibility: visible !important; -webkit-backface-visibility: visible !important; }
+.flash:not(.look-flash) .face.face.back { visibility: hidden !important; }
+.flash:not(.look-flash).turned .face.face.back { visibility: visible !important; backface-visibility: visible !important; -webkit-backface-visibility: visible !important; }
+.flash:not(.look-flash).turned .face.face.front { visibility: hidden !important; }
 .flash.failed .face.back { border-color: var(--red); }
 .flash.partial .face.back { border-color: var(--yellow); }
 .flash-tag { display: flex; align-items: center; justify-content: space-between; gap: 10px; height: 34px; font-size: 12.5px; color: var(--ink-2); }
@@ -1717,6 +1729,14 @@ dialog.modal::backdrop { background: rgba(20, 16, 10, 0.45); backdrop-filter: bl
   .result { padding-top: 10px; overflow-y: auto; }
   .empty.big { padding: 30px 10px; }
 }
+
+/* the keyboard is open on a phone (js/app.js): the study screen fits into what is left above it */
+html.kb-open body.view-study .study { height: calc(var(--vvh, 100svh) - 8px); min-height: 0; padding-bottom: 6px; }
+html.kb-open body.view-study .study-top { margin-bottom: 6px; }
+html.kb-open body.view-study .stage { padding-bottom: 8px; }
+html.kb-open body.view-study .stack { min-height: 130px; }
+html.kb-open body.view-study .stack-bg { display: none; } /* the cards under it would reach over the field */
+html.kb-open body.view-study .flash-tag { height: 26px; }
 
 /* short screens (phone in landscape, small phones) */
 @media (max-height: 620px) and (max-width: 1000px) {

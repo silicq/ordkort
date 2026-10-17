@@ -870,5 +870,5 @@ globalThis.App.i18nData.nb = {
   'open.go': "Åpne",
   'open.bad': "Det er ikke en lenke til Ordkort.",
   'open.in_app': "Bruker du Ordkort fra hjemskjermen? Appen har sine egne kort, adskilt fra Safari. Kopier lenken og åpne den der: Hjem → Åpne en lenke.",
-  'remind.ios': "På en iPhone vekkes en nettapp bare av en push-tjeneste, så foreløpig kan påminnelsen bare komme mens Ordkort er åpen.",
+  'remind.ios': "På en iPhone viser appikonet hvor mange kort som skal repeteres. Et varsel kan ikke komme mens appen er lukket: på en iPhone krever det en server, og ingenting om deg sendes dit.",
 };

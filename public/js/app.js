@@ -463,6 +463,20 @@
   A.isDark = isDark;
   A.go = (hash) => { if (location.hash === hash) route(); else location.hash = hash; };
 
+  /* On an iPhone the keyboard covers the page instead of making it shorter, and the page is scrolled up so the field
+     shows — taking the card with the word out of sight. While the keyboard is open, the study screen is made as tall
+     as what is left (--vvh), so the card and the field fit together. */
+  const vv = window.visualViewport;
+  if (vv) {
+    const fit = () => {
+      const open = vv.height < window.innerHeight - 120;
+      document.documentElement.classList.toggle('kb-open', open);
+      document.documentElement.style.setProperty('--vvh', `${Math.round(vv.height)}px`);
+      if (open && document.body.classList.contains('view-study')) window.scrollTo(0, 0);
+    };
+    vv.addEventListener('resize', fit);
+  }
+
   async function start() {
     await A.store.open(); // the cards are in IndexedDB: read them before anything is drawn
     A.store.load();

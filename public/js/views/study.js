@@ -463,6 +463,10 @@
     if (S.mode !== 'flip' && !S.answered) return; // the back would reveal the answer
     S.flipped = force === true ? true : !S.flipped;
     S.card.classList.toggle('flipped', S.flipped);
+    // half-way through the turn the side turned away is hidden (see .turned in style.css)
+    const card = S.card, on = S.flipped;
+    clearTimeout(card._turn);
+    card._turn = setTimeout(() => card.classList.toggle('turned', on), 280);
     if (four() && S.mode === 'flip' && !S.answered && S.flipped) gradeButtons();
   }
 
