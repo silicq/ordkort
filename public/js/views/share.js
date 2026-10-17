@@ -132,6 +132,7 @@
     const T = deck.target, N = deck.native;
     const other = s && s.native !== N;
     A.put(card,
+      A.openLink.inAppNote(),
       h('div', { class: 'deck-hero-emoji', style: `--tab: var(--t-${deck.group || 'custom'})` },
         A.media.isCover(deck.cover) ? h('img', { class: 'deck-cover', src: deck.cover, alt: '' })
           : /^https:\/\//.test(deck.cover || '') ? h('img', { class: 'deck-cover', src: '/api/img?u=' + encodeURIComponent(deck.cover), alt: '' })
