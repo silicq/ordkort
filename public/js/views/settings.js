@@ -130,9 +130,10 @@
       // a reminder to review at an hour of your choice, worked out on this device only (js/remind.js)
       const remindRow = () => {
         const r = { on: false, hour: 19, ...(s.remind || {}) };
-        const note = h('small', { class: 'muted d-block' });
-        // what it can do here, also when the page is opened again later
-        if (r.on && 'Notification' in window) note.textContent = Notification.permission !== 'granted' ? t('remind.denied') : A.install.ios() ? t('remind.ios') : '';
+        // on an iPhone what it can do is said at once: the icon shows the count, a notification cannot come
+        const ios = A.install.ios();
+        const blocked = r.on && 'Notification' in window && Notification.permission !== 'granted';
+        const note = h('small', { class: 'muted d-block' }, blocked ? t('remind.denied') : ios ? t('remind.ios') : '');
         const hourSel = numSel(Array.from({ length: 24 }, (_, i) => i), r.hour, (v) => { r.hour = v; set({ remind: { ...r } }); A.remind.update(); });
         hourSel.disabled = !r.on;
         const sw = toggle(r.on, async (v) => {
@@ -140,7 +141,7 @@
             const how = await A.remind.enable();
             if (how === 'unsupported' || how === 'denied') { sw.checked = false; note.textContent = t('remind.' + how); return; }
             note.textContent = t('remind.' + how);
-          } else { note.textContent = ''; }
+          } else if (!ios) { note.textContent = ''; }
           r.on = v; hourSel.disabled = !v;
           set({ remind: { ...r } });
           if (!v) A.remind.disable(); else A.remind.update();

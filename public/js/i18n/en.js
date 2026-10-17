@@ -870,5 +870,5 @@ globalThis.App.i18nData.en = {
   'open.go': "Open",
   'open.bad': "That is not a link to Ordkort.",
   'open.in_app': "Using Ordkort from your home screen? It keeps its own cards, apart from Safari. Copy this link and open it there: Home → Open a link.",
-  'remind.ios': "On an iPhone a web app is woken only by a push service, so for now the reminder can come only while Ordkort is open.",
+  'remind.ios': "On an iPhone the app's icon shows how many cards are due. A notification cannot come while the app is closed: on an iPhone that needs a server, and nothing about you goes to one.",
 };
