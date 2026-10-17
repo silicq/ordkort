@@ -178,8 +178,9 @@ tests/             node:test suites (see below)
 wrangler.jsonc     Cloudflare configuration
 ```
 
-**User data** — cards, progress, settings — lives in the browser’s localStorage; the history of every answer
-(what “What goes wrong” reads) and pictures and recordings for cards live in its IndexedDB. The history stays on that
+**User data** — cards, progress, settings — lives in the browser’s IndexedDB (localStorage in a browser without
+it; a state from before is moved over once), as do the history of every answer (what “What goes wrong” reads) and
+pictures and recordings for cards. The history stays on that
 device; a picture found on the web is fetched again by each device, and photos of your own and recordings from Anki
 reach linked devices file by file, encrypted like the rest. Only AI requests
 (a word, a topic or a text plus the language pair) reach the server, plus decks you choose to share

@@ -167,7 +167,7 @@
   async function tidy() {
     try {
       const used = new Set();
-      for (const p of Object.values(JSON.parse(localStorage.getItem(A.config.storageKey) || '{}').pairs || {})) {
+      for (const p of Object.values(A.store.allPairs || {})) {
         for (const c of Object.values(p.cards || {})) { if (c.img) used.add(c.img); if (c.audio) used.add(c.audio); }
       }
       for (const k of await A.idb.mediaKeys()) if (!used.has(k)) await A.idb.mediaDel(k);

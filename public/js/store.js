@@ -1,4 +1,4 @@
-/* Storage: everything lives in this browser's localStorage.
+/* Storage: everything lives in this browser — in IndexedDB where there is one, otherwise in localStorage.
    Spaced repetition uses FSRS-4.5 (stability and difficulty per card); `box` 0..7 is derived from stability for display.
    For sync every deck and card has a modification time (u), and deletions are remembered
    as tombstones (del) — so devices merge their data without a server acting as referee. */
@@ -34,9 +34,62 @@
   const listeners = [];
   const now = () => Date.now();
 
+  /* Where the state is kept. In IndexedDB (js/idb.js, store 'kv') when the browser has it: localStorage holds
+     about 5 MB for the whole site, which one big Anki deck can fill. open() reads it once, before load(); a state
+     still in localStorage from before is moved over the first time, and removed there once it is safely written.
+     Without IndexedDB (an old browser, some private windows) localStorage stays the place, as it always was.
+     save() keeps the newest text and writes it at once, one write after another, so nothing waits for the disk. */
+  let idb = false; // the state lives in IndexedDB
+  let held = null; // its text there, as last read or written
+  const DEL = Symbol('delete');
+  let pending = null, writing = false;
+  async function open() {
+    if (!A.idb || !globalThis.indexedDB) return;
+    try {
+      const have = await A.idb.kvGet('state');
+      if (typeof have === 'string') { held = have; idb = true; return; }
+      if (A.framed) return; // the look's preview reads, and moves nothing
+      const old = read(A.config.storageKey);
+      if (old != null) {
+        await A.idb.kvPut('state', old);
+        if ((await A.idb.kvGet('state')) !== old) return; // not safely there: localStorage it stays
+        held = old;
+        remove(A.config.storageKey);
+      }
+      idb = true;
+    } catch { idb = false; }
+  }
+  function persist(text) {
+    pending = text;
+    if (!writing) flush();
+  }
+  async function flush() {
+    writing = true;
+    while (pending != null) {
+      const t = pending;
+      pending = null;
+      try {
+        if (t === DEL) await A.idb.kvDel('state');
+        else await A.idb.kvPut('state', t);
+      } catch {
+        // IndexedDB refused (the disk is full, the browser cleared it): back to localStorage, and the copy there
+        // goes, so the next visit does not read an older state from it
+        idb = false;
+        A.idb.kvDel('state').catch(() => {});
+        if (t !== DEL && !write(A.config.storageKey, t)) warn();
+      }
+    }
+    writing = false;
+  }
+  function warn() {
+    if (warned) return;
+    warned = true;
+    A.toast?.(A.t('err.storage'), 'error');
+  }
+
   function load() {
     let s = null;
-    try { s = JSON.parse(read(A.config.storageKey) || 'null'); } catch { s = null; }
+    try { s = JSON.parse((idb ? held : read(A.config.storageKey)) || 'null'); } catch { s = null; }
     state = s && typeof s === 'object' ? s : blank();
     state.pairs ||= {};
     state.days ||= {};
@@ -50,10 +103,10 @@
 
   function save() {
     if (A.framed) { if (!silent) listeners.forEach((fn) => fn()); return; } // a preview keeps nothing
-    if (!write(A.config.storageKey, JSON.stringify(state)) && !warned) {
-      warned = true;
-      A.toast?.(A.t('err.storage'), 'error');
-    }
+    const text = JSON.stringify(state);
+    if (state.settings?.theme) write('ordkort.theme', state.settings.theme); // for js/boot.js, before the page is drawn
+    if (idb) { held = text; persist(text); }
+    else if (!write(A.config.storageKey, text)) warn();
     if (!silent) listeners.forEach((fn) => fn());
   }
   const onChange = (fn) => listeners.push(fn);
@@ -611,16 +664,21 @@
   function resetAll() {
     state = blank();
     remove(A.config.storageKey);
+    remove('ordkort.theme');
+    if (idb) { held = null; persist(DEL); }
     cacheClear();
   }
   function usage() {
-    const a = (read(A.config.storageKey) || '').length;
+    const a = ((idb ? held : read(A.config.storageKey)) || '').length;
     const b = (read(A.config.cacheKey) || '').length;
     return Math.round((a + b) * 2 / 1024);
   }
 
   A.store = {
-    load, save, init, set, pairs, onChange, snapshot, merge,
+    open, load, save, init, set, pairs, onChange, snapshot, merge,
+    get allPairs() { return state.pairs; }, // every language pair's decks and cards, to read
+    get where() { return idb ? 'indexeddb' : 'localstorage'; },
+    flushed: async () => { while (writing) await new Promise((r) => setTimeout(r, 5)); },
     get settings() { return state.settings; },
     get ready() { return !!state.settings; },
     decks, deck, addDeck, updateDeck, deleteDeck, mineDeck,

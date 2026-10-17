@@ -463,7 +463,8 @@
   A.isDark = isDark;
   A.go = (hash) => { if (location.hash === hash) route(); else location.hash = hash; };
 
-  function start() {
+  async function start() {
+    await A.store.open(); // the cards are in IndexedDB: read them before anything is drawn
     A.store.load();
     applyTheme();
     window.addEventListener('hashchange', route);

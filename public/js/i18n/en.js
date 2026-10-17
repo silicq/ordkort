@@ -436,7 +436,7 @@ globalThis.App.i18nData.en = {
   'about.title': "How it *works*",
   'about.lede': "Short and honest: what is stored where and what is sent where.",
   'about.local_h': "Everything stays with you",
-  'about.local_p': "Cards, progress and settings are kept in this browser’s storage (localStorage). The history of every answer (what “What goes wrong” reads) and the pictures on your cards are kept in its IndexedDB, on this device only. No sign-up, no ads, no trackers, no analytics. The site uses no cookies.",
+  'about.local_p': "Cards, progress and settings are kept in this browser’s storage (IndexedDB). The history of every answer (what “What goes wrong” reads) and the pictures on your cards are kept in its IndexedDB, on this device only. No sign-up, no ads, no trackers, no analytics. The site uses no cookies.",
   'about.ai_h': "What goes to the server when you ask the AI",
   'about.ai_p': "Only the request itself — a word, a topic, a question, a text to translate or read — plus the two languages. The server passes it to the Groq AI model and keeps the answer in a shared base with no link to you, so the next person gets it instantly. Please don’t put personal data into the translator or the reader.",
   'about.limits_h': "Why there is a limit",
