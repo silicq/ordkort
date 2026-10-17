@@ -1,10 +1,10 @@
-// The library (src/library.js) on a real SQLite (sql.js behind a D1-shaped wrapper), with Llama Guard faked:
+// The library (src/decks/library.js) on a real SQLite (sql.js behind a D1-shaped wrapper), with Llama Guard faked:
 // a deck is listed only after the check, an unsafe one is refused, and votes, adds, reports and take-downs work.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import initSqlJs from 'sql.js';
-import { initDB } from '../src/db.js';
-import * as L from '../src/library.js';
+import { initDB } from '../src/core/db.js';
+import * as L from '../src/decks/library.js';
 
 const SQL = await initSqlJs();
 function d1() {

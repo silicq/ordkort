@@ -1,6 +1,6 @@
 /* Groq client. The key lives only in the Worker secret (GROQ_API_KEY); the browser never sees it.
    When one model hits its limit we switch to the next one; the answer is always JSON. */
-import { HttpError } from './util.js';
+import { HttpError } from '../core/util.js';
 
 const URL = 'https://api.groq.com/openai/v1/chat/completions';
 const DEFAULT_MODELS = ['openai/gpt-oss-120b', 'qwen/qwen3.8-27b', 'openai/gpt-oss-20b'];

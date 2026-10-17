@@ -5,8 +5,8 @@ import assert from 'node:assert/strict';
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import vm from 'node:vm';
 import { ROOT, read } from './helpers.mjs';
-import { str, int, norm, isCode, randomCode, safeEqual } from '../src/util.js';
-import { cleanGloss, cleanWord, fillManyPrompt } from '../src/prompts.js';
+import { str, int, norm, isCode, randomCode, safeEqual } from '../src/core/util.js';
+import { cleanGloss, cleanWord, fillManyPrompt } from '../src/ai/prompts.js';
 
 /* ---------- interface translations ---------- */
 

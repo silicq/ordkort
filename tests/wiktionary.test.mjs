@@ -1,8 +1,8 @@
-// Cards checked against Wiktionary (src/wiktionary.js): reading a page's shared headword and table markup,
+// Cards checked against Wiktionary (src/sources/wiktionary.js): reading a page's shared headword and table markup,
 // and fixing a card from it. The pages are small copies of real en.wiktionary.org markup.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { parsePage, check, plain, article, lookup, summary, hasEntries } from '../src/wiktionary.js';
+import { parsePage, check, plain, article, lookup, summary, hasEntries } from '../src/sources/wiktionary.js';
 
 const h2 = (id) => `<div class="mw-heading mw-heading2"><h2 id="${id}">${id}</h2></div>`;
 const h3 = (id) => `<div class="mw-heading mw-heading3"><h3 id="${id}">${id}</h3></div>`;

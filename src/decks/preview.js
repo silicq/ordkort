@@ -7,8 +7,8 @@
    The page is the app itself, so a person who opens the link sees no extra step. It asks search engines not to
    index it (a share is not a page of the site), and /s/ID/cover gives a cover made on the device (a data: URL in
    the share) as a picture that link previews can load. */
-import { App } from './shared.js';
-import { isCode } from './util.js';
+import { App } from '../core/shared.js';
+import { isCode } from '../core/util.js';
 
 const SITE = 'https://ordkort.com';
 const ROUTE = /^\/(s|look)\/([0-9A-Z]{8})(\/cover)?\/?$/;

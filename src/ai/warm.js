@@ -7,10 +7,10 @@
    That cap matters most: Groq's free plan allows each model 200,000 tokens in any 24 hours, about 100–150 AI
    answers a day for the whole site, and one list of words takes 5,000–7,000. It goes through the same code and
    the same limits as a visitor's request (api.words), under its own key. */
-import { words } from './api.js';
-import { limitsOf } from './limits.js';
-import { peek, bump } from './db.js';
-import { today } from './util.js';
+import { words } from './routes.js';
+import { limitsOf } from '../core/limits.js';
+import { peek, bump } from '../core/db.js';
+import { today } from '../core/util.js';
 
 const FIRST = ['greetings', 'core', 'numbers']; // what the setup picks for every newcomer
 const LEVELS = ['A1', 'A2', 'B1'];

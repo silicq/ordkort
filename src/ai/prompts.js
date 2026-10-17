@@ -1,9 +1,9 @@
 /* All prompts and the checks of AI answers. Prompts are built only on the server:
    the browser sends parameters (languages, a word, a topic), never ready-made text for the model,
    so the site cannot be used as a free "chatbot on someone else's key". */
-import { App } from './shared.js';
+import { App } from '../core/shared.js';
 import { FACTS, coreFacts } from './facts.js';
-import { str, arr } from './util.js';
+import { str, arr } from '../core/util.js';
 
 const nameOf = (c) => App.langs.en(c);
 
