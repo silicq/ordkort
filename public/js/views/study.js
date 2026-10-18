@@ -463,11 +463,27 @@
     if (S.mode !== 'flip' && !S.answered) return; // the back would reveal the answer
     S.flipped = force === true ? true : !S.flipped;
     S.card.classList.toggle('flipped', S.flipped);
-    // half-way through the turn the side turned away is hidden (see .turned in style.css)
-    const card = S.card, on = S.flipped;
-    clearTimeout(card._turn);
-    card._turn = setTimeout(() => card.classList.toggle('turned', on), 280);
+    turnWatch(S.card, S.flipped);
     if (four() && S.mode === 'flip' && !S.answered && S.flipped) gradeButtons();
+  }
+
+  /* The side in view changes the moment the card stands edge-on (see .turned in style.css). The turn springs, so that
+     moment comes long before half its time (about 80 ms of 600), and a look may give it another speed: the card's
+     angle is read frame by frame instead of guessed. */
+  function turnWatch(card, on) {
+    const inner = card.querySelector('.flash-inner');
+    cancelAnimationFrame(card._turn);
+    if (!inner || typeof requestAnimationFrame !== 'function') { card.classList.toggle('turned', on); return; }
+    const end = performance.now() + 1500;
+    const step = (now) => {
+      const t = getComputedStyle(inner).transform;
+      // rotateY(a): the matrix starts with cos(a), below 0 while the back faces the viewer
+      const back = t && t !== 'none' ? new DOMMatrixReadOnly(t).m11 < 0 : false;
+      const done = !card.isConnected || now > end;
+      card.classList.toggle('turned', done ? on : back);
+      if (!done) card._turn = requestAnimationFrame(step);
+    };
+    step(performance.now());
   }
 
   /* ---------- four answers ---------- */
