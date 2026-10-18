@@ -41,7 +41,8 @@
             todo
               ? h('a', { class: 'btn btn-primary btn-lg', href: '#/study' }, t('home.start'), h('span', { class: 'btn-count' }, todo), icon('arrow', 18))
               : h('a', { class: 'btn btn-primary btn-lg', href: '#catalog', onclick: scrollToCatalog }, icon('plus', 18), t('home.add_topic')),
-            todo ? h('a', { class: 'btn btn-ghost btn-lg', href: '#catalog', onclick: scrollToCatalog }, t('home.add_topic')) : null)),
+            // the second way gives way to the session: a quieter button
+            todo ? h('a', { class: 'btn btn-ghost hero-more', href: '#catalog', onclick: scrollToCatalog }, icon('plus', 16), t('home.add_topic')) : null)),
         statsCard(o));
       hero.querySelector('h1').className = 'display';
 
@@ -64,12 +65,14 @@
     return h('aside', { class: 'stats-card' },
       h('div', { class: 'streak' },
         h('span', { class: 'streak-ico' + (streak ? ' lit' : '') }, icon('flame', 26)),
-        h('div', null, h('b', { class: 'streak-n' }, streak), h('span', { class: 'streak-l' }, tn('n_days_streak', streak)))),
+        // no streak yet: an invitation instead of a big 0
+        streak ? h('div', null, h('b', { class: 'streak-n' }, streak), h('span', { class: 'streak-l' }, tn('n_days_streak', streak)))
+          : h('div', null, h('b', { class: 'streak-start' }, t('streak.start')))),
       h('div', { class: 'week' }, A.store.week().map((d) =>
         h('div', { class: 'wd' + (d.rev ? ' done' : '') + (d.today ? ' today' : ''), title: d.date.toLocaleDateString(ui) + ' · ' + d.rev },
           h('i'), h('small', null, fmt.format(d.date))))),
       h('div', { class: 'mini-stats' },
-        stat(o.due, t('stats.due'), 'due'),
+        stat(o.due, t('stats.due'), o.due ? 'due' : ''), // red only when something is waiting
         stat(o.known, t('stats.known')),
         stat(o.total, t('stats.total'))),
       goalLine(),

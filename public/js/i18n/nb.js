@@ -33,6 +33,7 @@ globalThis.App.i18nData.nb = {
   'n_words_other': '{n} ord',
   'n_days_streak_one': 'dag på rad',
   'n_days_streak_other': 'dager på rad',
+  'streak.start': 'Start en rekke i dag',
   'n_decks_one': '{n} kortstokk',
   'n_decks_other': '{n} kortstokker',
 
@@ -500,7 +501,7 @@ globalThis.App.i18nData.nb = {
   'study.almost': "Nesten — riktig stavemåte:",
   'study.correct_is': "Riktig svar:",
   'goal.title': "Dagsmål",
-  'goal.today': "I dag: {done} av {goal}",
+  'goal.today': "Dagens mål: {done} av {goal} kort",
   'goal.done': "Dagsmålet på {n} kort er nådd!",
   'goal.left': "{n} kort igjen til dagens mål.",
   'set.goal': "Dagsmål",
