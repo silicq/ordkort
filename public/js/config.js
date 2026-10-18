@@ -12,4 +12,6 @@ App.config = {
   cacheLimit: 300,
   uiVersion: 9,                // bump when UI strings change, so machine-translated UIs are rebuilt
   repoUrl: 'https://github.com/silicq/ordkort', // source code, linked from the About page
+  mail: 'hei@ordkort.com', // questions and help: Email Routing hands the letters to the Worker (src/mail.js)
+  mails: ['hei@ordkort.com', 'post@ordkort.com', 'help@ordkort.com', 'support@ordkort.com'], // every address, named on the About page so nobody mistakes a real one for a fake
 };

@@ -9,6 +9,7 @@ import { TEACH } from './teachers-text.mjs';
 
 const SITE = 'https://ordkort.com';
 const REPO = 'https://github.com/silicq/ordkort';
+export const MAIL = 'hei@ordkort.com'; // questions and help (src/mail.js)
 const LANGS = globalThis.App.langs.list;
 
 /* ---------- texts ---------- */
@@ -451,6 +452,7 @@ function jsonLd(code, p) {
       offers: { '@type': 'Offer', price: '0', priceCurrency: 'EUR' },
       inLanguage: CODES.map((c) => PAGES[c].hreflang), license: 'https://www.gnu.org/licenses/agpl-3.0.html',
       sameAs: [REPO], featureList: p.features.map(([h]) => h),
+      provider: { '@type': 'Organization', name: 'Ordkort', url: `${SITE}/`, email: MAIL },
     },
     { '@type': 'WebPage', '@id': url(code), url: url(code), name: p.title, description: p.desc, inLanguage: p.hreflang, about: { '@id': `${SITE}/#app` } },
     {
@@ -551,6 +553,7 @@ ${SEO[code] ? `      <section>
       <span>Ordkort</span>
       <a href="/#/about">${esc(p.how)}</a>
       <a href="${REPO}" rel="noopener">GitHub</a>
+      <a href="mailto:${MAIL}">${MAIL}</a>
       <a href="https://www.gnu.org/licenses/agpl-3.0.html" rel="noopener">AGPL-3.0</a>
     </footer>
   </div>

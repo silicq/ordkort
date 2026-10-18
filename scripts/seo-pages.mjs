@@ -235,6 +235,7 @@ ${body}
       ${dictA(ui, U.dictHub)}
       <a href="/#/about">${esc(t(ui, 'foot.about') || 'About')}</a>
       <a href="https://github.com/silicq/ordkort" rel="noopener">GitHub</a>
+      <a href="mailto:${Landing.MAIL}">${Landing.MAIL}</a>
     </footer>
   </div>
 </body>
@@ -532,6 +533,7 @@ function teachersPage(ui) {
       <section>
         <h2 class="t">${esc(T.limitsH)}</h2>
         ${T.limits.map((p) => `<p>${esc(p)}</p>`).join('\n        ')}
+        ${T.mailP ? `<p>${esc(T.mailP).replace(Landing.MAIL, `<a href="mailto:${Landing.MAIL}">${Landing.MAIL}</a>`)}</p>` : ''}
       </section>
       <p class="t links"><a href="${topicsHubPath(ui)}">${esc(U.alsoTopics)}</a><a href="${dictHubPath(ui)}">${esc(U.alsoDict)}</a></p>`;
   const alternates = Object.fromEntries(UIS.filter((u) => TEACH[u]).map((u) => [u, TEACH[u].path]));
