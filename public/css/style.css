@@ -359,6 +359,8 @@ code { font-family: ui-monospace, 'Cascadia Code', Consolas, monospace; font-siz
   transition: border-color 0.15s, box-shadow 0.15s;
 }
 .input::placeholder, textarea::placeholder { color: var(--ink-3); }
+/* a hint longer than a phone's field ends in "…" instead of being cut off mid-word */
+.input, .search-input, .input::placeholder, .search-input::placeholder { text-overflow: ellipsis; }
 .input:focus, .select:focus { border-color: var(--blue); box-shadow: 0 0 0 4px var(--blue-soft); }
 textarea.input { resize: vertical; min-height: 64px; line-height: 1.45; }
 .select {
@@ -1504,7 +1506,9 @@ dialog.modal::backdrop { background: rgba(20, 16, 10, 0.45); backdrop-filter: bl
   .chapter .back { margin-bottom: 18px; }
   .gram-article > .back { margin-bottom: 16px; }
   .hero { grid-template-columns: 1fr; align-items: stretch; }
-  .onb-cards { position: relative; width: 100%; max-width: 380px; height: 290px; margin: -10px 0 10px; inset-inline-end: auto; }
+  /* the cards keep the box they are placed in (the first one reaches 350px from its end), the hint below them, inside it */
+  .onb-cards { position: relative; width: 350px; height: 345px; margin: -10px 0 12px; inset-inline-end: auto; }
+  .onb-tap { top: 322px; inset-inline: 0; text-align: center; }
   .onb-hero { min-height: 0; display: flex; flex-direction: column; }
   .onb-hero .onb-cards { order: -1; }
 }
@@ -1589,9 +1593,13 @@ dialog.modal::backdrop { background: rgba(20, 16, 10, 0.45); backdrop-filter: bl
 }
 @media (max-width: 420px) {
   .brand-name { display: none; }
-  .shell { padding: 0 14px; }
-  .onb-cards { transform: scale(0.85); transform-origin: top left; }
+  .shell { padding-inline: 14px; }
+  /* smaller cards; the negative margin gives back the height the scaling leaves empty */
+  .onb-cards { transform: scale(0.85); transform-origin: top left; margin-bottom: -40px; }
   [dir='rtl'] .onb-cards { transform-origin: top right; }
+}
+@media (max-width: 345px) {
+  .onb-cards { transform: scale(0.78); margin-bottom: -64px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1689,7 +1697,9 @@ dialog.modal::backdrop { background: rgba(20, 16, 10, 0.45); backdrop-filter: bl
 
 @media (max-width: 760px) {
   .hero .row { flex-wrap: wrap; }
-  .hero .row .btn-lg { flex: 1 1 auto; justify-content: center; }
+  .hero .row .btn-lg, .onb-hero .row .btn-lg { flex: 1 1 auto; justify-content: center; }
+  /* a long label ("Я уже учусь на другом устройстве") wraps instead of pushing the page wider */
+  .onb-hero .row .btn-lg { white-space: normal; text-align: center; }
 
   /* inflection tables shrink and wrap words instead of stretching the page */
   .ptables { display: grid; gap: 12px; }

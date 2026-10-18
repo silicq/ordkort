@@ -285,7 +285,7 @@
         ex: w.ex || '', exTr: w.ex_tr || w.exTr || '',
         box: 0, due: 0, reps: 0, lapses: 0, last: 0, created: t + added, u: t,
       };
-      if (w.src) c.src = w.src; // where the card came from: bank (AI words for a topic), user, dict, read, tr, csv, share
+      if (w.src) c.src = w.src; // where the card came from: bank (AI words for a topic), ready (hand-made words for a topic), user, dict, read, tr, csv, share
       if (w.chk) c.chk = 1; // already checked against a dictionary (ordbokene.no, Wiktionary)
       if (GENDERS.includes(w.g)) c.g = w.g; // a noun's gender the dictionary confirmed
       // a picture (js/media.js): its name on the device, where it came from, whom to credit
