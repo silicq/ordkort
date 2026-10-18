@@ -1,7 +1,7 @@
 // The mail of the site (src/mail.js): every letter reaches the inbox, and a person gets one note that it arrived
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { langOf, decodeSubject, wantsNote, noteMessage, receive } from '../src/mail.js';
+import { langOf, decodeSubject, wantsNote, noteMessage, noteText, noteHtml, receive } from '../src/mail.js';
 
 const H = (o = {}) => new Headers(o);
 
@@ -36,15 +36,35 @@ test('no note to robots, lists, autoresponders or ourselves', () => {
 
 test('the note is threaded under the letter, marked as automatic, and readable', () => {
   const raw = noteMessage({ from: 'post@ordkort.com', to: 'kari@example.no', subject: 'Re: Spørsmål', lang: 'nb', messageId: '<a@x>', references: '<z@x>', id: 'n1', date: new Date(Date.UTC(2026, 9, 18)) });
-  const [head, body] = raw.split('\r\n\r\n');
+  const head = raw.slice(0, raw.indexOf('\r\n\r\n'));
   assert.match(head, /^From: Ordkort <post@ordkort\.com>\r\nTo: kari@example\.no\r\n/);
   assert.match(head, /\r\nIn-Reply-To: <a@x>\r\nReferences: <z@x> <a@x>\r\n/);
   assert.match(head, /\r\nAuto-Submitted: auto-replied\r\n/);
+  assert.match(head, /Content-Type: multipart\/alternative; boundary="ordkort-n1"/);
   assert.equal(decodeSubject(/Subject: (.+)/.exec(head)[1]), 'Re: Spørsmål');
-  const text = new TextDecoder().decode(Uint8Array.from(atob(body.replace(/\r\n/g, '')), (c) => c.charCodeAt(0)));
+  // two parts, plain text first (the fallback), then HTML; every line within the 76 characters mail allows
+  const parts = raw.split('--ordkort-n1').slice(1, -1).map((p) => {
+    const [h, body] = p.trim().split('\r\n\r\n');
+    assert.ok(body.split('\r\n').every((l) => l.length <= 76));
+    return [/Content-Type: ([\w/]+)/.exec(h)[1], new TextDecoder().decode(Uint8Array.from(atob(body.replace(/\r\n/g, '')), (c) => c.charCodeAt(0)))];
+  });
+  assert.deepEqual(parts.map(([type]) => type), ['text/plain', 'text/html']);
+  const [[, text], [, html]] = parts;
   assert.match(text, /meldingen din har kommet fram/);
   assert.match(text, /innen 2 dager/);
-  assert.ok(body.split('\r\n').every((l) => l.length <= 76));
+  assert.match(text, /https:\/\/ordkort\.com\/nb\/norsk\//);
+  assert.match(html, /<html lang="nb" dir="ltr">/);
+  assert.match(html, /meldingen din har kommet fram/);
+  assert.match(html, /src="https:\/\/ordkort\.com\/icons\/icon-192\.png"/);
+  assert.doesNotMatch(html, /<script|<link /, 'nothing a mail program would block or fetch besides the logo');
+});
+
+test('the note in Arabic reads right to left; every language has its own topics link', () => {
+  const html = noteHtml('ar');
+  assert.match(html, /<html lang="ar" dir="rtl">/);
+  assert.match(html, /text-align:right/);
+  for (const l of ['en', 'nb', 'ru', 'uk', 'pl', 'ar']) assert.match(noteText(l), new RegExp(`https://ordkort\\.com/${l}/[a-z]+/`), l);
+  assert.equal(noteText('xx'), noteText('en'));
 });
 
 function fakeDB() {

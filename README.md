@@ -329,6 +329,8 @@ npm run deploy
   other sites: https only, raster images of at most 5 MB, under an hourly limit per person.
 - Worker request logs are off. Limit counters, link codes and abandoned sync copies are deleted
   by a daily scheduled task.
+- Found a vulnerability? Please write to hei@ordkort.com instead of opening a public issue
+  (also in [/.well-known/security.txt](https://ordkort.com/.well-known/security.txt)).
 - Cloudflare’s network absorbs volumetric attacks. On a custom domain you can additionally enable
   a WAF rate-limiting rule for `/api/*` and Bot Fight Mode.
 
@@ -338,7 +340,8 @@ The easiest ways to help, no code needed: **translate the interface** into your 
 550 short strings), **report a wrong word** with the button on any card or dictionary entry, or
 [open an issue](https://github.com/silicq/ordkort/issues/new/choose) about anything that confused you.
 Code is welcome too; see [CONTRIBUTING.md](CONTRIBUTING.md). Questions and ideas go to
-[Discussions](https://github.com/silicq/ordkort/discussions).
+[Discussions](https://github.com/silicq/ordkort/discussions), or by e-mail to **hei@ordkort.com** if you would
+rather not write in public (teachers often do).
 
 If Ordkort helps you learn, a ⭐ on GitHub helps other learners find it.
 

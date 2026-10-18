@@ -1,0 +1,73 @@
+<!doctype html>
+<!-- The signature for answers written by hand in Gmail, in the look of the site and of the automatic note
+     (src/mail.js). Open this file in a browser, change the name if needed, press Copy, and paste it into
+     Gmail → Settings → General → Signature. Inline styles only: that is all Gmail keeps. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ordkort: e-mail signature</title>
+<style>
+  body { margin: 0; padding: 32px 16px; background: #f4efe6; color: #1d1a16; font: 16px/1.6 -apple-system, 'Segoe UI', Roboto, sans-serif; }
+  main { max-width: 640px; margin: 0 auto; }
+  h1 { font: 700 26px Georgia, serif; margin: 0 0 8px; }
+  .how { color: #5a5347; margin: 0 0 20px; }
+  .how li { margin: 4px 0; }
+  .paper { background: #fff; border: 1px solid #e4dccc; border-radius: 14px; padding: 22px 24px; }
+  .paper .letter { color: #3c3830; margin: 0 0 18px; }
+  button { margin: 16px 0 0; padding: 12px 22px; border: 0; border-radius: 12px; background: #2f4bd9; color: #fff; font: 700 16px inherit; cursor: pointer; }
+  #done { margin-inline-start: 12px; color: #5a5347; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Signature for answers by hand</h1>
+  <ol class="how">
+    <li>Click the name to change it, if needed.</li>
+    <li>Press <b>Copy the signature</b> (or select the block and copy it).</li>
+    <li>Gmail → Settings → <b>See all settings</b> → General → Signature → Create new, paste, and choose it for replies
+      for each ordkort.com address under “Signature defaults”.</li>
+  </ol>
+
+  <div class="paper">
+    <p class="letter">Hi Kari,<br><br>thanks for the question – … (your answer here)</p>
+    <!-- the signature: a table, so Gmail and phones keep the logo next to the text -->
+    <div id="sig">
+      <table cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif">
+        <tr>
+          <td style="padding:0 14px 0 0;vertical-align:middle">
+            <a href="https://ordkort.com/" style="text-decoration:none"><img src="https://ordkort.com/icons/icon-192.png" width="44" height="44" alt="Ordkort" style="display:block;border:0;border-radius:11px"></a>
+          </td>
+          <td style="padding:2px 0 2px 14px;border-left:3px solid #2f4bd9;vertical-align:middle">
+            <div contenteditable="true" spellcheck="false" style="font:700 16px/1.3 Georgia,'Times New Roman',serif;color:#1d1a16">Alex</div>
+            <div style="font:14px/1.5 -apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#5a5347">Ordkort – Norwegian, one card at a time</div>
+            <div style="font:14px/1.5 -apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif"><a href="https://ordkort.com/" style="color:#2139b0;text-decoration:none;font-weight:600">ordkort.com</a><span style="color:#8a8272"> · </span><a href="mailto:hei@ordkort.com" style="color:#2139b0;text-decoration:none">hei@ordkort.com</a></div>
+          </td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+  <button type="button" id="copy">Copy the signature</button><span id="done"></span>
+</main>
+<script>
+  // copies the signature as formatted text, so Gmail keeps the logo, the line and the links
+  document.getElementById('copy').addEventListener('click', async () => {
+    const sig = document.getElementById('sig');
+    const html = sig.innerHTML.replace(/ contenteditable="true" spellcheck="false"/g, '');
+    const done = document.getElementById('done');
+    try {
+      await navigator.clipboard.write([new ClipboardItem({
+        'text/html': new Blob([html], { type: 'text/html' }),
+        'text/plain': new Blob([sig.innerText], { type: 'text/plain' }),
+      })]);
+      done.textContent = 'Copied – now paste it into Gmail.';
+    } catch {
+      const r = document.createRange(); r.selectNodeContents(sig);
+      const s = getSelection(); s.removeAllRanges(); s.addRange(r);
+      done.textContent = 'Selected – press Ctrl+C (⌘C), then paste it into Gmail.';
+    }
+  });
+</script>
+</body>
+</html>

@@ -42,6 +42,7 @@ export const TEACH = {
       'Deltakerne trenger ingen konto, e-postadresse eller passord. Kortene og fremgangen lagres i nettleseren på deres egen enhet, og det er verken reklame eller sporing.',
       'Serveren får bare det som skal slås opp eller lages – et ord, et tema eller en tekst – sammen med språkparet. For å begrense bruken teller den forespørsler under en hash av IP-adressen som skiftes hver dag; selve adressen lagres ikke. Ordkort har åpen kildekode, så alt dette kan etterprøves.',
     ],
+    mailP: 'Spørsmål, ønsker til klassen eller noe som ikke fungerer? Skriv til hei@ordkort.com – det er en person som svarer.',
     limitsH: 'Det Ordkort ikke gjør',
     limits: [
       'Det finnes ingen lærerkonto og ingen oversikt over deltakernes fremgang, for Ordkort vet ikke hvem som bruker det. Hver deltaker ser sin egen statistikk, sitt dagsmål og hvor mange dager på rad de har øvd.',
@@ -85,6 +86,7 @@ export const TEACH = {
       'Learners need no account, e-mail address or password. Their cards and progress are stored in the browser on their own device, with no ads and no tracking.',
       'The server receives only what is looked up or made – a word, a topic or a text – with the language pair. To keep usage within limits it counts requests under a hash of the IP address whose salt changes every day; the address itself is not stored. Ordkort is open source, so all of this can be checked.',
     ],
+    mailP: 'Questions, a wish for your class, or something that does not work? Write to hei@ordkort.com – a person answers.',
     limitsH: 'What Ordkort does not do',
     limits: [
       'There is no teacher account and no overview of learners’ progress, because Ordkort does not know who uses it. Each learner sees their own statistics, daily goal and streak.',
@@ -128,6 +130,7 @@ export const TEACH = {
       'Учням не потрібні акаунт, електронна пошта чи пароль. Картки й прогрес зберігаються в браузері на їхньому пристрої, без реклами й без стеження.',
       'Сервер отримує тільки те, що треба знайти чи створити — слово, тему або текст — разом із парою мов. Щоб обмежувати навантаження, він рахує запити під хешем IP-адреси, сіль якого щодня змінюється; саму адресу не зберігає. Код Ordkort відкритий, тож усе це можна перевірити.',
     ],
+    mailP: 'Питання, побажання для вашої групи або щось не працює? Напишіть на hei@ordkort.com — відповідає людина.',
     limitsH: 'Чого Ordkort не робить',
     limits: [
       'Немає акаунта викладача й немає огляду прогресу учнів, бо Ordkort не знає, хто ним користується. Кожен бачить свою статистику, денну мету й кількість днів поспіль.',
@@ -171,6 +174,7 @@ export const TEACH = {
       'Ученикам не нужны аккаунт, почта или пароль. Карточки и прогресс хранятся в браузере на их устройстве, без рекламы и без слежки.',
       'Сервер получает только то, что нужно найти или создать — слово, тему или текст — вместе с парой языков. Чтобы ограничивать нагрузку, он считает запросы под хешем IP-адреса, соль которого меняется каждый день; сам адрес не хранится. Код Ordkort открыт, так что всё это можно проверить.',
     ],
+    mailP: 'Вопросы, пожелания для вашей группы или что-то не работает? Напишите на hei@ordkort.com — отвечает человек.',
     limitsH: 'Чего Ordkort не делает',
     limits: [
       'Нет аккаунта преподавателя и нет обзора прогресса учеников, потому что Ordkort не знает, кто им пользуется. Каждый видит свою статистику, дневную цель и сколько дней подряд занимается.',

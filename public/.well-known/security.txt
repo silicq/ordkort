@@ -1,0 +1,5 @@
+Contact: mailto:hei@ordkort.com
+Expires: 2027-10-18T00:00:00.000Z
+Preferred-Languages: en, nb, ru, uk, pl
+Canonical: https://ordkort.com/.well-known/security.txt
+Policy: https://github.com/silicq/ordkort#security
