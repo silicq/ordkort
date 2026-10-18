@@ -174,7 +174,10 @@
 *::before,
 *::after { box-sizing: border-box; }
 
-html { -webkit-text-size-adjust: 100%; scroll-padding-top: 90px; }
+/* clip, not hidden: the page never slides sideways on a phone, and the sticky header keeps working */
+html { -webkit-text-size-adjust: 100%; scroll-padding-top: 90px; overflow-x: clip; }
+/* a quick second tap (a button, a card) never zooms the page in; pinching still does */
+* { touch-action: manipulation; }
 .js .static-intro { display: none; } /* the description for search engines in index.html: the app replaces it */
 
 body {
@@ -186,6 +189,7 @@ body {
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   overflow-x: hidden;
+  overflow-x: clip;
 }
 /* a light paper grain */
 body::before {
@@ -2075,6 +2079,15 @@ textarea.input.code { font: 13px/1.5 ui-monospace, SFMono-Regular, Consolas, mon
   .tabs { min-width: 0 !important; overflow-x: auto; scrollbar-width: none; }
   .tabs::-webkit-scrollbar { display: none; }
   .brand, .top-actions { flex-shrink: 0 !important; }
+  /* a look's decoration wider than the screen never makes the page slide sideways or zoom out on a phone */
+  html, body { overflow-x: clip !important; }
+  /* the page's content stays under the header and the tab bar, whatever z-index a look gives a card */
+  .main, .foot { isolation: isolate !important; }
+  .top { z-index: 50 !important; }
+  /* a field under 16px makes a phone zoom in when it is tapped, and the page stays zoomed */
+  @media (pointer: coarse) {
+    input:not([type='checkbox'], [type='radio'], [type='range'], [type='color'], [type='file'], .search-input), select, textarea { font-size: max(16px, 1rem) !important; }
+  }
 
   @media (max-width: 760px) {
     .top { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
