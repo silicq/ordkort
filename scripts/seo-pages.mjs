@@ -272,12 +272,19 @@ function wordPage(ui, w, live) {
   const at = order.indexOf(w), prev = order[at - 1], next = order[at + 1];
 
   const path = wordPath(ui, w);
-  const title = U.wordTitle(w);
-  // search engines show about 160 characters: drop the forms first, then shorten the meaning
+  // the English word for titles and descriptions: its first meaning, "to follow; to accompany" → "follow"
+  const enFull = String(e.tr?.en || '').split(';')[0].trim();
+  const x = { verb: f.pos === 'verb', forms: !!forms, en: enFull.split(/[,(]/)[0].replace(/^to /, '').trim(), enFull };
+  const title = U.wordTitle(w, x);
+  // search engines show about 160 characters: first the English word alone instead of its whole meaning, then drop
+  // the forms (unless the language keeps them: Norwegian searches ask for them), then shorten the meaning
   const meaning = tr.replace(/\.$/, '');
-  let desc = U.wordDesc(w, U.pos[f.pos], meaning, forms);
-  if (desc.length > 160) desc = U.wordDesc(w, U.pos[f.pos], meaning, '');
-  if (desc.length > 160) desc = U.wordDesc(w, U.pos[f.pos], meaning.slice(0, meaning.length - (desc.length - 159)).replace(/[\s,;]+\S*$/, '') + '…', '');
+  const d = (m, fm, en) => U.wordDesc(w, U.pos[f.pos], m, fm, { ...x, en });
+  let desc = d(meaning, forms, enFull);
+  if (desc.length > 160) desc = d(meaning, forms, x.en);
+  const kept = U.descKeepsForms ? forms : '';
+  if (desc.length > 160) desc = d(meaning, kept, x.en);
+  if (desc.length > 160) desc = d(meaning.slice(0, meaning.length - (desc.length - 159)).replace(/[\s,;]+\S*$/, '') + '…', kept, x.en);
   const body = `      <article class="entry">
         <h1${nbA}>${esc(head)}</h1>
         <p class="t pos">${esc(posLabel)}</p>

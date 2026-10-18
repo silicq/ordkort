@@ -98,7 +98,11 @@ export const UI = {
       shuffle: 'Shuffle', more: 'Learn these words in Ordkort', h: 'Put these flashcards on your site',
       p: 'Paste this code into a page of your school site or blog. The cards work on phones, with no sign-in and no ads.',
     },
-    wordTitle: (w) => `${w} – Norwegian to English: meaning, forms, examples`,
+    // with the English word in the title when it fits: what "ost in english" and "altså på engelsk" look for
+    wordTitle: (w, x = {}) => {
+      const t = (en) => (en && en.toLowerCase() !== w.toLowerCase() ? `${w} in English: ${en} – forms and examples` : '');
+      return [t(x.enFull?.replace(/^to /, '')), t(x.en)].find((s) => s && s.length <= 60) || `${w} – Norwegian to English: meaning, forms, examples`;
+    },
     wordDesc: (w, pos, tr, forms) => `${w} (Norwegian ${pos}): ${tr}.${forms ? ` Forms: ${forms}.` : ''} Example sentences with translations and notes for learners.`,
     ctaWord: (w) => `Learn “${w}” in Ordkort`,
     phH: 'Useful phrases', plain: 'In simple Norwegian', examplesH: 'Examples', noteH: 'Good to know', formsH: 'Forms',
@@ -219,8 +223,17 @@ export const UI = {
     topicH1: (t) => `${t}: norske gloser`,
     topicDesc: (t, n, sample) => `${n} norske gloser om ${t.toLowerCase()} med bøyning og eksempelsetninger: ${sample}…`,
     ctaTopic: 'Øv på disse ordene med ordkort',
-    wordTitle: (w) => `${w} – hva betyr det? Bøyning og eksempler`,
-    wordDesc: (w, pos, tr, forms) => `Hva betyr «${w}» (${pos})? ${tr}.${forms ? ` Bøyning: ${forms}.` : ''} Eksempelsetninger og tips for deg som lærer norsk.`,
+    // what people search for in Norwegian: "å følge bøying", "altså på engelsk", "forsto eller forstod"
+    wordTitle: (w, x = {}) => {
+      const h = x.verb ? `å ${w}` : w, what = x.forms ? 'bøyning' : 'betydning';
+      const t = (en) => (en && en.toLowerCase() !== w.toLowerCase() ? `${h} – ${what} og på engelsk: ${en}` : '');
+      return [t(x.enFull?.replace(/^to /, '')), t(x.en)].find((s) => s && s.length <= 60) || `${h} – ${what}, betydning og eksempler`.replace('betydning, betydning', 'betydning');
+    },
+    wordDesc: (w, pos, tr, forms, x = {}) => {
+      const d = `«${x.verb ? `å ${w}` : w}» (${pos})${forms ? ` bøyes: ${forms}` : ''}.${x.en ? ` På engelsk: ${x.en}.` : ''} Betyr: ${tr}.`;
+      return d + (d.length < 100 ? ' Eksempelsetninger og tips for deg som lærer norsk.' : ' Med eksempler.');
+    },
+    descKeepsForms: true, // the forms are what Norwegian searches ask for: the meaning is shortened first
     ctaWord: (w) => `Lær «${w}» i Ordkort`,
     phH: 'Nyttige uttrykk', plain: 'Forklaring', examplesH: 'Eksempler', noteH: 'Verdt å vite', formsH: 'Bøyning',
     officialH: 'I Bokmålsordboka', exprH: 'Faste uttrykk', compoundsH: 'Sammensatte ord', relatedH: 'Beslektede ord', inTopicsH: 'I temaene',
