@@ -1,4 +1,4 @@
-/* Ordkort: a static site plus a small API on Cloudflare Workers.
+/* Ordkort: a static site plus a small API on Cloudflare Workers, and the mail of the site (src/mail.js).
    Static files (public/) are served by Cloudflare directly; this code runs only for /api/*. */
 import './core/shared.js';
 import { initDB, cleanup } from './core/db.js';
@@ -13,6 +13,7 @@ import * as library from './decks/library.js';
 import * as mcp from './mcp.js';
 import * as preview from './decks/preview.js';
 import { warmOne } from './ai/warm.js';
+import * as mail from './mail.js';
 
 const DAILY = '17 3 * * *'; // the daily cron in wrangler.jsonc; the other one fills the word bank
 
@@ -125,6 +126,12 @@ export default {
 
   // once a day: delete expired counters and codes, and long-abandoned copies;
   // every 15 minutes: one more group of ready words for the shared bank, while the site is quiet (src/ai/warm.js)
+  // letters to hei@, post@, help@ and support@ordkort.com, handed over by Email Routing (src/mail.js)
+  async email(message, env) {
+    await initDB(env.DB).catch(() => {});
+    await mail.receive(message, env);
+  },
+
   async scheduled(event, env, ctx) {
     if (event.cron === DAILY) ctx.waitUntil(initDB(env.DB).then(() => cleanup(env.DB)));
     else ctx.waitUntil(initDB(env.DB).then(() => warmOne(env)).then((r) => console.log('warm:', r), (e) => console.log('warm failed:', e.message)));
