@@ -33,6 +33,7 @@ globalThis.App.i18nData.en = {
   'n_words_other': '{n} words',
   'n_days_streak_one': 'day in a row',
   'n_days_streak_other': 'days in a row',
+  'streak.start': 'Start a streak today',
   'n_decks_one': '{n} deck',
   'n_decks_other': '{n} decks',
 
@@ -500,7 +501,7 @@ globalThis.App.i18nData.en = {
   'study.almost': "Almost — correct spelling:",
   'study.correct_is': "Correct answer:",
   'goal.title': "Daily goal",
-  'goal.today': "Today: {done} of {goal}",
+  'goal.today': "Daily goal: {done} of {goal} cards",
   'goal.done': "Daily goal of {n} cards reached!",
   'goal.left': "{n} more cards to reach today’s goal.",
   'set.goal': "Daily goal",

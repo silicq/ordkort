@@ -30,6 +30,7 @@ globalThis.App.i18nData.zh = {
   'gen.none': '没有找到新单词——试试其他级别或主题。',
   'n_words_other': '{n} 个单词',
   'n_days_streak_other': '天连续学习',
+  'streak.start': '今天就开始连续学习',
   'n_decks_other': '{n} 个卡组',
 
   'common.close': '关闭',
@@ -496,7 +497,7 @@ globalThis.App.i18nData.zh = {
   'study.almost': "差一点——正确拼写：",
   'study.correct_is': "正确答案：",
   'goal.title': "每日目标",
-  'goal.today': "今天：{done} / {goal}",
+  'goal.today': "今日目标：{done} / {goal} 张卡片",
   'goal.done': "已完成每日目标：{n} 张卡片！",
   'goal.left': "距离今天的目标还差 {n} 张卡片。",
   'set.goal': "每日目标",
