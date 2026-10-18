@@ -455,6 +455,7 @@ globalThis.App.i18nData.nb = {
   'about.free_p': "Ingen abonnement, ingen reklame, ingen oppfordringer om donasjoner. Kildekoden er åpen under lisensen AGPL-3.0 — du kan sjekke den og kjøre din egen kopi.",
   'about.source': "Kildekode",
   'about.write': "Skriv til oss",
+  'about.mails': "Alle adressene til Ordkort: {list}. Alle går til samme person. Ordkort ber aldri om passord eller penger på e-post.",
   'sync.key': "Gjenopprettingsnøkkel",
   'sync.key_title': "Gjenopprettingsnøkkel",
   'sync.key_text': "Hvis nettleserdataene slettes på alle enhetene dine, kan skykopien bare hentes tilbake med denne nøkkelen: skriv den inn under «Jeg har en kode» eller på første skjerm («Jeg bruker det allerede på en annen enhet»). Lagre nøkkelen i en passordbehandler eller skriv den ned.",

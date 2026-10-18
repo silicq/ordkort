@@ -41,7 +41,8 @@
               A.rich(t(`about.${id}_p`, { n: limit }), 'p'),
               id === 'free' ? h('div', { class: 'row gap wrap' },
                 A.config.repoUrl ? h('a', { class: 'link-btn', href: A.config.repoUrl, target: '_blank', rel: 'noopener' }, t('about.source'), icon('external', 14)) : null,
-                A.config.mail ? h('a', { class: 'link-btn', href: 'mailto:' + A.config.mail }, t('about.write'), ': ', A.config.mail) : null) : null)))),
+                A.config.mail ? h('a', { class: 'link-btn', href: 'mailto:' + A.config.mail }, t('about.write'), ': ', A.config.mail) : null) : null,
+              id === 'free' && A.config.mails ? h('p', { class: 'small muted' }, t('about.mails', { list: A.config.mails.join(', ') })) : null)))),
         h('div', { class: 'row gap wrap about-foot' },
           h('a', { class: 'btn btn-primary', href: A.store.ready ? '#/' : '#/' }, t('sync.open_cards')),
           A.store.ready ? h('a', { class: 'btn btn-ghost', href: '#/settings' }, icon('settings', 18), t('nav.settings')) : null));
