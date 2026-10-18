@@ -180,6 +180,39 @@ test('the topic pages offer their Anki decks, and the decks on disk are what scr
   assert.deepEqual(hus.fields.slice(0, 7), ['et hus', 'dom', '', 'rzeczownik', 'huset, hus, husene', 'De bor i et rødt hus.', 'Mieszkają w czerwonym domu.']);
 });
 
+test('the ready Norwegian topics on disk are what scripts/anki-decks.mjs writes, and the app reads them when the AI fails', async () => {
+  const { ready, readyPath } = await import('../scripts/anki-decks.mjs');
+  const made = ready(built.live);
+  for (const ui of ['en', 'ru', 'uk', 'pl', 'ar']) assert.ok(made.has(readyPath(ui, 'food')), `${ui}: food`);
+  for (const [p, text] of made) {
+    assert.ok(existsSync(new URL('public' + p, ROOT)), `public${p} is missing: run npm run decks`);
+    assert.equal(readFileSync(new URL('public' + p, ROOT), 'utf8'), text, `public${p} is out of date: run npm run decks`);
+  }
+  const onDisk = readdirSync(new URL('public/ready/nb/', ROOT)).flatMap((ui) => readdirSync(new URL(`public/ready/nb/${ui}/`, ROOT)).map((f) => `/ready/nb/${ui}/${f}`));
+  assert.deepEqual(onDisk.filter((p) => !made.has(p)), []);
+  const hus = JSON.parse(made.get(readyPath('pl', 'home'))).words.find((w) => w.term === 'et hus');
+  assert.deepEqual(hus, { term: 'et hus', tr: 'dom', pos: 'noun', forms: 'huset, hus, husene', ex: 'De bor i et rødt hus.', ex_tr: 'Mieszkają w czerwonym domu.', chk: 1 });
+
+  // public/js/ai.js: only Norwegian, only a topic, nothing when the file is missing or the network fails
+  const ctx = { window: {}, location: { protocol: 'https:' }, fetched: [] };
+  ctx.window.App = { store: { settings: { target: 'nb', native: 'pl' } } };
+  ctx.fetch = async (url) => {
+    ctx.fetched.push(url);
+    if (url.includes('home')) return { ok: true, json: async () => JSON.parse(made.get(readyPath('pl', 'home'))) };
+    if (url.includes('food')) throw new TypeError('offline');
+    return { ok: false, json: async () => null };
+  };
+  vm.runInNewContext(read('public/js/ai.js'), ctx);
+  const R = ctx.window.App.ai.ready;
+  assert.ok((await R('home')).some((w) => w.term === 'et hus'));
+  assert.deepEqual([...await R('food')], []);
+  assert.deepEqual([...await R('nothing')], []);
+  assert.deepEqual([...await R('../x')], []);
+  ctx.window.App.store.settings.target = 'de';
+  assert.deepEqual([...await R('home')], []);
+  assert.deepEqual(ctx.fetched, ['/ready/nb/pl/home.json', '/ready/nb/pl/food.json', '/ready/nb/pl/nothing.json']);
+});
+
 test('the cards for other sites: one frame per topic, framable anywhere, not indexed, linked from their topic', () => {
   const headers = read('public/_headers');
   const rule = headers.slice(headers.indexOf('/embed/*'));

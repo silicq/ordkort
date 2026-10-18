@@ -222,6 +222,15 @@
       checker.run(); // words the server had no time to check
       A.toast(added ? A.tn('gen.added', added, { deck: A.deckTitle(d) }) : t('gen.none'), added ? 'ok' : '');
     } catch (e) {
+      // a Norwegian topic has ready words: the deck gets them now instead of waiting for the AI
+      const fresh = d.topic && e?.name !== 'AbortError' ? (await A.ai.ready(d.topic)).filter((w) => !A.store.hasTerm(w.term)) : [];
+      const added = fresh.length ? A.store.addCards(deckId, fresh.slice(0, n).map((w) => ({ ...w, src: 'ready' }))) : 0;
+      if (added) {
+        if (!d.filled) A.store.updateDeck(deckId, { filled: 1 });
+        checker.run();
+        A.toast(A.tn('gen.added', added, { deck: A.deckTitle(d) }), 'ok');
+        return;
+      }
       again = PASSING.includes(e?.kind) && job.tries < RETRY.length;
       if (again) {
         jobs.set(deckId, { label: t('gen.queued') });

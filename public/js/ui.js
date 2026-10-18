@@ -136,10 +136,17 @@
   function toast(msg, kind = '') {
     if (!msg) return;
     if (!toastBox) { toastBox = h('div', { class: 'toasts', role: 'status', 'aria-live': 'polite' }); document.body.append(toastBox); }
-    const el = h('div', { class: 'toast ' + kind }, msg);
-    toastBox.append(el);
-    setTimeout(() => el.classList.add('out'), kind === 'error' ? 5200 : 2800);
-    setTimeout(() => el.remove(), kind === 'error' ? 5600 : 3200);
+    // the same message again (several decks failing at once) keeps the one on screen longer instead of stacking up
+    let el = [...toastBox.children].find((x) => x.textContent === String(msg) && x.className === 'toast ' + kind);
+    if (el) { clearTimeout(el._out); clearTimeout(el._gone); el.classList.remove('out'); }
+    else {
+      el = h('div', { class: 'toast ' + kind }, msg);
+      toastBox.append(el);
+      // at most two at a time, so they never cover the screen: a new one takes the place of the oldest
+      while (toastBox.children.length > 2) { const old = toastBox.firstChild; clearTimeout(old._out); clearTimeout(old._gone); old.remove(); }
+    }
+    el._out = setTimeout(() => el.classList.add('out'), kind === 'error' ? 5200 : 2800);
+    el._gone = setTimeout(() => el.remove(), kind === 'error' ? 5600 : 3200);
   }
 
   /* ---------- modal windows ---------- */

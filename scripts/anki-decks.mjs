@@ -3,6 +3,8 @@
 // (ankiRoot in scripts/seo-text.mjs). The words are those of the topic pages, with the forms they show.
 // The packages are written by the app's own writer (public/js/apkg.js) with a fixed date, fixed ids and one guid per
 // word, so the same words make the same files and a new version of a deck updates the notes it already gave.
+// The same words go to public/ready/nb/<ui>/<topic>.json too: the app fills a topic deck from them when the AI is
+// down or busy (public/js/app.js).
 // Run `npm run decks` after `npm run seo` and commit the result (a test checks that every linked deck exists).
 import { readFileSync, writeFileSync, mkdirSync, rmSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -48,6 +50,24 @@ export async function decks(live = build().live) {
   return out;
 }
 
+// a topic's words for the app, in the shape /api/words gives them: forms from Bokmålsordboka count as checked
+export const readyPath = (ui, id) => `/ready/nb/${ui}/${id}.json`;
+export function ready(live = build().live) {
+  const out = new Map(); // public path → JSON
+  for (const ui of UIS) {
+    if (ui === 'nb') continue; // no translations: Norwegian learnt in Norwegian
+    for (const id of TOPIC_IDS.filter((x) => live.topics[ui].has(x))) {
+      const words = topicWords(ui, id).filter((x) => x.tr).map((x) => {
+        const w = { term: x.term, tr: x.tr, pos: x.pos, forms: keyForms(x.a, x.lemma) || '', ex: x.ex || '', ex_tr: x.exTr || '' };
+        if (x.a) w.chk = 1;
+        return w;
+      });
+      out.set(readyPath(ui, id), JSON.stringify({ words }) + '\n');
+    }
+  }
+  return out;
+}
+
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   const out = await decks();
   const dir = fileURLToPath(new URL('public/anki/', ROOT));
@@ -56,4 +76,12 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   let size = 0;
   for (const [p, bytes] of out) { writeFileSync(fileURLToPath(new URL('public' + p, ROOT)), bytes); size += bytes.length; }
   console.log(`${out.size} Anki decks, ${Math.round(size / 1024)} KB, in public/anki/`);
+  const json = ready();
+  rmSync(fileURLToPath(new URL('public/ready/', ROOT)), { recursive: true, force: true });
+  for (const [p, text] of json) {
+    const file = new URL('public' + p, ROOT);
+    mkdirSync(new URL('./', file), { recursive: true });
+    writeFileSync(file, text);
+  }
+  console.log(`${json.size} ready topics in public/ready/`);
 }
