@@ -38,3 +38,4 @@ How to give a class a topic with one link (each learner picks the language of th
 
 - [The app](https://ordkort.com/): needs JavaScript
 - [Source code and README](https://github.com/silicq/ordkort): architecture, privacy, limits
+- Contact: hei@ordkort.com (questions, help, teachers, security reports)

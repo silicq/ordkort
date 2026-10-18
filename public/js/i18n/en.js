@@ -454,6 +454,8 @@ globalThis.App.i18nData.en = {
   'about.free_h': "Free and open",
   'about.free_p': "No subscriptions, no ads, no donation requests. The source code is open under the AGPL-3.0 licence — you can check it and run your own copy.",
   'about.source': "Source code",
+  'about.write': "Write to us",
+  'about.mails': "Every address of Ordkort: {list}. They all reach the same person. Ordkort never asks for a password or money by e-mail.",
   'sync.key': "Recovery key",
   'sync.key_title': "Recovery key",
   'sync.key_text': "If the browser data is erased on all your devices, the cloud copy can only be restored with this key: enter it under “I have a code” or on the first screen (“I already use it on another device”). Save it in a password manager or write it down.",
