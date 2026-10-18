@@ -341,7 +341,8 @@ The easiest ways to help, no code needed: **translate the interface** into your 
 [open an issue](https://github.com/silicq/ordkort/issues/new/choose) about anything that confused you.
 Code is welcome too; see [CONTRIBUTING.md](CONTRIBUTING.md). Questions and ideas go to
 [Discussions](https://github.com/silicq/ordkort/discussions), or by e-mail to **hei@ordkort.com** if you would
-rather not write in public (teachers often do).
+rather not write in public (teachers often do). post@, help@ and support@ordkort.com reach the same person; no other
+address is Ordkort's, and Ordkort never asks for a password or money by e-mail.
 
 If Ordkort helps you learn, a ⭐ on GitHub helps other learners find it.
 

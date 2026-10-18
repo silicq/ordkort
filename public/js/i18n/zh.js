@@ -451,6 +451,7 @@ globalThis.App.i18nData.zh = {
   'about.free_p': "没有订阅、没有广告，也不会请求捐款。源代码以 AGPL-3.0 许可证公开——你可以检查它，也可以自己运行一份。",
   'about.source': "源代码",
   'about.write': "给我们写信",
+  'about.mails': "Ordkort 的全部邮箱：{list}。它们都由同一个人处理。Ordkort 从不通过邮件索要密码或钱。",
   'sync.key': "恢复密钥",
   'sync.key_title': "恢复密钥",
   'sync.key_text': "如果所有设备上的浏览器数据都被清除，只能用这个密钥恢复云端副本：在“我有代码”或首页（“我已在另一台设备上使用”）中输入。请把它保存在密码管理器里或抄写下来。",
