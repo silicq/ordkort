@@ -908,7 +908,7 @@ dialog.modal::backdrop { background: rgba(20, 16, 10, 0.45); backdrop-filter: bl
 .flash:not(.look-flash) .face.face.front { transform: none !important; }
 .flash:not(.look-flash) .face.face.back { transform: rotateY(180deg) !important; }
 .look-flash .face.face { transform: none !important; }
-/* The side turned away is also hidden half-way through the turn (js/views/study.js sets .turned). A look's filter,
+/* The side turned away is also hidden from the moment the card stands edge-on (js/views/study.js sets .turned). A look's filter,
    opacity or blur on the card makes the browser lay the 3D card flat (Safari above all), and then the hidden side
    showed through the other one, mirrored. */
 /* what lays the card flat is not let on the turning part itself */
