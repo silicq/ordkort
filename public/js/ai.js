@@ -55,6 +55,18 @@
     return Array.isArray(data?.words) ? data.words : [];
   }
 
+  /* the hand-made Norwegian words of a topic (scripts/anki-decks.mjs), for when the AI is down or busy:
+     [] for any other language, a native language without them, or no connection */
+  async function ready(topic) {
+    const { target, native } = pair();
+    if (target !== 'nb' || !topic || !/^[a-z]+$/.test(topic) || location.protocol === 'file:') return [];
+    try {
+      const res = await fetch(`/ready/nb/${native}/${topic}.json`);
+      const data = res.ok ? await res.json() : null;
+      return Array.isArray(data?.words) ? data.words : [];
+    } catch { return []; }
+  }
+
   async function fill({ term = '', tr = '' }) {
     const { data } = await api('fill', { ...pair(), level: S().level, term, tr });
     return data;
@@ -140,5 +152,5 @@
     return A.t('err.' + (e?.kind || 'server'));
   };
 
-  A.ai = { api, words, fill, fillMany, lookup, wikt, chapter, ask, translate, uiPart, limits, report, gloss, check, shareDeck, sharedDeck, errorText, AIError, quota: null };
+  A.ai = { api, words, ready, fill, fillMany, lookup, wikt, chapter, ask, translate, uiPart, limits, report, gloss, check, shareDeck, sharedDeck, errorText, AIError, quota: null };
 })();
