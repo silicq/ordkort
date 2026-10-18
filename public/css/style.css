@@ -10,7 +10,7 @@
   --card: #fffdf8;
   --ink: #1d1a16;
   --ink-2: #5a5347;
-  --ink-3: #8f877a;
+  --ink-3: #6f6759; /* 4.9:1 on the paper: the smallest text stays readable (WCAG AA) */
   --line: #e4dccc;
   --line-2: #d2c7b2;
 
@@ -18,12 +18,15 @@
   --blue-ink: #2139b0;
   --blue-edge: #1d2f96;
   --blue-soft: #e2e7fc;
-  --red: #d9481f;
-  --red-edge: #a93a18;
+  --red: #c63f1a;
+  --red-edge: #a03314;
   --red-soft: #fce3d9;
-  --green: #1a8f59;
-  --green-edge: #11683f;
+  --green: #17804f;
+  --green-edge: #0f5e39;
   --green-soft: #d8f1e3;
+  /* surfaces that carry white text (answer buttons, messages): 5:1 or more */
+  --red-fill: var(--red);
+  --green-fill: var(--green);
   --yellow: #f2c14e;
   --yellow-ink: #8a5a00;
   --yellow-soft: #fbf0ce;
@@ -31,7 +34,7 @@
   --ob: #9b2335;
 
   --rule: rgba(47, 75, 217, 0.1);
-  --red-line: rgba(217, 72, 31, 0.5);
+  --red-line: rgba(198, 63, 26, 0.5);
   --noise: 0.05;
 
   --t-start: #f7df94;
@@ -85,6 +88,8 @@
     --red-soft: #3d2419;
     --green: #22955f;
     --green-edge: #146641;
+    --red-fill: #c24a24;
+    --green-fill: #1c7d50;
     --green-soft: #173527;
     --yellow-ink: #f2c14e;
     --yellow-soft: #3a3120;
@@ -137,6 +142,8 @@
   --green: #22955f;
   --green-edge: #146641;
   --green-soft: #173527;
+  --red-fill: #c24a24;
+  --green-fill: #1c7d50;
   --yellow-ink: #f2c14e;
   --yellow-soft: #3a3120;
   --marker: rgba(242, 193, 78, 0.28);
@@ -284,7 +291,7 @@ code { font-family: ui-monospace, 'Cascadia Code', Consolas, monospace; font-siz
 .btn-soft { --bg: var(--blue-soft); --fg: var(--blue-ink); --edge: color-mix(in srgb, var(--blue) 35%, var(--blue-soft)); }
 .btn-ghost { --bg: transparent; --edge: var(--line-2); }
 .btn-ghost:hover { --bg: var(--card); }
-.btn-danger { --bg: var(--red); --fg: #fff; --edge: var(--red-edge); }
+.btn-danger { --bg: var(--red-fill); --fg: #fff; --edge: var(--red-edge); }
 .btn.danger { --fg: var(--red); }
 .btn-lg { padding: 15px 24px; font-size: 16.5px; border-radius: 16px; }
 .btn-sm { padding: 7px 12px; font-size: 13.5px; border-radius: 11px; box-shadow: 0 2px 0 var(--edge); gap: 6px; }
@@ -343,6 +350,9 @@ code { font-family: ui-monospace, 'Cascadia Code', Consolas, monospace; font-siz
 .speak.lg { width: 46px; height: 46px; box-shadow: 0 2px 0 var(--line-2); }
 .speak.sm { width: 26px; height: 26px; border: 0; background: transparent; }
 .speak.sm:hover { background: var(--blue-soft); }
+/* a finger needs about 44px: the small buttons keep their size and get an invisible margin to be tapped in */
+.speak:not(.lg)::before { content: ''; position: absolute; inset: -5px; border-radius: 50%; }
+.speak.sm::before { inset: -9px; }
 /* its shape holds against a look's wide rules (button { … !important }): colours may change, the circle stays */
 .speak.speak { display: inline-grid !important; place-items: center !important; padding: 0 !important; border-radius: 50% !important; text-transform: none !important; letter-spacing: 0 !important; }
 .speak.speak:not(.lg):not(.sm) { width: 34px !important; height: 34px !important; }
@@ -373,7 +383,7 @@ textarea.input { resize: vertical; min-height: 64px; line-height: 1.45; }
   appearance: none;
   padding-inline-end: 36px;
   cursor: pointer;
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%238f877a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='m6 9 6 6 6-6'/></svg>");
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%236f6759' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='m6 9 6 6 6-6'/></svg>");
   background-repeat: no-repeat;
   background-position: right 10px center;
 }
@@ -429,6 +439,8 @@ textarea.input { resize: vertical; min-height: 64px; line-height: 1.45; }
 }
 .seg button:hover { color: var(--ink); }
 .seg button.on { background: var(--card); color: var(--ink); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08), 0 0 0 1px var(--line); }
+/* a finger needs more than a mouse: the choices in a row are as tall as the other controls on a touch screen */
+@media (pointer: coarse) { .seg button { min-height: 40px; padding-inline: 14px; } }
 
 .chip {
   display: inline-flex;
@@ -449,7 +461,7 @@ textarea.input { resize: vertical; min-height: 64px; line-height: 1.45; }
 .chips { display: flex; flex-wrap: wrap; gap: 8px; }
 
 .pill { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 999px; background: var(--paper-2); color: var(--ink-2); font: 500 13px/1.4 var(--font-ui); }
-.pill.due { background: var(--red); color: #fff; font-weight: 600; }
+.pill.due { background: var(--red-fill); color: #fff; font-weight: 600; }
 
 /* ---------- header ---------- */
 .top {
@@ -559,6 +571,7 @@ textarea.input { resize: vertical; min-height: 64px; line-height: 1.45; }
 @media (prefers-color-scheme: dark) { :root:not([data-theme='light']) .streak-ico.lit { background: #4a2e12; color: #ff922b; } }
 .streak-n { display: block; font: 700 30px/1 var(--font-serif); }
 .streak-l { display: block; color: var(--ink-2); font-size: 13.5px; }
+.streak-start { display: block; font: 650 19px/1.25 var(--font-serif); }
 .week { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin: 26px 0 16px; }
 .wd { display: flex; flex-direction: column; align-items: center; gap: 6px; }
 .wd i { width: 26px; height: 26px; border-radius: 50%; border: 2px dashed var(--line-2); display: grid; place-items: center; }
@@ -638,7 +651,7 @@ textarea.input { resize: vertical; min-height: 64px; line-height: 1.45; }
 .bar i { display: block; height: 100%; background: var(--ink); border-radius: inherit; transition: width 0.4s; }
 .deck-foot { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 12.5px; color: color-mix(in srgb, var(--ink) 75%, transparent); }
 .deck-foot .pill { background: color-mix(in srgb, var(--card) 65%, transparent); color: var(--ink); font-size: 12px; }
-.deck-foot .pill.due { background: var(--red); color: #fff; }
+.deck-foot .pill.due { background: var(--red-fill); color: #fff; }
 
 .spin { display: inline-block; width: 15px; height: 15px; border-radius: 50%; border: 2px solid currentColor; border-inline-end-color: transparent; animation: spin 0.8s linear infinite; flex-shrink: 0; }
 @keyframes spin { to { transform: rotate(360deg); } }
@@ -941,6 +954,7 @@ dialog.modal::backdrop { background: rgba(20, 16, 10, 0.45); backdrop-filter: bl
 .pron-peek { padding: 4px 10px; border: 1px dashed var(--line-2); border-radius: 999px; background: none; color: var(--ink-3); font: 500 13px/1.3 var(--font-ui); cursor: pointer; }
 .pron-peek:hover { color: var(--ink); border-color: var(--ink-3); }
 .flash-small { font-size: 15px; color: var(--ink-3); }
+.flash-asked { font: 500 20px/1.25 var(--font-serif); color: var(--ink-2); overflow-wrap: anywhere; max-width: 100%; }
 .flash-gram { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 12px; font-size: 13.5px; color: var(--ink-2); max-width: 46ch; }
 .flash-gram .serif { font-style: italic; }
 .flash-ex { max-width: 46ch; margin-top: 6px; }
@@ -966,8 +980,8 @@ dialog.modal::backdrop { background: rgba(20, 16, 10, 0.45); backdrop-filter: bl
 
 .answer-row { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 12px; width: 100%; max-width: 540px; margin: 0 auto; }
 .btn-yes, .btn-no { justify-content: center; padding: 16px 12px; font-size: 17px; border-radius: 18px; }
-.btn-yes { --bg: var(--green); --fg: #fff; --edge: var(--green-edge); }
-.btn-no { --bg: var(--red); --fg: #fff; --edge: var(--red-edge); }
+.btn-yes { --bg: var(--green-fill); --fg: #fff; --edge: var(--green-edge); }
+.btn-no { --bg: var(--red-fill); --fg: #fff; --edge: var(--red-edge); }
 .btn-flip { width: 58px; height: 58px; padding: 0; justify-content: center; border-radius: 50%; }
 /* four answers: Again / Hard / Good / Easy, each with when the card comes back */
 .answer-row.grades { grid-template-columns: repeat(4, 1fr); gap: 8px; }
@@ -1073,7 +1087,7 @@ dialog.modal::backdrop { background: rgba(20, 16, 10, 0.45); backdrop-filter: bl
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  background: var(--red);
+  background: var(--red-fill);
   color: #fff;
   font: 700 14px/28px var(--font-ui);
   text-align: center;
@@ -1474,7 +1488,7 @@ dialog.modal::backdrop { background: rgba(20, 16, 10, 0.45); backdrop-filter: bl
 /* ---------- toasts ---------- */
 .toasts { position: fixed; bottom: 24px; left: 50%; z-index: 1000; display: flex; flex-direction: column; align-items: center; gap: 8px; width: max-content; max-width: calc(100vw - 32px); transform: translateX(-50%); pointer-events: none; }
 .toast { padding: 11px 18px; border-radius: 14px; background: var(--ink); color: var(--paper); font-weight: 550; font-size: 14.5px; box-shadow: 0 12px 30px -10px rgba(0, 0, 0, 0.45); animation: toast-in 0.25s cubic-bezier(0.2, 0.9, 0.3, 1.2); transition: opacity 0.3s, transform 0.3s; }
-.toast.ok { background: var(--green); color: #fff; }
+.toast.ok { background: var(--green-fill); color: #fff; }
 /* the interface being translated by the AI (js/i18n.js): how far it is, a hello in the new language, the line just done */
 .xl8 { position: fixed; z-index: 1001; left: 50%; bottom: calc(env(safe-area-inset-bottom) + 84px); width: min(440px, calc(100vw - 24px)); transform: translateX(-50%);
   padding: 12px 14px 11px; border-radius: 16px; background: var(--card); color: var(--ink); border: 1.5px solid var(--line-2); box-shadow: var(--shadow-lg);
@@ -1495,7 +1509,7 @@ dialog.modal::backdrop { background: rgba(20, 16, 10, 0.45); backdrop-filter: bl
 @keyframes xl8-pop { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
 @keyframes xl8-wave { 0%, 60%, 100% { transform: rotate(0); } 70% { transform: rotate(-8deg); } 80% { transform: rotate(6deg); } 90% { transform: rotate(-3deg); } }
 @media (prefers-reduced-motion: reduce) { .xl8, .xl8-hello, .xl8-sample.in, .xl8-bar.wait i { animation: none; } .xl8-bar i { transition: none; } }
-.toast.error { background: var(--red); color: #fff; }
+.toast.error { background: var(--red-fill); color: #fff; }
 .toast.out { opacity: 0; transform: translateY(8px); }
 @keyframes toast-in { from { opacity: 0; transform: translateY(12px) scale(0.96); } to { opacity: 1; transform: none; } }
 
@@ -1702,6 +1716,7 @@ dialog.modal::backdrop { background: rgba(20, 16, 10, 0.45); backdrop-filter: bl
 @media (max-width: 760px) {
   .hero .row { flex-wrap: wrap; }
   .hero .row .btn-lg, .onb-hero .row .btn-lg { flex: 1 1 auto; justify-content: center; }
+  .hero .row .hero-more { margin-inline: auto; }
   /* a long label ("Я уже учусь на другом устройстве") wraps instead of pushing the page wider */
   .onb-hero .row .btn-lg { white-space: normal; text-align: center; }
 
@@ -1735,9 +1750,9 @@ dialog.modal::backdrop { background: rgba(20, 16, 10, 0.45); backdrop-filter: bl
   .stack { height: 100%; min-height: 220px; max-height: 520px; }
   .face { padding: 12px 16px 10px; }
   .face-body { padding: 10px 2px 4px; gap: 8px; }
-  .flash-word { font-size: clamp(30px, 9vw, 46px); }
-  .flash-word.l { font-size: clamp(24px, 7vw, 34px); }
-  .flash-word.xl { font-size: clamp(19px, 5.4vw, 26px); }
+  .flash-word { font-size: clamp(34px, 11vw, 52px); }
+  .flash-word.l { font-size: clamp(26px, 8vw, 38px); }
+  .flash-word.xl { font-size: clamp(20px, 6vw, 28px); }
   .flash-ex .serif { font-size: 15.5px; }
   .answer-row { flex-shrink: 0; }
   .result { padding-top: 10px; overflow-y: auto; }

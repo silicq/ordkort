@@ -273,7 +273,7 @@
     const front = h('div', { class: 'face front' + (dressed ? ' own' : '') },
       tag.cloneNode(true),
       h('div', { class: 'face-body' }, frontBody),
-      S.mode === 'flip' ? h('div', { class: 'face-hint' }, icon('flip', 15), t('study.tap')) : null);
+      S.mode === 'flip' && hintShown() ? h('div', { class: 'face-hint' }, icon('flip', 15), t('study.tap')) : null);
 
     const ownBack = dressed && A.look.render('back', c, undefined, !fwd || S.mode === 'type');
     const back = h('div', { class: 'face back' + (dressed ? ' own' : '') },
@@ -286,7 +286,7 @@
         extra)
       : ownBack ? h('div', { class: 'face-body' }, ownBack, extra) : h('div', { class: 'face-body' },
         A.media.el(c, 'flash-img'),
-        A.lt(fwd ? c.term : c.tr, fwd ? T : N, 'flash-small', 'div'),
+        A.lt(fwd ? c.term : c.tr, fwd ? T : N, 'flash-asked', 'div'),
         A.lt(fwd ? c.tr : c.term, fwd ? N : T, 'flash-word serif' + sizeOf(fwd ? c.tr : c.term), 'div'),
         S.mode !== 'flip' || !fwd || peek ? h('div', { class: 'row gap center' }, pron ? h('span', { class: 'flash-pron' }, pron) : null, A.speakBtn(c.term, T, '', c)) : null,
         gram || forms ? h('div', { class: 'flash-gram' },
@@ -464,8 +464,15 @@
     S.flipped = force === true ? true : !S.flipped;
     S.card.classList.toggle('flipped', S.flipped);
     turnWatch(S.card, S.flipped);
+    if (S.flipped) countFlip();
     if (four() && S.mode === 'flip' && !S.answered && S.flipped) gradeButtons();
   }
+
+  /* "Tap to turn it over" for the first few cards only: after that the button below says the same */
+  const HINT_KEY = 'ordkort.flips', HINT_FLIPS = 5;
+  const flipsSeen = () => { try { return +localStorage.getItem(HINT_KEY) || 0; } catch { return HINT_FLIPS; } };
+  const hintShown = () => flipsSeen() < HINT_FLIPS;
+  const countFlip = () => { const n = flipsSeen(); if (n < HINT_FLIPS) try { localStorage.setItem(HINT_KEY, String(n + 1)); } catch { /* no storage */ } };
 
   /* The side in view changes the moment the card stands edge-on (see .turned in style.css). The turn springs, so that
      moment comes long before half its time (about 80 ms of 600), and a look may give it another speed: the card's
