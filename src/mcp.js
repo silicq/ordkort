@@ -175,6 +175,9 @@ wide row of tabs scrolls instead of pushing the buttons out, so keep .tab paddin
   (the round audio button, toggles, the language picker) and make the site hard to use. Variables first, then
   the classes above.
 - Hide or shrink the answer buttons, .tabs, .top-actions or the close button of a session.
+- Give the four answers colours that look alike. Again (.btn-no), Hard (.btn-hard), Good (.btn-yes) and Easy
+  (.btn-easy) are red, yellow, green and blue by default: keep four hues told apart at a glance (Again and Easy
+  above all), each different from the card behind them.
 - Put white text on a light background, or set colours for light mode only without checking dark mode. Aim for a
   contrast of at least 4.5:1 for text.
 - Animate anything forever behind text; respect \`@media (prefers-reduced-motion: reduce)\`.
