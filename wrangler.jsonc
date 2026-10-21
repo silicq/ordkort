@@ -32,6 +32,11 @@
 
   // AI limits (can be changed in the Cloudflare dashboard without touching the code).
   // The GROQ_API_KEY secret is set separately: npx wrangler secret put GROQ_API_KEY
+  // Optional, each adds its own free daily limit with the same models (src/ai/groq.js):
+  //   npx wrangler secret put CEREBRAS_API_KEY   (cloud.cerebras.ai: a trial, $5 of credit for 30 days once a payment
+  //                                               method is added; then it stops and the site goes on without it)
+  //   npx wrangler secret put GEMINI_API_KEY     (aistudio.google.com/apikey: free, no billing)
+  // Optional, paid per token, asked only when every free model is at its limit: npx wrangler secret put DEEPINFRA_API_KEY
   // Optional: npx wrangler secret put PIXABAY_KEY adds Pixabay to the picture search (src/sources/images.js)
   // Optional: npx wrangler secret put GOOGLE_TTS_KEY gives cards without a recording a synthetic voice (src/sources/voice.js)
   // Optional: npx wrangler secret put ADMIN_TOKEN lets the site's owner take down decks (src/decks/library.js)
@@ -42,8 +47,12 @@
     // A class behind one school address may go this many times past one person's limits while less than half of
     // today's budget is spent (src/core/limits.js)
     "AI_SHARED_TIMES": "5",
+    // Tokens a day the paid fallback (DEEPINFRA_API_KEY) may spend; about $0.10–0.40 a million. 0 turns it off
+    "PAID_DAILY_TOKENS": "1000000",
+    // AI_MODELS may set the order of the models, e.g. "cerebras:gpt-oss-120b,groq:openai/gpt-oss-120b" (src/ai/groq.js)
     // How many lists of words the cron may generate a day for the bank of ready decks (src/ai/warm.js).
     // Groq's free plan gives each model 200,000 tokens a day, about 100–150 answers for the whole site: keep this small
+    // unless the other providers' keys are set too
     "WARM_PER_DAY": "24",
     // Room in the database a day (src/core/limits.js takeStore): sync copies and their files, links, library decks,
     // voices. Per person, and for the whole site. D1 holds 500 MB on the free plan, 10 GB on the paid one:

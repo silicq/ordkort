@@ -165,7 +165,7 @@ src/               Cloudflare Worker — runs only for /api/*
     routes.js      AI requests: shared cache → word bank → limits → Groq
     prompts.js     all prompts and validation of AI output
     facts.js       verified Norwegian Bokmål grammar facts used to ground the AI
-    groq.js        Groq client with model fallback, and the moderation check
+    groq.js        AI client over several providers with model fallback, and the moderation check
     warm.js        a base of ready decks: every 15 minutes, while the site is quiet, the cron fills one more
                    group of the shared word bank, from the decks used most to the rarer ones
   sources/         other sites the Worker reads
@@ -267,7 +267,11 @@ GitHub Actions runs them on every push and pull request.
 1. Cloudflare dashboard → **Workers & Pages** → **Create** → **Import a repository** → pick this
    repository. Leave the build command empty; the deploy command is `npx wrangler deploy`.
 2. After the first deploy: Worker → **Settings** → **Variables and Secrets** → add the secret
-   `GROQ_API_KEY` (and optionally `IP_SALT`, any long random string, and `PIXABAY_KEY`, a free
+   `GROQ_API_KEY` (and optionally: `GEMINI_API_KEY`, free, and `CEREBRAS_API_KEY`, a trial — $5 of credit for 30 days
+   once a payment method is on the account, then it stops, with nothing charged by itself — each adding its own daily
+   limits with the same models, while a key that stops working is passed over; `DEEPINFRA_API_KEY`, a paid fallback
+   asked only when every free model is at its limit and capped by `PAID_DAILY_TOKENS` a day; `IP_SALT`, any long
+   random string; and `PIXABAY_KEY`, a free
    [Pixabay API key](https://pixabay.com/api/docs/) that adds Pixabay to the picture search, and `GOOGLE_TTS_KEY`, a
    Google Cloud Text-to-Speech key for a synthetic voice on cards with no recording, and `ADMIN_TOKEN`, a long random
    string that lets the site's owner take down any deck in the library or shared by link).
