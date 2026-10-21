@@ -33,8 +33,8 @@
   // AI limits (can be changed in the Cloudflare dashboard without touching the code).
   // The GROQ_API_KEY secret is set separately: npx wrangler secret put GROQ_API_KEY
   // Optional, each adds its own free daily limit with the same models (src/ai/groq.js):
-  //   npx wrangler secret put CEREBRAS_API_KEY   (cloud.cerebras.ai)
-  //   npx wrangler secret put GEMINI_API_KEY     (aistudio.google.com)
+  //   npx wrangler secret put CEREBRAS_API_KEY   (cloud.cerebras.ai: the free trial needs a payment method on the account)
+  //   npx wrangler secret put GEMINI_API_KEY     (aistudio.google.com/apikey: free, no billing)
   // Optional, paid per token, asked only when every free model is at its limit: npx wrangler secret put DEEPINFRA_API_KEY
   // Optional: npx wrangler secret put PIXABAY_KEY adds Pixabay to the picture search (src/sources/images.js)
   // Optional: npx wrangler secret put GOOGLE_TTS_KEY gives cards without a recording a synthetic voice (src/sources/voice.js)
