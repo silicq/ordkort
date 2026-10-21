@@ -13,8 +13,26 @@ export function limitsOf(env) {
     perHour: Number(env.AI_PER_HOUR) || 40,
     perDay: Number(env.AI_PER_DAY) || 120,
     budget: Number(env.AI_DAILY_BUDGET) || 2500,
+    shared: Number(env.AI_SHARED_TIMES) || 5,
   };
 }
+
+/* A school or an office is one address for a whole class, and a class spends one person's limits in minutes.
+   Nothing tells a class from one busy person without knowing who is who, so the room is given by the site's state
+   instead: while less than half of today's budget is spent, an address may go on up to `shared` times its own
+   limits. Once the site is that busy, everyone is back to the ordinary limits, so the other half of the day is
+   shared as before, however many addresses went past theirs. */
+const SPARE = 0.5;
+function capsOf(env, site) {
+  const { perHour, perDay, budget, shared } = limitsOf(env);
+  const k = site < budget * SPARE ? shared : 1;
+  return { hour: perHour * k, day: perDay * k, perDay };
+}
+// what the browser is told: the ordinary limit, or the room past it while that room is open
+const shown = ({ day, perDay }, used) => {
+  const limit = used >= perDay ? day : perDay;
+  return { left: Math.max(0, limit - used), limit };
+};
 
 export function network(ip) {
   if (!ip.includes(':')) return ip;
@@ -32,9 +50,10 @@ export async function clientKey(request, env) {
   return (await hmac(salt, `${today()}|${network(ip)}`)).slice(0, 24);
 }
 
-/* Bursts: at most `limit` requests per `windowMs` from one fingerprint, within this isolate */
+/* Bursts: at most `limit` requests per `windowMs` from one fingerprint, within this isolate. A class opening the
+   same deck at once is one fingerprint asking for every card's picture, so the limit is for floods, not people. */
 const buckets = new Map();
-export function burst(key, limit = 45, windowMs = 10000) {
+export function burst(key, limit = 150, windowMs = 10000) {
   const now = Date.now();
   let b = buckets.get(key);
   if (!b || now - b.t > windowMs) { b = { t: now, n: 0 }; buckets.set(key, b); }
@@ -45,20 +64,21 @@ export function burst(key, limit = 45, windowMs = 10000) {
 
 /* Take one AI generation. Returns what is left and a function that gives it back (if the generation failed). */
 export async function takeAI(env, key) {
-  const { perHour, perDay, budget } = limitsOf(env);
+  const { budget } = limitsOf(env);
   const db = env.DB;
   const kh = `ai:h:${key}:${hourStamp()}`, kd = `ai:d:${key}:${today()}`, kg = `ai:g:${today()}`;
   const [h, d, g] = await Promise.all([bump(db, kh, 2 * HOUR), bump(db, kd, 26 * HOUR), bump(db, kg, 26 * HOUR)]);
   const refund = () => Promise.all([bump(db, kh, 2 * HOUR, -1), bump(db, kd, 26 * HOUR, -1), bump(db, kg, 26 * HOUR, -1)]).catch(() => {});
   if (g > budget) { await refund(); throw new HttpError(429, 'budget'); }
-  if (h > perHour || d > perDay) { await refund(); throw new HttpError(429, 'quota', { left: 0, limit: perDay }); }
-  return { left: Math.max(0, perDay - d), limit: perDay, refund };
+  // the site's count before this generation: the one that crosses half the budget is still let through
+  const caps = capsOf(env, g - 1);
+  if (h > caps.hour || d > caps.day) { await refund(); throw new HttpError(429, 'quota', { left: 0, limit: shown(caps, d - 1).limit }); }
+  return { ...shown(caps, d), refund };
 }
 
 export async function aiLeft(env, key) {
-  const { perDay } = limitsOf(env);
-  const used = await peek(env.DB, `ai:d:${key}:${today()}`);
-  return { left: Math.max(0, perDay - used), limit: perDay };
+  const [used, site] = await Promise.all([peek(env.DB, `ai:d:${key}:${today()}`), peek(env.DB, `ai:g:${today()}`)]);
+  return shown(capsOf(env, site), used);
 }
 
 /* Room in the database. Sync copies and their files, link codes, shared and published decks, voices are stored
