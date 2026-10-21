@@ -56,9 +56,9 @@
   const arrived = new Set(); // what to redo when pictures come
   function fetchPics(look) {
     const todo = addresses(look).filter((u) => !pics.has(u));
-    if (!todo.length || typeof fetch !== 'function') return;
+    if (!todo.length || typeof fetch !== 'function' || !A.ai) return;
     todo.forEach((u) => pics.set(u, ''));
-    Promise.all(todo.map((u) => fetch('/api/img?u=' + encodeURIComponent(u))
+    Promise.all(todo.map((u) => A.ai.call('img?u=' + encodeURIComponent(u))
       .then((r) => (r.ok ? r.blob() : null))
       .then((b) => { if (b && /^image\//.test(b.type)) pics.set(u, URL.createObjectURL(b)); })
       .catch(() => {})))

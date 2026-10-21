@@ -39,6 +39,42 @@ test('other sites cannot call the API and bodies must be JSON', async () => {
   assert.equal(r.status, 404);
 });
 
+// here the Worker is at http://ordkort.test: another address than the site's, as its workers.dev one is
+test('the site’s page may ask the API at another address of the Worker, with CORS; other pages may not', async () => {
+  const SITE = 'https://ordkort.com';
+  const ask = (method, Origin, more = {}) => harness.fetch(BASE + '/api/lookup', { method, headers: { Origin, 'Access-Control-Request-Method': 'POST', ...more } });
+  let r = await ask('OPTIONS', SITE, { 'Access-Control-Request-Headers': 'content-type' });
+  assert.equal(r.status, 204);
+  assert.equal(r.headers.get('Access-Control-Allow-Origin'), SITE);
+  assert.match(r.headers.get('Access-Control-Allow-Methods'), /POST/);
+  assert.match(r.headers.get('Access-Control-Allow-Headers'), /Content-Type.*X-Sync-Token/);
+  await r.arrayBuffer();
+
+  r = await call('limits', { headers: { Origin: SITE } });
+  assert.equal(r.status, 200);
+  assert.equal(r.headers.get('Access-Control-Allow-Origin'), SITE);
+  assert.match(r.headers.get('Access-Control-Expose-Headers'), /X-AI-Left.*X-AI-Limit/);
+  assert.equal(typeof (await r.json()).left, 'number');
+  // a refusal is read by the page too
+  r = await call('nothing-here', { headers: { Origin: SITE } });
+  assert.equal(r.status, 404);
+  assert.equal(r.headers.get('Access-Control-Allow-Origin'), SITE);
+  await r.arrayBuffer();
+
+  r = await ask('OPTIONS', 'https://evil.example');
+  assert.equal(r.status, 403);
+  assert.equal(r.headers.get('Access-Control-Allow-Origin'), null);
+  await r.arrayBuffer();
+  r = await call('limits', { headers: { Origin: 'https://evil.example' } });
+  assert.equal(r.status, 403);
+  assert.equal(r.headers.get('Access-Control-Allow-Origin'), null);
+  await r.arrayBuffer();
+  // its own pages ask without CORS, as before
+  r = await call('limits');
+  assert.equal(r.headers.get('Access-Control-Allow-Origin'), null);
+  await r.arrayBuffer();
+});
+
 test('shared decks: create, open, unknown ids are gone, junk is cleaned', async () => {
   const deck = {
     title: 'Mat', emoji: '🍎', level: 'A1', target: 'nb', native: 'en',
