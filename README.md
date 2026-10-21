@@ -205,7 +205,9 @@ so the API can’t be used as someone else’s free chatbot.
 **Limits** (change them in `wrangler.jsonc` → `vars` or in the Cloudflare dashboard):
 `AI_PER_HOUR` = 40 and `AI_PER_DAY` = 120 per person, `AI_DAILY_BUDGET` = 2500 for the whole site.
 A person is identified by a hash of the IP address with a salt that changes every day;
-the IP itself is never stored.
+the IP itself is never stored. A school or an office is one address for a whole class, so while less than half
+of `AI_DAILY_BUDGET` is spent today, an address may go on up to `AI_SHARED_TIMES` = 5 times its own limits;
+past half, everyone is back to the ordinary ones. Answers already in the shared cache never count.
 
 **What the AI can carry.** Groq's free plan gives each of the three models 200,000 tokens in any 24 hours.
 A list of words takes 5,000–7,000 tokens, a dictionary entry or a translation a few thousand, so the whole site

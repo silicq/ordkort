@@ -35,6 +35,9 @@
     "AI_PER_HOUR": "40",
     "AI_PER_DAY": "120",
     "AI_DAILY_BUDGET": "2500",
+    // A class behind one school address may go this many times past one person's limits while less than half of
+    // today's budget is spent (src/core/limits.js)
+    "AI_SHARED_TIMES": "5",
     // How many lists of words the cron may generate a day for the bank of ready decks (src/ai/warm.js).
     // Groq's free plan gives each model 200,000 tokens a day, about 100–150 answers for the whole site: keep this small
     "WARM_PER_DAY": "24",

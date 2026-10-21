@@ -7,6 +7,11 @@
     constructor(kind, message) { super(message || kind); this.kind = kind; }
   }
 
+  /* Our own answers are JSON and come through Cloudflare (CF-Ray). Anything else — an HTML page with neither —
+     was put there on the way, by a school's or an office's filter. A 404 without JSON is a copy of the site
+     without its server (see 'offline' below). */
+  const blocked = (res) => res.status !== 404 && !/json/i.test(res.headers.get('Content-Type') || '') && !res.headers.has('CF-Ray');
+
   async function api(path, body, { signal } = {}) {
     if (location.protocol === 'file:') throw new AIError('offline');
     let res;
@@ -21,6 +26,7 @@
       if (e.name === 'AbortError') throw e;
       throw new AIError('network');
     }
+    if (blocked(res)) throw new AIError('blocked');
     const left = res.headers.get('X-AI-Left');
     if (left !== null) A.ai.quota = { left: +left, limit: +res.headers.get('X-AI-Limit') };
     let data = null;
@@ -152,5 +158,5 @@
     return A.t('err.' + (e?.kind || 'server'));
   };
 
-  A.ai = { api, words, ready, fill, fillMany, lookup, wikt, chapter, ask, translate, uiPart, limits, report, gloss, check, shareDeck, sharedDeck, errorText, AIError, quota: null };
+  A.ai = { api, words, ready, fill, fillMany, lookup, wikt, chapter, ask, translate, uiPart, limits, report, gloss, check, shareDeck, sharedDeck, errorText, AIError, blocked, quota: null };
 })();
