@@ -1,7 +1,8 @@
 # Copy to .dev.vars (it is not committed to git) and paste your Groq key.
 GROQ_API_KEY=gsk_...
 # Optional: more daily limits with the same models. Gemini's key is free, with no billing (aistudio.google.com/apikey);
-# Cerebras's free trial (1M tokens a day) opens once a payment method is added (cloud.cerebras.ai)
+# Cerebras's trial is $5 of credit for 30 days (up to 1M tokens a day) once a payment method is added, then it stops
+# and nothing is charged by itself (cloud.cerebras.ai)
 # CEREBRAS_API_KEY=...
 # GEMINI_API_KEY=...
 # Optional: a paid fallback, asked only when every free model is at its limit, at most PAID_DAILY_TOKENS a day

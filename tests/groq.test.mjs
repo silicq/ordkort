@@ -60,6 +60,22 @@ test('a model at its daily limit waits the time it was told, and the next provid
   assert.equal(sent[2].model, 'day2');
 });
 
+test('a provider whose credit has run out (402) is skipped for an hour, not asked again every few seconds', async () => {
+  const sent = serve(
+    () => reply(402, { error: { message: 'Payment required: the account has no credit left' } }),
+    () => reply(200, ok),
+    () => reply(200, ok),
+  );
+  const e = { GROQ_API_KEY: 'g', CEREBRAS_API_KEY: 'c', AI_MODELS: 'cerebras:spent1,next1' };
+  assert.deepEqual(await groq(e, prompt), { words: [] });
+  assert.equal(sent[1].model, 'next1');
+  // a minute later: past the few seconds an ordinary error waits, the spent provider is still passed over
+  const now = Date.now;
+  Date.now = () => now() + 6e4;
+  try { await groq(e, prompt); } finally { Date.now = now; }
+  assert.deepEqual(sent.map((s) => s.model), ['spent1', 'next1', 'next1']);
+});
+
 test('the paid fallback is asked only while its daily tokens last, and its tokens are counted', async () => {
   const counted = [];
   const db = (used) => ({

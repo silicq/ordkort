@@ -117,8 +117,9 @@ export async function groq(env, { system, user, max = 2500, temperature = 0.35, 
     }
     const code = data?.error?.code || '';
     const msg = data?.error?.message || '';
-    if (res.status === 401 || res.status === 403) {
-      console.error(`ai: ${m.id} refused the key`);
+    // a refused key, or one whose credit has run out (402, a trial's credit spent): asked again in an hour
+    if (res.status === 401 || res.status === 402 || res.status === 403) {
+      console.error(`ai: ${m.id} refused the key (${res.status})`);
       blockedUntil.set(m.name, Date.now() + 36e5);
       continue;
     }
