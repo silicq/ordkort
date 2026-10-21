@@ -10,6 +10,7 @@
     try {
       r = await fetch('/api/' + path, { method, headers: { ...(body ? { 'Content-Type': 'application/json' } : {}), ...headers }, body: body ? JSON.stringify(body) : undefined });
     } catch { throw new A.ai.AIError('network'); }
+    if (A.ai.blocked(r)) throw new A.ai.AIError('blocked');
     const data = await r.json().catch(() => null);
     if (r.ok) return data;
     const e = new A.ai.AIError(r.status === 404 ? 'gone' : r.status === 429 ? 'rate' : r.status === 503 ? 'busy' : 'server');
