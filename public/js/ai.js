@@ -12,20 +12,52 @@
      without its server (see 'offline' below). */
   const blocked = (res) => res.status !== 404 && !/json/i.test(res.headers.get('Content-Type') || '') && !res.headers.has('CF-Ray');
 
-  async function api(path, body, { signal } = {}) {
+  /* Every request to the site's API (the AI, sync, the library, pictures, voices) goes through here. A network may
+     block ordkort.com on the way (a school's filter answers DNS for it with its own address) while the same Worker
+     still answers at its workers.dev address (config spareApi, src/worker.js). On the site's own page, a request
+     that does not get through is asked there again, and the address that answered is kept for the rest of the visit.
+     → the Response, or AIError 'offline' / 'network' */
+  let base = '';
+  const spare = () => (A.config && location.origin === A.config.site && A.config.spareApi) || '';
+  async function call(path, opts = {}) {
     if (location.protocol === 'file:') throw new AIError('offline');
-    let res;
+    const other = base ? '' : spare();
+    let res = null;
     try {
-      res = await fetch('/api/' + path, {
-        method: body ? 'POST' : 'GET',
-        headers: body ? { 'Content-Type': 'application/json' } : {},
-        body: body ? JSON.stringify(body) : undefined,
-        signal,
-      });
+      res = await fetch(base + '/api/' + path, opts);
+      if (!other || !blocked(res)) return res;
     } catch (e) {
       if (e.name === 'AbortError') throw e;
+      if (!other) throw new AIError('network');
+    }
+    try {
+      const again = await fetch(other + '/api/' + path, opts);
+      if (blocked(again)) return res || again;
+      base = other;
+      return again;
+    } catch (e) {
+      if (e.name === 'AbortError') throw e;
+      if (res) return res;
       throw new AIError('network');
     }
+  }
+
+  // a picture from the site's proxy as an <img>: by its address, or as a blob: URL once the API is at its spare
+  // address (the page may only show pictures of its own address: CSP img-src)
+  function img(path, attrs) {
+    const el = A.h('img', attrs);
+    if (!base) el.src = '/api/' + path;
+    else call(path).then((r) => (r.ok ? r.blob() : null)).then((b) => { if (b) el.src = URL.createObjectURL(b); }).catch(() => {});
+    return el;
+  }
+
+  async function api(path, body, { signal } = {}) {
+    const res = await call(path, {
+      method: body ? 'POST' : 'GET',
+      headers: body ? { 'Content-Type': 'application/json' } : {},
+      body: body ? JSON.stringify(body) : undefined,
+      signal,
+    });
     if (blocked(res)) throw new AIError('blocked');
     const left = res.headers.get('X-AI-Left');
     if (left !== null) A.ai.quota = { left: +left, limit: +res.headers.get('X-AI-Limit') };
@@ -158,5 +190,5 @@
     return A.t('err.' + (e?.kind || 'server'));
   };
 
-  A.ai = { api, words, ready, fill, fillMany, lookup, wikt, chapter, ask, translate, uiPart, limits, report, gloss, check, shareDeck, sharedDeck, errorText, AIError, blocked, quota: null };
+  A.ai = { api, words, ready, fill, fillMany, lookup, wikt, chapter, ask, translate, uiPart, limits, report, gloss, check, shareDeck, sharedDeck, errorText, AIError, blocked, call, img, quota: null };
 })();

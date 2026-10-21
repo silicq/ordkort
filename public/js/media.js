@@ -38,7 +38,7 @@
 
   // a picture from the web, through the site's own proxy (src/sources/images.js)
   async function fetchUrl(u) {
-    const r = await fetch('/api/img?u=' + encodeURIComponent(u));
+    const r = await A.ai.call('img?u=' + encodeURIComponent(u));
     if (!r.ok) throw new Error('fetch ' + r.status);
     return r.blob();
   }
@@ -153,7 +153,7 @@
   function voice(text, lang) {
     const k = vkey(text, lang);
     if (voices.has(k)) return Promise.resolve(voices.get(k));
-    const p = fetch(`/api/tts?l=${encodeURIComponent(lang)}&q=${encodeURIComponent(String(text).trim().slice(0, 200))}`)
+    const p = A.ai.call(`tts?l=${encodeURIComponent(lang)}&q=${encodeURIComponent(String(text).trim().slice(0, 200))}`)
       .then((r) => (r.ok ? r.blob() : null))
       .then((b) => { const u = b && /^audio\//.test(b.type) ? URL.createObjectURL(b) : ''; voices.set(k, u); return u; })
       .catch(() => { voices.delete(k); return ''; }); // offline: ask again next time
