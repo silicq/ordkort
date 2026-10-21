@@ -6,10 +6,7 @@
   const REASONS = ['adult', 'drugs', 'violence', 'hate', 'spam', 'wrong', 'other'];
 
   async function call(path, { method = 'GET', body, headers = {} } = {}) {
-    let r;
-    try {
-      r = await fetch('/api/' + path, { method, headers: { ...(body ? { 'Content-Type': 'application/json' } : {}), ...headers }, body: body ? JSON.stringify(body) : undefined });
-    } catch { throw new A.ai.AIError('network'); }
+    const r = await A.ai.call(path, { method, headers: { ...(body ? { 'Content-Type': 'application/json' } : {}), ...headers }, body: body ? JSON.stringify(body) : undefined });
     if (A.ai.blocked(r)) throw new A.ai.AIError('blocked');
     const data = await r.json().catch(() => null);
     if (r.ok) return data;

@@ -98,12 +98,12 @@
     return keys;
   }
 
+  // through the site's API client, which also tries the API's spare address (js/ai.js call)
   async function request(path, opts = {}) {
-    if (location.protocol === 'file:') throw new SyncError('offline');
     try {
-      return await fetch('/api/' + path, opts);
-    } catch {
-      throw new SyncError('network');
+      return await A.ai.call(path, opts);
+    } catch (e) {
+      throw new SyncError(e?.kind === 'offline' ? 'offline' : 'network');
     }
   }
 

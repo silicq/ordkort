@@ -4,6 +4,10 @@
   "main": "src/worker.js",
   "compatibility_date": "2026-09-01",
 
+  // The Worker's workers.dev address stays on: it is the API's spare address for the site's pages when a network
+  // blocks ordkort.com on the way (src/worker.js, public/js/config.js spareApi)
+  "workers_dev": true,
+
   // Before every deploy (and `wrangler dev`): write the site's version to public/js/build.js
   "build": { "command": "node scripts/build.mjs" },
 

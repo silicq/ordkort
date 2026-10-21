@@ -135,7 +135,7 @@
       A.openLink.inAppNote(),
       h('div', { class: 'deck-hero-emoji', style: `--tab: var(--t-${deck.group || 'custom'})` },
         A.media.isCover(deck.cover) ? h('img', { class: 'deck-cover', src: deck.cover, alt: '' })
-          : /^https:\/\//.test(deck.cover || '') ? h('img', { class: 'deck-cover', src: '/api/img?u=' + encodeURIComponent(deck.cover), alt: '' })
+          : /^https:\/\//.test(deck.cover || '') ? A.ai.img('img?u=' + encodeURIComponent(deck.cover), { class: 'deck-cover', alt: '' })
             : deck.emoji || '🗂️'),
       h('h1', { class: 'display sm' }, deck.title || t('deck.untitled')),
       h('p', { class: 'muted' }, [A.langs.name(T) + ' → ' + A.langs.name(N), deck.level, A.tn('n_words', deck.words.length)].filter(Boolean).join(' · ')),

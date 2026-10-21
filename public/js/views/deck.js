@@ -274,7 +274,7 @@
             try { const u = r.url || r.thumb; onPick(await take(u), u, `${r.by} · ${r.license}`); } catch { A.toast(t('card.pic_failed'), 'error'); }
             b.classList.remove('loading');
           },
-        }, h('img', { src: '/api/img?u=' + encodeURIComponent(r.thumb), alt: r.by, loading: 'lazy' }))));
+        }, A.ai.img('img?u=' + encodeURIComponent(r.thumb), { alt: r.by, loading: 'lazy' }))));
       } catch (e) {
         // the search asks picture sites, not the AI: "the AI is busy" would only confuse
         say(['network', 'offline'].includes(e.kind) ? A.ai.errorText(e) : t('card.pic_busy'));
