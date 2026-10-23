@@ -1,0 +1,7 @@
+# Pull requests that move the pinned actions in .github/workflows to their new releases, a commit hash each
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
