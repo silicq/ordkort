@@ -23,6 +23,11 @@
     { "binding": "DB", "database_name": "ordkort" }
   ],
 
+  // Workers AI on the site's own account: the synthetic voice (MeloTTS) for cards with no recording, in English,
+  // Spanish, French, Chinese, Japanese and Korean (src/sources/voice.js). Included in the free plan (a daily allowance,
+  // no payment method); it always runs on Cloudflare, also under `wrangler dev`
+  "ai": { "binding": "AI", "remote": true },
+
   // Once a day: delete expired limit counters, link codes and abandoned sync copies.
   // Every 15 minutes: fill one more group of the shared word bank while the site is quiet (src/ai/warm.js)
   "triggers": { "crons": ["17 3 * * *", "*/15 * * * *"] },
@@ -38,7 +43,6 @@
   //   npx wrangler secret put GEMINI_API_KEY     (aistudio.google.com/apikey: free, no billing)
   // Optional, paid per token, asked only when every free model is at its limit: npx wrangler secret put DEEPINFRA_API_KEY
   // Optional: npx wrangler secret put PIXABAY_KEY adds Pixabay to the picture search (src/sources/images.js)
-  // Optional: npx wrangler secret put GOOGLE_TTS_KEY gives cards without a recording a synthetic voice (src/sources/voice.js)
   // Optional: npx wrangler secret put ADMIN_TOKEN lets the site's owner take down decks (src/decks/library.js)
   "vars": {
     "AI_PER_HOUR": "40",
@@ -62,8 +66,9 @@
     // Requests to the moderating models when decks are published to the library (src/decks/library.js)
     "GUARD_PER_DAY": "60",
     "GUARD_SITE_DAY": "400",
-    // characters a day the synthetic voice may speak for the whole site (src/sources/voice.js), when GOOGLE_TTS_KEY is set
-    "TTS_DAILY_CHARS": "30000"
+    // characters a day the synthetic voice (Workers AI, MeloTTS) may speak for the whole site (src/sources/voice.js):
+    // a word is about a second of speech, and 100,000 characters stay well inside Workers AI's free daily allowance
+    "TTS_DAILY_CHARS": "100000"
   },
 
   // Branch previews (npx wrangler preview) inherit nothing from the settings above.
