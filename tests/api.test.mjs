@@ -2,17 +2,25 @@
 import test, { after, before } from 'node:test';
 import assert from 'node:assert/strict';
 import { fileURLToPath } from 'node:url';
-import { createTestHarness } from 'wrangler';
+import { createTestHarness, experimental_readRawConfig } from 'wrangler';
 import { ROOT } from './helpers.mjs';
 
 let harness;
 const BASE = 'http://ordkort.test';
 
+// the site's own wrangler.jsonc without Workers AI, which always runs on Cloudflare and so needs an account the tests
+// (and CI) do not have: here, as in a branch preview, cards without a recording get the device's voice
+function withoutAI() {
+  const { rawConfig } = experimental_readRawConfig({ config: fileURLToPath(new URL('wrangler.jsonc', ROOT)) });
+  const { ai, ...config } = rawConfig;
+  return config;
+}
+
 before(async () => {
   harness = createTestHarness({
     root: fileURLToPath(ROOT),
     // test secrets replace .dev.vars, so a real Groq key is never used here
-    workers: [{ configPath: './wrangler.jsonc', secrets: { GROQ_API_KEY: 'test-key-not-used', IP_SALT: 'test', STORE_PER_DAY_MB: '25' } }],
+    workers: [{ config: withoutAI(), secrets: { GROQ_API_KEY: 'test-key-not-used', IP_SALT: 'test', STORE_PER_DAY_MB: '25' } }],
   });
   await harness.listen();
 });

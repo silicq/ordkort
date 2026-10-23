@@ -68,8 +68,9 @@ Ordkort is a lightweight site for learning almost any language from almost any o
   `.apkg` Anki opens, with progress (FSRS memory state included), pictures and recordings. CSV in and out, and
   sharing a deck by link or QR code — only the words, never your progress.
 - **A voice for every card**: a card without a recording of its own plays a native speaker's recording from
-  Wiktionary (Lingua Libre and others on Wikimedia Commons) or, with a `GOOGLE_TTS_KEY`, a synthetic voice within a
-  daily budget of characters; each word is fetched once for everybody. The device's voice remains a choice in Settings.
+  Wiktionary (Lingua Libre and others on Wikimedia Commons), or a synthetic voice from Workers AI (MeloTTS, on the
+  site's own Cloudflare account) in English, Spanish, French, Chinese, Japanese and Korean, within a daily budget of
+  characters; a recording is fetched once for everybody. The device's voice remains a choice in Settings.
 - **Fitted to your memory**: Settings → *Fit to my memory* finds the FSRS weights from your own answers on the device
   (learnt on the earlier answers, kept only when they predict the later ones better than the defaults).
 - **A library of decks**: publish a deck for everybody learning the same pair of languages (Deck → ⋯ → *Publish
@@ -272,8 +273,7 @@ GitHub Actions runs them on every push and pull request.
    limits with the same models, while a key that stops working is passed over; `DEEPINFRA_API_KEY`, a paid fallback
    asked only when every free model is at its limit and capped by `PAID_DAILY_TOKENS` a day; `IP_SALT`, any long
    random string; and `PIXABAY_KEY`, a free
-   [Pixabay API key](https://pixabay.com/api/docs/) that adds Pixabay to the picture search, and `GOOGLE_TTS_KEY`, a
-   Google Cloud Text-to-Speech key for a synthetic voice on cards with no recording, and `ADMIN_TOKEN`, a long random
+   [Pixabay API key](https://pixabay.com/api/docs/) that adds Pixabay to the picture search, and `ADMIN_TOKEN`, a long random
    string that lets the site's owner take down any deck in the library or shared by link).
 3. The D1 database `ordkort` is created automatically on the first deploy, its tables on the first request.
 

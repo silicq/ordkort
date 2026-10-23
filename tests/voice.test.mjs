@@ -1,10 +1,10 @@
 // A voice for cards without a recording (src/sources/voice.js): a native speaker's recording from the word's Wiktionary page
-// (its own language's section only), else Google's synthetic voice within a daily budget, kept for everybody.
-// Wiktionary, Commons and Google are small fakes here: no network.
+// (its own language's section only), kept for everybody, else Workers AI's synthetic voice (MeloTTS) within a daily
+// budget, for the languages it speaks. Wiktionary, Commons and Workers AI are small fakes here: no network.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { audioOf } from '../src/sources/wiktionary.js';
-import { tts, singleWord } from '../src/sources/voice.js';
+import { tts, singleWord, smallWav, MELO } from '../src/sources/voice.js';
 
 const PAGE = `<div class="mw-parser-output">
 <h2 id="Danish">Danish</h2>
@@ -63,11 +63,6 @@ function fake() {
     calls.push(u.host + (opts.method === 'POST' ? ' POST' : ''));
     if (u.host === 'en.wiktionary.org') return new Response(JSON.stringify({ parse: { text: u.searchParams.get('page') === 'hus' ? PAGE : '<p>nothing</p>' } }));
     if (u.host === 'upload.wikimedia.org') return new Response(MP3, { headers: { 'Content-Type': 'audio/mpeg' } });
-    if (u.host === 'texttospeech.googleapis.com') {
-      const body = JSON.parse(opts.body);
-      if (body.voice.languageCode === 'xx-XX') return new Response('{}', { status: 400 });
-      return new Response(JSON.stringify({ audioContent: Buffer.from('fake mp3 of ' + body.input.text).toString('base64') }));
-    }
     return new Response('', { status: 404 });
   };
   return { calls, restore: () => { globalThis.fetch = real; } };
@@ -90,24 +85,95 @@ test('a word with a speaker on Wiktionary: that recording, kept for everybody', 
   } finally { f.restore(); }
 });
 
-test('without a speaker: the synthetic voice when there is a key, within the day’s characters; else nothing', async () => {
+// a WAV as MeloTTS makes it: 44.1 kHz, 16-bit mono, `quiet` seconds of silence, then a tone, then silence again
+function wav({ rate = 44100, bits = 16, lead = 0.3, tone = 0.2, tail = 0.4, level = 5000 } = {}) {
+  const n = Math.round(rate * (lead + tone + tail)), size = n * (bits / 8);
+  const b = Buffer.alloc(44 + size);
+  b.write('RIFF', 0); b.writeUInt32LE(36 + size, 4); b.write('WAVE', 8);
+  b.write('fmt ', 12); b.writeUInt32LE(16, 16); b.writeUInt16LE(1, 20); b.writeUInt16LE(1, 22);
+  b.writeUInt32LE(rate, 24); b.writeUInt32LE(rate * bits / 8, 28); b.writeUInt16LE(bits / 8, 32); b.writeUInt16LE(bits, 34);
+  b.write('data', 36); b.writeUInt32LE(size, 40);
+  if (bits === 16) {
+    const from = Math.round(rate * lead), to = from + Math.round(rate * tone);
+    for (let i = from; i < to; i++) b.writeInt16LE(Math.round(level * Math.sin(i / 8)), 44 + 2 * i);
+  }
+  return new Uint8Array(b);
+}
+const info = (bytes) => {
+  const b = Buffer.from(bytes);
+  return { rate: b.readUInt32LE(24), seconds: b.readUInt32LE(40) / 2 / b.readUInt32LE(24), size: b.length, riff: b.readUInt32LE(4) + 8 };
+};
+
+test('a synthetic voice loses its silence and half its samples: about a quarter of the size, the word whole', () => {
+  const big = wav();
+  const small = info(smallWav(big));
+  assert.equal(small.rate, 22050);
+  assert.ok(Math.abs(small.seconds - (0.2 + 2 * 0.08)) < 0.01, `the tone and a little around it: ${small.seconds}`);
+  assert.equal(small.riff, small.size, 'the header says the size it has');
+  assert.ok(small.size < big.length / 4, `${small.size} of ${big.length}`);
+  assert.equal(smallWav(wav({ level: 0 })), null, 'silence only: no voice');
+  assert.equal(smallWav(new TextEncoder().encode('not a wav at all, just some text here and more of it')), null);
+  const eight = wav({ bits: 8 });
+  assert.equal(smallWav(eight), eight, 'a WAV of another shape is left as it is');
+});
+
+// Workers AI as the Worker sees it (env.AI): MeloTTS answers { audio: base64 WAV }
+function workersAI() {
+  const calls = [];
+  return { calls, run: async (model, input) => { calls.push({ model, ...input }); return { audio: Buffer.from(wav()).toString('base64') }; } };
+}
+
+test('without a speaker: Workers AI speaks the languages MeloTTS knows, within the day’s characters; else nothing', async () => {
   const f = fake();
   try {
     const before = { DB: db() };
-    let r = await ask(before, 'nb', 'Hun er ikke så ung som hun ser ut.');
-    assert.equal(r.status, 404, 'no key: the device’s voice speaks');
-    assert.equal(before.DB.cache.size, 0, 'and that is not kept for a year: a key may come');
+    let r = await ask(before, 'en', 'She is not as young as she looks.');
+    assert.equal(r.status, 404, 'no Workers AI here: the device’s voice speaks');
 
-    const env = { DB: db(), GOOGLE_TTS_KEY: 'g', TTS_DAILY_CHARS: '50' };
+    const AI = workersAI();
+    const env = { DB: db(), AI, TTS_DAILY_CHARS: '60' };
+    r = await ask(env, 'en', 'She is not as young as she looks.');
+    assert.equal(r.status, 200);
+    assert.equal(r.headers.get('Content-Type'), 'audio/wav');
+    assert.equal(decodeURIComponent(r.headers.get('X-Voice-By')), 'MeloTTS (Workers AI)');
+    assert.equal(info(new Uint8Array(await r.arrayBuffer())).rate, 22050, 'made smaller');
+    assert.deepEqual(AI.calls[0], { model: '@cf/myshell-ai/melotts', prompt: 'She is not as young as she looks.', lang: 'en' });
+    assert.equal(env.DB.cache.size, 0, 'a synthetic voice is not kept in the database');
+
+    r = await ask(env, 'ja', 'いえ');
+    assert.equal(r.status, 200);
+    assert.equal(AI.calls.at(-1).lang, 'jp', 'MeloTTS’s own code for Japanese');
+    assert.deepEqual(Object.keys(MELO).sort(), ['en', 'es', 'fr', 'ja', 'ko', 'zh']);
+
+    const n = AI.calls.length;
     r = await ask(env, 'nb', 'Hun er ikke så ung som hun ser ut.');
-    assert.equal(r.status, 200, 'once the key is there, it speaks');
-    assert.equal(Buffer.from(await r.arrayBuffer()).toString(), 'fake mp3 of Hun er ikke så ung som hun ser ut.');
-    assert.ok(f.calls.includes('texttospeech.googleapis.com POST'));
+    assert.equal(r.status, 404, 'a language MeloTTS does not speak: the device’s voice');
+    assert.equal(AI.calls.length, n, 'and Workers AI is not asked');
 
-    r = await ask(env, 'nb', 'Vi bor i et rødt hus ved sjøen.');
-    assert.equal(r.status, 404, 'over the day’s 50 characters');
-    assert.equal([...env.DB.cache.keys()].length, 1, 'and that is not kept: tomorrow it can speak');
+    r = await ask(env, 'en', 'We live in a red house by the sea.');
+    assert.equal(r.status, 404, 'over the day’s 60 characters');
+    assert.equal(AI.calls.length, n, 'refused before Workers AI is asked');
   } finally { f.restore(); }
+});
+
+test('a synthetic voice is kept in Cloudflare’s cache of the place, and served from there next time', async () => {
+  const f = fake();
+  const store = new Map();
+  const hadCaches = 'caches' in globalThis, real = globalThis.caches;
+  globalThis.caches = { default: { match: async (req) => store.get(req.url)?.clone() || undefined, put: async (req, res) => { store.set(req.url, res); } } };
+  try {
+    const AI = workersAI();
+    const env = { DB: db(), AI };
+    assert.equal((await ask(env, 'fr', 'une maison')).status, 200);
+    assert.equal(store.size, 1);
+    const again = await ask(env, 'fr', 'une maison');
+    assert.equal(again.status, 200);
+    assert.equal(again.headers.get('Content-Type'), 'audio/wav');
+    assert.equal(AI.calls.length, 1, 'made once');
+  } finally {
+    f.restore();
+    if (hadCaches) globalThis.caches = real; else delete globalThis.caches;
+  }
 });
 
 test('nonsense is refused', async () => {
