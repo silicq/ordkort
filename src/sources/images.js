@@ -211,10 +211,14 @@ function withPixabay(base, px) {
 /* Only the site's own scripts may ask the proxy (js/ai.js call), never a picture or CSS on the page that names it:
    a look someone shared could otherwise write url(/api/img?u=https://their.site/…) or <img src="/api/img?u=…{{term}}">
    and have the proxy carry the person's words, or what a CSS selector found on the page, to any address. A script
-   sends PROXY_HEADER, which no <img> or url() can; a fetch() of a browser that has Fetch Metadata is "empty" too. */
+   sends PROXY_HEADER, which no <img> or url() can; a fetch() of a browser that has Fetch Metadata is "empty" too.
+   At the Worker's spare address (workers.dev) the site's page asks across origins, so its Origin is the site: a
+   picture on the page cannot load from there at all (CSP img-src), and the script needs no header (no preflight). */
 const PROXY_HEADER = 'X-Requested-With';
+const SITE = 'https://ordkort.com';
 const fromScript = (request) => request.headers.get(PROXY_HEADER) === 'ordkort'
-  || request.headers.get('Sec-Fetch-Dest') === 'empty';
+  || request.headers.get('Sec-Fetch-Dest') === 'empty'
+  || (request.headers.get('Origin') === SITE && new URL(request.url).origin !== SITE);
 
 export async function proxy(request, env, key) {
   const u = new URL(request.url).searchParams.get('u') || '';

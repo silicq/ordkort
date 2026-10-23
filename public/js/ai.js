@@ -22,18 +22,20 @@
   async function call(path, opts = {}) {
     if (location.protocol === 'file:') throw new AIError('offline');
     const other = base ? '' : spare();
-    // the picture proxy answers only a script, never an <img> or url() that names it (src/sources/images.js)
-    if (path.startsWith('img?')) opts = { ...opts, headers: { ...opts.headers, 'X-Requested-With': 'ordkort' } };
+    // the picture proxy answers only a script, never an <img> or url() that names it (src/sources/images.js): at the
+    // site's own address it is told by a header; at the spare one the request's Origin says it, and a header would
+    // cost every picture a preflight
+    const at = (where) => (where || !path.startsWith('img?') ? opts : { ...opts, headers: { ...opts.headers, 'X-Requested-With': 'ordkort' } });
     let res = null;
     try {
-      res = await fetch(base + '/api/' + path, opts);
+      res = await fetch(base + '/api/' + path, at(base));
       if (!other || !blocked(res)) return res;
     } catch (e) {
       if (e.name === 'AbortError') throw e;
       if (!other) throw new AIError('network');
     }
     try {
-      const again = await fetch(other + '/api/' + path, opts);
+      const again = await fetch(other + '/api/' + path, at(other));
       if (blocked(again)) return res || again;
       base = other;
       return again;

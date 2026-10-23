@@ -187,6 +187,12 @@ test('the proxy answers only a script: a picture or CSS on the page that names i
       const r = await proxy(asked('https://upload.wikimedia.org/a.jpg', headers), env, 'k');
       assert.equal(r.headers.get('Content-Type'), 'image/jpeg');
     }
-    assert.equal(got.length, 2);
+    // the site's page asking the Worker at its spare address (another origin): its Origin is the site, no header needed
+    const spare = new Request('https://ordkort.example.workers.dev/api/img?u=' + encodeURIComponent('https://upload.wikimedia.org/a.jpg'), { headers: { Origin: 'https://ordkort.com' } });
+    assert.equal((await proxy(spare, env, 'k')).status, 200);
+    // at the site's own address the Origin proves nothing (a same-origin <img crossorigin> sends it too)
+    const own = new Request('https://ordkort.com/api/img?u=' + encodeURIComponent('https://their.site.example/x'), { headers: { Origin: 'https://ordkort.com' } });
+    await assert.rejects(proxy(own, env, 'k'), (e) => e.status === 403);
+    assert.equal(got.length, 3);
   } finally { globalThis.fetch = real; }
 });
