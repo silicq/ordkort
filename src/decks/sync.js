@@ -37,8 +37,9 @@ export async function pairCreate(request, env, key) {
 export async function pairTake(env, key, id, peekOnly) {
   if (!isCode(id, 6)) throw new HttpError(404, 'gone');
   if (peekOnly) {
-    // the device that made the code asks every few seconds whether it was taken; trying codes this way is limited too
-    await takeSimple(env, 'pair-peek', key, 600, HOUR);
+    // the device that made the code asks every 4 seconds whether it was taken (900 an hour), and a class may do it
+    // from one address; trying codes this way is limited too, far above that
+    await takeSimple(env, 'pair-peek', key, 6000, HOUR);
     const row = await env.DB.prepare('SELECT exp FROM pair WHERE id = ? AND exp > ?').bind(id, Date.now()).first();
     return json({ alive: !!row });
   }

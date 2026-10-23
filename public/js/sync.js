@@ -273,7 +273,8 @@
 
   async function codeAlive(slot) {
     const r = await request(`pair/${slot}?peek=1`);
-    if (!r.ok) return false;
+    // only the server saying so means the code was taken: a refusal (a limit) or an error says nothing about it
+    if (!r.ok) return true;
     return !!(await r.json()).alive;
   }
 
