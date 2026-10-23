@@ -14,3 +14,6 @@ public/js/bundle.js
 public/js/bundle.js.map
 # copied from node_modules by scripts/build.mjs: SQLite and zstd for Anki packages
 public/vendor/
+
+# security audit register: a map of weaknesses, never committed in a public repository
+.security-audit/

@@ -43,12 +43,26 @@ export function network(ip) {
   return all.slice(0, 4).map((g) => g.replace(/^0+(?=.)/, '')).join(':');
 }
 
-/* Client fingerprint: the full IPv4 address, or the /64 network for IPv6. The IP itself is never stored. */
+/* The wider network an address belongs to: the /48 of an IPv6 one, which a script gets thousands of /64s from (one
+   server's), while the people in it may be many too (a mobile operator gives each phone a /64 out of one). An IPv4
+   address is its own network: the addresses beside it are other people's homes, and every one of them costs. */
+export function wideNetwork(ip) {
+  const n = network(ip);
+  return n.includes(':') ? n.split(':').slice(0, 3).join(':') : n;
+}
+
+/* Client fingerprint: the full IPv4 address, or the /64 network for IPv6, then its wider network after a dot
+   (networkOf). The IP itself is never stored. */
 export async function clientKey(request, env) {
   const ip = request.headers.get('CF-Connecting-IP') || 'local';
   const salt = env.IP_SALT || env.GROQ_API_KEY || 'ordkort';
-  return (await hmac(salt, `${today()}|${network(ip)}`)).slice(0, 24);
+  const [own, wide] = await Promise.all([hmac(salt, `${today()}|${network(ip)}`), hmac(salt, `${today()}|net|${wideNetwork(ip)}`)]);
+  return `${own.slice(0, 24)}.${wide.slice(0, 16)}`;
 }
+// the fingerprint of a key's wider network (a key without one is its own network)
+export const networkOf = (key) => String(key).split('.')[1] || String(key);
+// the same for a key kept in a column named `who`, in SQL
+export const NET_OF_WHO = "CASE WHEN instr(who, '.') THEN substr(who, instr(who, '.') + 1) ELSE who END";
 
 /* Bursts: at most `limit` requests per `windowMs` from one fingerprint, within this isolate. A class opening the
    same deck at once is one fingerprint asking for every card's picture, so the limit is for floods, not people. */
@@ -62,23 +76,57 @@ export function burst(key, limit = 150, windowMs = 10000) {
   if (b.n > limit) throw new HttpError(429, 'slow_down');
 }
 
+/* What one wider network may take of the site's day, however many /64s it has: a quarter of the budget, and never
+   less than a class behind one address may take while the site is quiet. Without it a script with a server's IPv6
+   /48 would count as thousands of people and spend the whole day's budget for everyone. */
+const NET_SHARE = 0.25;
+const netCap = ({ budget, perDay, shared }) => Math.max(budget * NET_SHARE, perDay * shared);
+/* The last part of the day's budget is kept for people who have hardly used the AI today (a twelfth of one person's
+   day), and a network takes only a few of them from it, whatever it used before. On a day a script with many
+   addresses spends the rest, someone who comes to look up a word still can, and to spend this part too the script
+   needs many more addresses, from many networks. Nothing new is kept: daily counters like the others decide. */
+const RESERVE = 0.2;
+const lightOf = ({ perDay }) => Math.max(1, Math.round(perDay / 12));
+
 /* Take one AI generation. Returns what is left and a function that gives it back (if the generation failed). */
+const aiKeys = (key) => {
+  const net = networkOf(key);
+  return { kh: `ai:h:${key}:${hourStamp()}`, kd: `ai:d:${key}:${today()}`, kg: `ai:g:${today()}`, kn: `ai:n:${net}:${today()}`, kr: `ai:r:${net}:${today()}` };
+};
+
 export async function takeAI(env, key) {
-  const { budget } = limitsOf(env);
+  const lim = limitsOf(env);
   const db = env.DB;
-  const kh = `ai:h:${key}:${hourStamp()}`, kd = `ai:d:${key}:${today()}`, kg = `ai:g:${today()}`;
-  const [h, d, g] = await Promise.all([bump(db, kh, 2 * HOUR), bump(db, kd, 26 * HOUR), bump(db, kg, 26 * HOUR)]);
-  const refund = () => Promise.all([bump(db, kh, 2 * HOUR, -1), bump(db, kd, 26 * HOUR, -1), bump(db, kg, 26 * HOUR, -1)]).catch(() => {});
-  if (g > budget) { await refund(); throw new HttpError(429, 'budget'); }
+  const { kh, kd, kg, kn, kr } = aiKeys(key);
+  const taken = [[kh, 2 * HOUR], [kd, 26 * HOUR], [kg, 26 * HOUR], [kn, 26 * HOUR]];
+  const [h, d, g, n] = await Promise.all(taken.map(([k, ttl]) => bump(db, k, ttl)));
+  const refund = () => Promise.all(taken.map(([k, ttl]) => bump(db, k, ttl, -1))).catch(() => {});
+  const refuse = async (code, extra) => { await refund(); throw new HttpError(429, code, extra); };
+  if (g > lim.budget) await refuse('budget');
+  if (g > lim.budget * (1 - RESERVE)) {
+    const light = lightOf(lim);
+    if (d > light) await refuse('budget');
+    taken.push([kr, 26 * HOUR]);
+    if ((await bump(db, kr, 26 * HOUR)) > light * 4) await refuse('budget');
+  }
   // the site's count before this generation: the one that crosses half the budget is still let through
   const caps = capsOf(env, g - 1);
-  if (h > caps.hour || d > caps.day) { await refund(); throw new HttpError(429, 'quota', { left: 0, limit: shown(caps, d - 1).limit }); }
+  if (h > caps.hour || d > caps.day || n > netCap(lim)) await refuse('quota', { left: 0, limit: shown(caps, d - 1).limit });
   return { ...shown(caps, d), refund };
 }
 
+// what the browser is told is left: the same rules as takeAI, read without taking anything
 export async function aiLeft(env, key) {
-  const [used, site] = await Promise.all([peek(env.DB, `ai:d:${key}:${today()}`), peek(env.DB, `ai:g:${today()}`)]);
-  return shown(capsOf(env, site), used);
+  const lim = limitsOf(env);
+  const { kd, kg, kn, kr } = aiKeys(key);
+  const [used, site, n, r] = await Promise.all([kd, kg, kn, kr].map((k) => peek(env.DB, k)));
+  const out = shown(capsOf(env, site), used);
+  if (site >= lim.budget || n >= netCap(lim)) return { ...out, left: 0 };
+  if (site >= lim.budget * (1 - RESERVE)) {
+    const light = lightOf(lim);
+    return { ...out, left: r >= light * 4 ? 0 : Math.min(out.left, Math.max(0, light - used)) };
+  }
+  return out;
 }
 
 /* Room in the database. Sync copies and their files, link codes, shared and published decks, voices are stored

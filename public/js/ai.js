@@ -22,16 +22,20 @@
   async function call(path, opts = {}) {
     if (location.protocol === 'file:') throw new AIError('offline');
     const other = base ? '' : spare();
+    // the picture proxy answers only a script, never an <img> or url() that names it (src/sources/images.js): at the
+    // site's own address it is told by a header; at the spare one the request's Origin says it, and a header would
+    // cost every picture a preflight
+    const at = (where) => (where || !path.startsWith('img?') ? opts : { ...opts, headers: { ...opts.headers, 'X-Requested-With': 'ordkort' } });
     let res = null;
     try {
-      res = await fetch(base + '/api/' + path, opts);
+      res = await fetch(base + '/api/' + path, at(base));
       if (!other || !blocked(res)) return res;
     } catch (e) {
       if (e.name === 'AbortError') throw e;
       if (!other) throw new AIError('network');
     }
     try {
-      const again = await fetch(other + '/api/' + path, opts);
+      const again = await fetch(other + '/api/' + path, at(other));
       if (blocked(again)) return res || again;
       base = other;
       return again;
@@ -42,12 +46,22 @@
     }
   }
 
-  // a picture from the site's proxy as an <img>: by its address, or as a blob: URL once the API is at its spare
-  // address (the page may only show pictures of its own address: CSP img-src)
+  // a picture from the site's proxy as an <img>, always as a blob: URL: the proxy answers only a script, and the
+  // page may only show pictures of its own address (CSP img-src). loading: 'lazy' still waits until it is in sight,
+  // so a list of pictures takes no more of the hourly limit than the browser's own lazy loading did
   function img(path, attrs) {
     const el = A.h('img', attrs);
-    if (!base) el.src = '/api/' + path;
-    else call(path).then((r) => (r.ok ? r.blob() : null)).then((b) => { if (b) el.src = URL.createObjectURL(b); }).catch(() => {});
+    const load = () => call(path).then((r) => (r.ok ? r.blob() : null)).then((b) => {
+      if (!b) return;
+      const u = URL.createObjectURL(b);
+      el.addEventListener('load', () => URL.revokeObjectURL(u), { once: true });
+      el.src = u;
+    }).catch(() => {});
+    if (attrs?.loading !== 'lazy' || typeof IntersectionObserver !== 'function') load();
+    else {
+      const seen = new IntersectionObserver((all) => { if (all.some((e) => e.isIntersecting)) { seen.disconnect(); load(); } }, { rootMargin: '200px' });
+      seen.observe(el);
+    }
     return el;
   }
 

@@ -9,9 +9,9 @@
 
    People are told apart only by the same daily-salted fingerprint the limits use: a vote or a report counts once
    per person per day, and nothing about them is kept. */
-import { cleanDeck } from './share.js';
+import { cleanDeck, seeLimit } from './share.js';
 import { guard } from '../ai/groq.js';
-import { takeSimple, takeGuard, takeStore } from '../core/limits.js';
+import { takeSimple, takeGuard, takeStore, networkOf, NET_OF_WHO } from '../core/limits.js';
 import { HttpError, json, readJSON, str, int, sha256, randomCode, isCode, safeEqual } from '../core/util.js';
 import { App } from '../core/shared.js';
 
@@ -94,16 +94,21 @@ export async function list(request, env) {
   return json({ decks, more: rows.length > PAGE });
 }
 
-export async function get(env, id) {
+export async function get(env, key, id) {
   if (!isCode(id, 8)) throw new HttpError(404, 'gone');
+  await seeLimit(env, key);
   const row = await env.DB.prepare('SELECT d, up, down, adds, hidden FROM library WHERE id = ?').bind(id).first();
   if (!row || row.hidden) throw new HttpError(404, 'gone');
   return json({ deck: JSON.parse(row.d), up: row.up, down: row.down, adds: row.adds });
 }
 
-// one mark of a kind per person per day; → true when it is new
-async function mark(env, id, who, kind, v) {
-  const r = await env.DB.prepare('INSERT OR IGNORE INTO libmarks (id, who, kind, v, t) VALUES (?, ?, ?, ?, ?)').bind(id, who, kind, v, Date.now()).run();
+/* One mark of a kind per person (their key) per day, and at most NET_MARKS from one wider network: a server's IPv6
+   /48 holds thousands of addresses, a mobile operator's holds many people. → true when it is new */
+const NET_MARKS = 3;
+async function mark(env, id, key, kind, v) {
+  const same = await env.DB.prepare(`SELECT COUNT(*) AS n FROM libmarks WHERE id = ? AND kind = ? AND ${NET_OF_WHO} = ?`).bind(id, kind, networkOf(key)).first();
+  if ((same?.n || 0) >= NET_MARKS) return false;
+  const r = await env.DB.prepare('INSERT OR IGNORE INTO libmarks (id, who, kind, v, t) VALUES (?, ?, ?, ?, ?)').bind(id, key, kind, v, Date.now()).run();
   return !!r.meta.changes;
 }
 
@@ -122,7 +127,10 @@ export async function act(request, env, key, id, what) {
     const why = REASONS.indexOf(b.why);
     if (why < 0) throw new HttpError(400, 'bad_reason');
     if (await mark(env, id, key, 'report', why)) {
-      await env.DB.prepare(`UPDATE library SET reports = reports + 1, hidden = CASE WHEN reports + 1 >= ${REPORTS_TO_HIDE} THEN 1 ELSE hidden END WHERE id = ?`).bind(id).run();
+      await env.DB.prepare('UPDATE library SET reports = reports + 1 WHERE id = ?').bind(id).run();
+      // hidden once REPORTS_TO_HIDE people reported it, from at least two networks: never by one network alone
+      const nets = await env.DB.prepare(`SELECT COUNT(DISTINCT ${NET_OF_WHO}) AS n FROM libmarks WHERE id = ? AND kind = 'report'`).bind(id).first();
+      if ((nets?.n || 0) >= 2) await env.DB.prepare(`UPDATE library SET hidden = 1 WHERE id = ? AND reports >= ${REPORTS_TO_HIDE}`).bind(id).run();
     }
   } else throw new HttpError(404, 'not_found');
   return json({ ok: true });

@@ -1,0 +1,10 @@
+# Pull requests that move the pinned actions in .github/workflows to their new releases, a commit hash each
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    # a release is proposed only after a week: one that was published by an attacker is usually found and pulled by then
+    cooldown:
+      default-days: 7

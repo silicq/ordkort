@@ -3,6 +3,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { browser } from './helpers.mjs';
+import { designNotes } from '../src/mcp.js';
 
 const { App } = browser(['public/js/look.js']);
 const L = App.look;
@@ -76,4 +77,10 @@ test('a shared look\'s card CSS stays inside its scope and is kept as written', 
   assert.equal(closedEarly, false, 'no stray brace ends the scope');
   assert.match(inside, /body\{display:none\}/, 'the rule stays, but only inside the scope');
   assert.doesNotMatch(out, /\.b\{color:red/, 'an unfinished rule is dropped');
+});
+
+test('the AI is told about links only when a template has one that leaves the card', () => {
+  const links = (front) => designNotes({ front, back: '', css: '', site: '' }).some((n) => n.startsWith('Links'));
+  for (const kept of ['<svg><use href="#icon"/></svg>', "<a href='#top'>", '<a href=#top>', '<a href=" #top">']) assert.equal(links(kept), false, kept);
+  for (const gone of ['<a href="https://their.site.example/{{term}}">', '<a href=https://x>', '<image xlink:href="/a.png">']) assert.equal(links(gone), true, gone);
 });

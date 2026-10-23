@@ -48,6 +48,7 @@ test('the site’s page may ask the API at another address of the Worker, with C
   assert.equal(r.headers.get('Access-Control-Allow-Origin'), SITE);
   assert.match(r.headers.get('Access-Control-Allow-Methods'), /POST/);
   assert.match(r.headers.get('Access-Control-Allow-Headers'), /Content-Type.*X-Sync-Token/);
+  assert.match(r.headers.get('Access-Control-Allow-Headers'), /X-Requested-With/, 'the picture proxy needs it from the site’s script');
   await r.arrayBuffer();
 
   r = await call('limits', { headers: { Origin: SITE } });
@@ -250,6 +251,10 @@ test('pictures: the proxy takes only https addresses, the search needs a word', 
   }
   const r = await call('images', { method: 'POST', body: { q: '  ' } });
   assert.equal(r.status, 400);
+  // a picture or CSS on the page that names the proxy (a shared look) is refused: only the site's script may ask it
+  const own = await call('img?u=' + encodeURIComponent('https://their.site.example/a.jpg'), { headers: { 'Sec-Fetch-Dest': 'image', 'Sec-Fetch-Mode': 'no-cors' } });
+  assert.equal(own.status, 403);
+  assert.equal((await own.json()).error, 'script_only');
 });
 
 /* ---------- MCP: Ordkort for people's own AI ---------- */

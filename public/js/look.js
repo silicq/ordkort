@@ -68,8 +68,9 @@
       });
   }
 
-  // math and the old raw-text elements are where HTML read twice can come out different from what was cleaned
-  const DROP = 'script, iframe, frame, frameset, object, embed, applet, link, meta, base, form, input, button, textarea, select, style, noscript, template, math, noembed, noframes, xmp, plaintext, title';
+  // math and the old raw-text elements are where HTML read twice can come out different from what was cleaned;
+  // SVG animation can set any attribute after cleaning (<set attributeName="href" to="https://…/{{term}}">)
+  const DROP = 'script, iframe, frame, frameset, object, embed, applet, link, meta, base, form, input, button, textarea, select, style, noscript, template, math, noembed, noframes, xmp, plaintext, title, set, animate, animateMotion, animateTransform, animateColor, discard';
   // `allowed`: the https pictures this look may show (they come from the template itself, see above).
   // The result is read again by innerHTML, so it is cleaned until reading it again changes nothing
   function clean(html, allowed = new Set()) {
@@ -90,7 +91,10 @@
         const v = a.value.trim().toLowerCase().replace(/\s+/g, '');
         if (/^on/i.test(a.name) || /^(javascript|vbscript|data):/.test(v) && a.name !== 'class' || a.name === 'srcdoc' || a.name === 'formaction') el.removeAttribute(a.name);
         else if (a.name === 'style') el.setAttribute('style', cleanCss(a.value));
-        else if (a.name === 'srcset') el.removeAttribute(a.name);
+        else if (a.name === 'srcset' || a.name === 'ping') el.removeAttribute(a.name);
+        // a card is no place for links out: fields are filled into the template, so href="https://…/{{term}}" stretched
+        // over the card would take the word to another site with the tap that turns the card
+        else if (/^(xlink:)?href$/.test(a.name) && !a.value.trim().startsWith('#')) el.removeAttribute(a.name);
       }
       // a picture from the web waits for its blob: URL; one from anywhere else is not shown
       const src = el.getAttribute('src');

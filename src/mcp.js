@@ -39,8 +39,9 @@ to the plain look in Settings → Look. You never see or change anyone's cards.
   or a data: URI. url("https://…") pictures are fetched once through Ordkort's server (see Pictures).
   data: URIs stay: an inline SVG pattern (\`url("data:image/svg+xml,…")\`) or gradients are a good way to draw.
 - Templates are cleaned: script, iframe, object, embed, link, meta, base, form, input, button, textarea, select,
-  style, noscript and template elements are removed, and so are on…= handlers, javascript:/data: addresses and
-  srcset. Ordinary HTML, classes, style="" attributes and inline <svg> stay.
+  style, noscript and template elements are removed, and so are on…= handlers, javascript:/data: addresses,
+  srcset and links (href other than #…: a card links nowhere). Ordinary HTML, classes, style="" attributes and inline
+  <svg> stay.
 - Fonts: the page may load fonts only from Ordkort itself (CSP font-src 'self'). Use the site's own families
   'Geologica' (sans, the UI), 'Literata' (serif, the words), 'Readex Pro' and 'Noto Naskh Arabic', or system
   stacks (Georgia, 'Times New Roman', ui-monospace, system-ui…). @font-face with an outside address will not load.
@@ -339,6 +340,7 @@ export function designNotes(look) {
   if (/(src\s*=\s*|url\()\s*['"]?http:\/\//i.test(all)) notes.push('Pictures over http:// are not loaded; use https://.');
   if (/@import/i.test(all)) notes.push('@import is removed; put all the CSS in card_css and site_css.');
   if (/<script|\son\w+\s*=/i.test(look.front + look.back)) notes.push('Scripts and event handlers are removed from templates.');
+  if (/\s(xlink:)?href\s*=\s*(?:"(?!\s*#)|'(?!\s*#)|(?!["'#]))/i.test(look.front + look.back)) notes.push('Links (href other than #…) are removed from templates: a card links nowhere.');
   // what keeps the tab bar at the bottom of a phone's screen wins over these (the guard layer in css/style.css)
   const css = look.site + '\n' + look.css;
   if (/(^|[\s,}])(html|body|#app|header(\.top)?|\.top|\.top-in)\s*[,{][^}]*(transform|filter|backdrop-filter|perspective|contain|container-type|will-change)\s*:/im.test(css)) {
