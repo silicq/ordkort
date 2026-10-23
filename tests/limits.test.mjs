@@ -46,9 +46,9 @@ test('changing the device part of an IPv6 address does not give a new fingerprin
   assert.notEqual(await key('2600:3c00:0:1::1'), await key('2600:3c00:0:2::1'));
 });
 
-test('the wider network: the /24 of an IPv4 address, the /48 of an IPv6 one', async () => {
-  assert.equal(wideNetwork('203.0.113.7'), '203.0.113');
-  assert.equal(wideNetwork('::ffff:203.0.113.7'), '203.0.113');
+test('the wider network: the /48 of an IPv6 address; an IPv4 address is its own', async () => {
+  assert.equal(wideNetwork('203.0.113.7'), '203.0.113.7', 'the addresses beside it are other homes');
+  assert.equal(wideNetwork('::ffff:203.0.113.7'), '203.0.113.7');
   assert.equal(wideNetwork('2600:3c00:12:34::1'), '2600:3c00:12');
   assert.equal(wideNetwork('2600:3c00:12::1'), '2600:3c00:12');
   assert.equal(wideNetwork('local'), 'local');
@@ -85,6 +85,24 @@ test('the last fifth of the budget is kept for people who have hardly used the A
   assert.ok(q.left >= 0, 'someone new still gets an answer');
   err = await takeAI(e, 'kari.home').catch((x) => x);
   assert.equal(err.code, 'budget');
+});
+
+test('what the browser is told is left follows the same rules as taking one', async () => {
+  const e = env();
+  assert.deepEqual(await aiLeft(e, 'kari.home'), { left: 10, limit: 10 });
+  // the reserve: someone who used the AI today is told there is none left, someone new one ("hardly" is 1 here)
+  site(e, 80);
+  assert.equal((await aiLeft(e, 'kari.home')).left, 1);
+  await takeAI(e, 'kari.home');
+  assert.equal((await aiLeft(e, 'kari.home')).left, 0);
+  assert.equal((await takeAI(e, 'kari.home').catch((x) => x)).code, 'budget', 'and taking agrees');
+  // a network that took its share of the day: none left for anyone in it
+  const f = env();
+  f.DB.hits.set(`ai:n:lab:${today()}`, 50);
+  assert.equal((await aiLeft(f, 'new.lab')).left, 0);
+  assert.equal((await takeAI(f, 'new.lab').catch((x) => x)).code, 'quota');
+  site(f, 100);
+  assert.equal((await aiLeft(f, 'kari.home')).left, 0, 'the site’s budget spent');
 });
 
 test('one person: the ordinary limits, the same answer as always', async () => {
