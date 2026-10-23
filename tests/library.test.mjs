@@ -76,7 +76,7 @@ test('a checked deck is listed for its pair, found by its title, and opens', asy
     assert.deepEqual(page.decks.map((d) => d.title), ['Kjøkkenet']);
     [, page] = await jsonOf(await L.list(req('library?target=nb&native=ru'), env));
     assert.equal(page.decks.length, 0, 'another pair sees nothing');
-    const [, got] = await jsonOf(await L.get(env, pub.id));
+    const [, got] = await jsonOf(await L.get(env, 'reader', pub.id));
     assert.equal(got.deck.words.length, 8);
   } finally { restore(); }
 });
@@ -110,7 +110,7 @@ test('a big deck is read in pieces, halved when a piece is too long; a cover nob
     const read = seen.slice(from).filter((b) => !sees(b) && b.messages[1].content.length <= 3000).map((b) => b.messages[1].content).join('\n');
     assert.match(read, /nummer 0 —/);
     assert.match(read, /nummer 119 —/, 'every word is read, the last ones too');
-    const [, got] = await jsonOf(await L.get(env, pub.id));
+    const [, got] = await jsonOf(await L.get(env, 'reader', pub.id));
     assert.equal(got.deck.cover, undefined);
     assert.equal(got.deck.words[0].img_url, undefined, 'a picture from anywhere is dropped');
     assert.equal(got.deck.words[1].img_url, 'https://upload.wikimedia.org/a.jpg', 'one from the site’s sources stays');
@@ -140,16 +140,16 @@ test('votes and adds count once a day per person; reports from three people hide
     await act('b', 'vote', { v: -1 });
     await act('a', 'add');
     await act('a', 'add');
-    const [, got] = await jsonOf(await L.get(env, pub.id));
+    const [, got] = await jsonOf(await L.get(env, 'reader', pub.id));
     assert.deepEqual([got.up, got.down, got.adds], [1, 1, 1]);
 
     await assert.rejects(act('a', 'report', { why: 'nonsense' }), (e) => e.status === 400);
     await act('a', 'report', { why: 'adult' });
     await act('a', 'report', { why: 'adult' }); // the same person again: once
     await act('b', 'report', { why: 'drugs' });
-    assert.equal((await L.get(env, pub.id)).status, 200, 'two people: still listed');
+    assert.equal((await L.get(env, 'reader', pub.id)).status, 200, 'two people: still listed');
     await act('c', 'report', { why: 'spam' });
-    await assert.rejects(L.get(env, pub.id), (e) => e.status === 404, 'three people: hidden');
+    await assert.rejects(L.get(env, 'reader', pub.id), (e) => e.status === 404, 'three people: hidden');
     const [, list] = await jsonOf(await L.hidden(req('library/hidden', { headers: { 'X-Admin-Token': 'admin-secret-token' } }), env));
     assert.ok(list.decks.some((d) => d.id === pub.id), 'waiting for the owner’s look');
   } finally { restore(); }
@@ -165,7 +165,7 @@ test('the publisher or the site’s owner takes a deck down; nobody else', async
     await assert.rejects(del(a.id, { 'X-Admin-Token': 'wrong' }), (e) => e.status === 401);
     assert.equal((await del(a.id, { 'X-Lib-Token': a.token })).status, 200);
     assert.equal((await del(b.id, { 'X-Admin-Token': 'admin-secret-token' })).status, 200);
-    await assert.rejects(L.get(env, b.id), (e) => e.status === 404);
+    await assert.rejects(L.get(env, 'reader', b.id), (e) => e.status === 404);
     await assert.rejects(L.removeShare(req('share/ABCDEFGH', { method: 'DELETE' }), env, 'ABCDEFGH'), (e) => e.status === 403, 'shared links: the owner only');
   } finally { restore(); }
 });

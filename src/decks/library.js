@@ -9,7 +9,7 @@
 
    People are told apart only by the same daily-salted fingerprint the limits use: a vote or a report counts once
    per person per day, and nothing about them is kept. */
-import { cleanDeck } from './share.js';
+import { cleanDeck, seeLimit } from './share.js';
 import { guard } from '../ai/groq.js';
 import { takeSimple, takeGuard, takeStore } from '../core/limits.js';
 import { HttpError, json, readJSON, str, int, sha256, randomCode, isCode, safeEqual } from '../core/util.js';
@@ -94,8 +94,9 @@ export async function list(request, env) {
   return json({ decks, more: rows.length > PAGE });
 }
 
-export async function get(env, id) {
+export async function get(env, key, id) {
   if (!isCode(id, 8)) throw new HttpError(404, 'gone');
+  await seeLimit(env, key);
   const row = await env.DB.prepare('SELECT d, up, down, adds, hidden FROM library WHERE id = ?').bind(id).first();
   if (!row || row.hidden) throw new HttpError(404, 'gone');
   return json({ deck: JSON.parse(row.d), up: row.up, down: row.down, adds: row.adds });

@@ -42,8 +42,13 @@ export async function shareCreate(request, env, key) {
   return json({ id: await storeShare(env, key, cleanDeck(b.deck || {})) });
 }
 
-export async function shareGet(env, id) {
+/* Decks are found only by their codes: reading one by its code takes from an hourly limit (generous: a class opens
+   many), so the codes cannot be tried one after another */
+export const seeLimit = (env, key) => takeSimple(env, 'see', key, 1500, 36e5);
+
+export async function shareGet(env, key, id) {
   if (!isCode(id, 8)) throw new HttpError(404, 'gone');
+  await seeLimit(env, key);
   const row = await env.DB.prepare('SELECT d FROM shares WHERE id = ?').bind(id).first();
   if (!row) throw new HttpError(404, 'gone');
   return json({ deck: JSON.parse(row.d) });

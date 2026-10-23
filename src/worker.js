@@ -76,14 +76,14 @@ async function route(request, env, url) {
 
     if (name === 'share') {
       if (m === 'POST' && !id) return await share.shareCreate(request, env, key);
-      if (m === 'GET' && id) return await share.shareGet(env, id);
+      if (m === 'GET' && id) return await share.shareGet(env, key, id);
       if (m === 'DELETE' && id) return await library.removeShare(request, env, id);
     }
     if (name === 'library') {
       if (m === 'GET' && !id) return await library.list(request, env);
       if (m === 'POST' && !id) return await library.publish(request, env, key);
       if (m === 'GET' && id === 'hidden') return await library.hidden(request, env);
-      if (m === 'GET' && id && !sub) return await library.get(env, id);
+      if (m === 'GET' && id && !sub) return await library.get(env, key, id);
       if (m === 'POST' && id && sub) return await library.act(request, env, key, id, sub);
       if (m === 'DELETE' && id) return await library.remove(request, env, id);
     }
@@ -138,9 +138,12 @@ export default {
     if (shared) {
       try {
         await initDB(env.DB);
+        // what is shared under a code is read under the same hourly limit as the API's (src/decks/share.js); past it,
+        // the plain page below
+        await share.seeLimit(env, await clientKey(request, env));
         return await preview.page(request, env, shared);
       } catch (e) {
-        console.error(e);
+        if (!(e instanceof HttpError)) console.error(e);
         return env.ASSETS.fetch(new Request(new URL('/', request.url)));
       }
     }
