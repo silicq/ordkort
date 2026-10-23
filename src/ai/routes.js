@@ -3,9 +3,9 @@
    check the answer → save it to the shared base for everyone who asks next. */
 import { App, LEVELS, lang, pairOf } from '../core/shared.js';
 import { groq } from './groq.js';
-import { cacheGet, cacheSet, cacheForget, cacheOf } from '../core/db.js';
-import { takeAI, aiLeft, takeSimple, networkOf } from '../core/limits.js';
-import { HttpError, json, readJSON, str, arr, int, sha256, norm } from '../core/util.js';
+import { cacheGet, cacheSet, cacheForget, cacheOf, bump, peek } from '../core/db.js';
+import { takeAI, aiLeft, takeSimple, NET_OF_WHO } from '../core/limits.js';
+import { HttpError, json, readJSON, str, arr, int, sha256, norm, today } from '../core/util.js';
 import * as P from './prompts.js';
 import * as W from '../sources/wiktionary.js';
 
@@ -43,9 +43,12 @@ function once(k, fn) {
   return p;
 }
 
+// a fresh answer replaces the one everybody is served: a few a day, apart from the AI limits, counted only when one
+// was made (a failed try, and the Retry after it, cost nothing)
+const FRESH_PER_DAY = 20;
 async function generate(env, key, cacheKey, { fresh, prompt, clean, keep = () => true }) {
-  // a fresh answer replaces the one everybody is served: a few a day, apart from the AI limits
-  if (fresh) await takeSimple(env, 'fresh', key, 20, 864e5);
+  const fk = `fresh:${key}:${today()}`;
+  if (fresh && (await peek(env.DB, fk)) >= FRESH_PER_DAY) throw new HttpError(429, 'slow_down');
   if (!fresh) {
     const hit = await cacheGet(env.DB, cacheKey);
     if (hit) return json(hit, 200, quotaHeaders(null));
@@ -56,6 +59,7 @@ async function generate(env, key, cacheKey, { fresh, prompt, clean, keep = () =>
       const out = clean(await groq(env, await prompt()));
       if (!out) throw new HttpError(502, 'bad_ai');
       if (keep(out)) await cacheSet(env.DB, cacheKey, out);
+      if (fresh) await bump(env.DB, fk, 26 * 36e5);
       return { data: out, q: quota };
     } catch (e) {
       await quota.refund();
@@ -379,10 +383,11 @@ export async function report(request, env, key) {
   } else {
     throw new HttpError(400, 'bad_kind');
   }
-  // one report per wider network: a handful of addresses side by side cannot drop what everybody is served
-  await env.DB.prepare('INSERT OR IGNORE INTO reports (k, who, t) VALUES (?, ?, ?)').bind(k, networkOf(key), Date.now()).run();
-  const row = await env.DB.prepare('SELECT count(*) AS n FROM reports WHERE k = ?').bind(k).first();
-  if ((row?.n || 0) >= (Number(env.REPORTS_TO_DROP) || 2)) {
+  await env.DB.prepare('INSERT OR IGNORE INTO reports (k, who, t) VALUES (?, ?, ?)').bind(k, key, Date.now()).run();
+  // dropped after REPORTS_TO_DROP people, from at least two networks: addresses of one server cannot drop what
+  // everybody is served
+  const row = await env.DB.prepare(`SELECT count(*) AS n, COUNT(DISTINCT ${NET_OF_WHO}) AS nets FROM reports WHERE k = ?`).bind(k).first();
+  if ((row?.n || 0) >= (Number(env.REPORTS_TO_DROP) || 2) && (row?.nets || 0) >= 2) {
     await drop();
     await env.DB.prepare('DELETE FROM reports WHERE k = ?').bind(k).run();
     return json({ dropped: true });

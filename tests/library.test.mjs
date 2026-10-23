@@ -155,22 +155,22 @@ test('votes and adds count once a day per person; reports from three people hide
   } finally { restore(); }
 });
 
-test('addresses side by side are one person: one vote and one report a day from their whole network', async () => {
+test('one network gives a deck at most three votes a day, and cannot hide it alone', async () => {
   const restore = fakeGuard();
   try {
     const [, pub] = await jsonOf(await L.publish(req('library', { method: 'POST', body: deck('Nett') }), env, 'k4'));
-    // a key is the address's own fingerprint, then its network's after the dot (src/core/limits.js clientKey)
+    // a key is the address's own fingerprint, then its network's after the dot (src/core/limits.js clientKey):
+    // people of one mobile operator are counted each, a server's thousands of addresses three times at most
     const act = (who, what, body = {}) => L.act(req(`library/${pub.id}/${what}`, { method: 'POST', body }), env, who, pub.id, what);
-    for (const who of ['x1.lab', 'x2.lab', 'x3.lab']) {
+    for (const who of ['x1.lab', 'x2.lab', 'x3.lab', 'x4.lab', 'x5.lab']) {
       await act(who, 'vote', { v: 1 });
       await act(who, 'report', { why: 'spam' });
     }
     const [, got] = await jsonOf(await L.get(env, 'reader', pub.id));
-    assert.equal(got.up, 1, 'one vote from the network');
+    assert.equal(got.up, 3, 'three votes from the network');
+    assert.equal((await L.get(env, 'reader', pub.id)).status, 200, 'three reports, one network: still listed');
     await act('y.home', 'report', { why: 'spam' });
-    assert.equal((await L.get(env, 'reader', pub.id)).status, 200, 'two networks: still listed');
-    await act('z.work', 'report', { why: 'spam' });
-    await assert.rejects(L.get(env, 'reader', pub.id), (e) => e.status === 404, 'three networks: hidden');
+    await assert.rejects(L.get(env, 'reader', pub.id), (e) => e.status === 404, 'a second network: hidden');
   } finally { restore(); }
 });
 
