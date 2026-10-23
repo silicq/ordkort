@@ -5,3 +5,6 @@ updates:
     directory: /
     schedule:
       interval: monthly
+    # a release is proposed only after a week: one that was published by an attacker is usually found and pulled by then
+    cooldown:
+      default-days: 7
