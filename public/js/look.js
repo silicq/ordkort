@@ -68,8 +68,9 @@
       });
   }
 
-  // math and the old raw-text elements are where HTML read twice can come out different from what was cleaned
-  const DROP = 'script, iframe, frame, frameset, object, embed, applet, link, meta, base, form, input, button, textarea, select, style, noscript, template, math, noembed, noframes, xmp, plaintext, title';
+  // math and the old raw-text elements are where HTML read twice can come out different from what was cleaned;
+  // SVG animation can set any attribute after cleaning (<set attributeName="href" to="https://…/{{term}}">)
+  const DROP = 'script, iframe, frame, frameset, object, embed, applet, link, meta, base, form, input, button, textarea, select, style, noscript, template, math, noembed, noframes, xmp, plaintext, title, set, animate, animateMotion, animateTransform, animateColor, discard';
   // `allowed`: the https pictures this look may show (they come from the template itself, see above).
   // The result is read again by innerHTML, so it is cleaned until reading it again changes nothing
   function clean(html, allowed = new Set()) {

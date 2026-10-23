@@ -340,7 +340,7 @@ export function designNotes(look) {
   if (/(src\s*=\s*|url\()\s*['"]?http:\/\//i.test(all)) notes.push('Pictures over http:// are not loaded; use https://.');
   if (/@import/i.test(all)) notes.push('@import is removed; put all the CSS in card_css and site_css.');
   if (/<script|\son\w+\s*=/i.test(look.front + look.back)) notes.push('Scripts and event handlers are removed from templates.');
-  if (/\s(xlink:)?href\s*=\s*['"]?\s*(?!#)/i.test(look.front + look.back)) notes.push('Links (href other than #…) are removed from templates: a card links nowhere.');
+  if (/\s(xlink:)?href\s*=\s*(?:"(?!\s*#)|'(?!\s*#)|(?!["'#]))/i.test(look.front + look.back)) notes.push('Links (href other than #…) are removed from templates: a card links nowhere.');
   // what keeps the tab bar at the bottom of a phone's screen wins over these (the guard layer in css/style.css)
   const css = look.site + '\n' + look.css;
   if (/(^|[\s,}])(html|body|#app|header(\.top)?|\.top|\.top-in)\s*[,{][^}]*(transform|filter|backdrop-filter|perspective|contain|container-type|will-change)\s*:/im.test(css)) {
