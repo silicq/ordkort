@@ -7,6 +7,8 @@ import { find, bare, relevant, wikidata, proxy, OV_PAGE } from '../src/sources/i
 
 const DB = { prepare: () => ({ bind: () => ({ first: async () => null, run: async () => ({}) }) }) };
 const env = { DB };
+// a request to the picture proxy as the site's script makes it (js/ai.js call)
+const asked = (u, headers = { 'X-Requested-With': 'ordkort' }) => new Request('https://ordkort.test/api/img?u=' + encodeURIComponent(u), { headers });
 
 const ENTITIES = {
   Q3947: { claims: { P31: [{ mainsnak: { datavalue: { value: { id: 'Q16889133' } } } }], P18: [{ rank: 'normal', mainsnak: { datavalue: { value: 'Old house.jpg' } } }] }, labels: { en: { value: 'house' } } },
@@ -161,11 +163,30 @@ test('the proxy turns a Pixabay page into its picture of today', async () => {
     return real(url, opts);
   };
   try {
-    const r = await proxy(new Request('https://ordkort.test/api/img?u=' + encodeURIComponent('https://pixabay.com/photos/house-home-123456/')), { DB, PIXABAY_KEY: 'k1' }, 'k');
+    const r = await proxy(asked('https://pixabay.com/photos/house-home-123456/'), { DB, PIXABAY_KEY: 'k1' }, 'k');
     assert.equal(r.headers.get('Content-Type'), 'image/jpeg');
     assert.deepEqual(got, ['https://pixabay.com/get/g123456_640.jpg']);
     await assert.rejects(
-      proxy(new Request('https://ordkort.test/api/img?u=' + encodeURIComponent('https://pixabay.com/photos/cat-777/')), { DB }, 'k'),
+      proxy(asked('https://pixabay.com/photos/cat-777/'), { DB }, 'k'),
       (e) => e.status === 502, 'no key: a Pixabay page cannot be turned into a picture');
   } finally { globalThis.fetch = real; f.restore(); }
+});
+
+test('the proxy answers only a script: a picture or CSS on the page that names it is refused before anything is fetched', async () => {
+  const real = globalThis.fetch;
+  const got = [];
+  globalThis.fetch = async (url) => { got.push(String(url)); return new Response(new Uint8Array([0xff, 0xd8, 0xff]), { headers: { 'Content-Type': 'image/jpeg' } }); };
+  try {
+    // <img src="/api/img?u=…{{term}}"> in a shared look, url(/api/img?u=…) in its CSS, or an old browser without Fetch Metadata
+    for (const headers of [{ 'Sec-Fetch-Dest': 'image', 'Sec-Fetch-Mode': 'no-cors' }, { 'Sec-Fetch-Dest': 'style' }, {}]) {
+      await assert.rejects(proxy(asked('https://their.site.example/et%20hus', headers), env, 'k'), (e) => e.status === 403 && e.code === 'script_only', JSON.stringify(headers));
+    }
+    assert.deepEqual(got, [], 'nothing reached the other site');
+    // the site's own script: its header, or a fetch() that Fetch Metadata calls "empty"
+    for (const headers of [{ 'X-Requested-With': 'ordkort' }, { 'Sec-Fetch-Dest': 'empty', 'Sec-Fetch-Mode': 'cors' }]) {
+      const r = await proxy(asked('https://upload.wikimedia.org/a.jpg', headers), env, 'k');
+      assert.equal(r.headers.get('Content-Type'), 'image/jpeg');
+    }
+    assert.equal(got.length, 2);
+  } finally { globalThis.fetch = real; }
 });

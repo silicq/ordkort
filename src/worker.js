@@ -29,7 +29,7 @@ const CORS = {
 const PREFLIGHT = {
   ...CORS,
   'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE',
-  'Access-Control-Allow-Headers': 'Content-Type, X-Sync-Token, X-Lib-Token',
+  'Access-Control-Allow-Headers': 'Content-Type, X-Sync-Token, X-Lib-Token, X-Requested-With',
   'Access-Control-Max-Age': '86400',
 };
 function forSite(res) {

@@ -208,11 +208,20 @@ function withPixabay(base, px) {
   return { ...base, results: [...wd, ...px.filter((r) => !seen.has(r.thumb)).slice(0, 12), ...rest].slice(0, 24) };
 }
 
+/* Only the site's own scripts may ask the proxy (js/ai.js call), never a picture or CSS on the page that names it:
+   a look someone shared could otherwise write url(/api/img?u=https://their.site/…) or <img src="/api/img?u=…{{term}}">
+   and have the proxy carry the person's words, or what a CSS selector found on the page, to any address. A script
+   sends PROXY_HEADER, which no <img> or url() can; a fetch() of a browser that has Fetch Metadata is "empty" too. */
+const PROXY_HEADER = 'X-Requested-With';
+const fromScript = (request) => request.headers.get(PROXY_HEADER) === 'ordkort'
+  || request.headers.get('Sec-Fetch-Dest') === 'empty';
+
 export async function proxy(request, env, key) {
   const u = new URL(request.url).searchParams.get('u') || '';
   let target;
   try { target = new URL(u); } catch { throw new HttpError(400, 'bad_url'); }
   if (target.protocol !== 'https:' || target.username || target.password) throw new HttpError(400, 'bad_url');
+  if (!fromScript(request)) throw new HttpError(403, 'script_only');
   await takeSimple(env, 'img', key, 300, 36e5);
   // a Pixabay picture is kept by its page: the address of the picture itself changes every day
   const px = PX_PAGE.exec(target.href);
