@@ -14,7 +14,13 @@
   const write = (k, v) => { try { localStorage.setItem(k, v); return true; } catch { mem[k] = v; return false; } };
   const remove = (k) => { try { localStorage.removeItem(k); } catch { delete mem[k]; } };
 
-  const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+  /* An id: the time (ids come roughly in the order they were made) and 64 random bits. Five characters of
+     Math.random were too few: an imported deck of 6,000 cards is made within a few milliseconds, two cards in one of
+     eight such imports got the same id, and the later one took the earlier one's place. */
+  const uid = () => {
+    const r = crypto.getRandomValues(new Uint32Array(2));
+    return Date.now().toString(36) + r[0].toString(36).padStart(7, '0') + r[1].toString(36).padStart(7, '0');
+  };
   const dayKey = (d = new Date()) =>
     `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 

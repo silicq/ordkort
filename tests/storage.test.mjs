@@ -60,6 +60,17 @@ test('a state bigger than localStorage could ever hold is kept', async () => {
   assert.ok(next.App.store.usage() > 5 * 1024, 'more than the ~5 MB localStorage allows');
 });
 
+test('a big import made within milliseconds keeps every card: no two get the same id', async () => {
+  // with five random characters, two of 6,000 cards shared an id in one import of eight, and one card was lost
+  const t = await tab();
+  t.App.store.init({ native: 'en', target: 'nb' });
+  const id = t.App.store.addDeck({ title: 'Anki', manual: true }).id;
+  t.App.store.addCards(id, words(20000));
+  const cards = t.App.store.cards(id);
+  assert.equal(cards.length, 20000);
+  assert.equal(new Set(cards.map((c) => c.id)).size, 20000);
+});
+
 test('when IndexedDB refuses a write, the state goes to localStorage and is read from there next time', async () => {
   const db = new IDBFactory();
   const t = await tab({ db });
