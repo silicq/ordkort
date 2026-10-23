@@ -1,7 +1,7 @@
 // Who is one person for the limits (src/core/limits.js): an IPv4 address, or an IPv6 /64 network however it is written.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { network, clientKey, takeAI, aiLeft } from '../src/core/limits.js';
+import { network, wideNetwork, networkOf, clientKey, takeAI, aiLeft } from '../src/core/limits.js';
 import { today } from '../src/core/util.js';
 
 const key = (ip) => clientKey(new Request('https://ordkort.com/api/x', { headers: { 'CF-Connecting-IP': ip } }), { IP_SALT: 'test' });
@@ -44,6 +44,47 @@ test('an IPv4 address counts as itself, also when it comes as IPv6', () => {
 test('changing the device part of an IPv6 address does not give a new fingerprint', async () => {
   assert.equal(await key('2600:3c00::f03c:91ff:fe12:3456'), await key('2600:3c00::abcd:1:2:3'));
   assert.notEqual(await key('2600:3c00:0:1::1'), await key('2600:3c00:0:2::1'));
+});
+
+test('the wider network: the /24 of an IPv4 address, the /48 of an IPv6 one', async () => {
+  assert.equal(wideNetwork('203.0.113.7'), '203.0.113');
+  assert.equal(wideNetwork('::ffff:203.0.113.7'), '203.0.113');
+  assert.equal(wideNetwork('2600:3c00:12:34::1'), '2600:3c00:12');
+  assert.equal(wideNetwork('2600:3c00:12::1'), '2600:3c00:12');
+  assert.equal(wideNetwork('local'), 'local');
+  // another /64 of the same /48: another person, the same network
+  const [a, b, c] = await Promise.all([key('2600:3c00:12:1::1'), key('2600:3c00:12:2::1'), key('2600:3c00:13:1::1')]);
+  assert.notEqual(a, b);
+  assert.equal(networkOf(a), networkOf(b));
+  assert.notEqual(networkOf(a), networkOf(c));
+  assert.equal(networkOf('kari'), 'kari', 'a key without a network is its own');
+});
+
+test('thousands of /64s from one server’s /48 take no more than a quarter of the site’s day', async () => {
+  const e = env();
+  // 5 a day each past the ordinary 10 while the site is quiet, 100 for the site: one network stops at 50 (a class's room)
+  let spent = 0;
+  for (let i = 0; i < 40; i++) spent += await take(e, `bot${i}.lab`, 4);
+  assert.equal(spent, 50, `took ${spent}`);
+  assert.equal(await take(e, 'kari.home', 4), 4, 'another network still has its hour');
+});
+
+test('the last fifth of the budget is kept for people who have hardly used the AI today', async () => {
+  const e = env();
+  // one person's day is 10 here, so "hardly" is 1 a day, and 4 from one network
+  assert.equal(await take(e, 'heavy.lab', 3), 3);
+  site(e, 80);
+  let err = await takeAI(e, 'heavy.lab').catch((x) => x);
+  assert.equal(err.code, 'budget', 'someone who used the AI today waits for tomorrow');
+  assert.equal(e.DB.hits.get(`ai:d:heavy.lab:${today()}`), 3, 'and is not charged for the refusal');
+  // a script with many addresses: one each, and four from one network
+  let got = 0;
+  for (let i = 0; i < 10; i++) got += await takeAI(e, `bot${i}.farm`).then(() => 1, (x) => { if (x.code !== 'budget') throw x; return 0; });
+  assert.equal(got, 4);
+  const q = await takeAI(e, 'kari.home');
+  assert.ok(q.left >= 0, 'someone new still gets an answer');
+  err = await takeAI(e, 'kari.home').catch((x) => x);
+  assert.equal(err.code, 'budget');
 });
 
 test('one person: the ordinary limits, the same answer as always', async () => {

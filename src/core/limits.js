@@ -43,12 +43,25 @@ export function network(ip) {
   return all.slice(0, 4).map((g) => g.replace(/^0+(?=.)/, '')).join(':');
 }
 
-/* Client fingerprint: the full IPv4 address, or the /64 network for IPv6. The IP itself is never stored. */
+/* The wider network an address belongs to: the /24 of an IPv4 address, the /48 of an IPv6 one. One person rarely
+   has more than one, while a script gets thousands of IPv6 /64s from one server's /48 (or many addresses side by
+   side): what the whole site shares (its AI budget, votes, reports) is counted by this network too. */
+export function wideNetwork(ip) {
+  const n = network(ip);
+  if (n.includes(':')) return n.split(':').slice(0, 3).join(':');
+  return /^\d+\.\d+\.\d+\.\d+$/.test(n) ? n.slice(0, n.lastIndexOf('.')) : n;
+}
+
+/* Client fingerprint: the full IPv4 address, or the /64 network for IPv6, then its wider network after a dot
+   (networkOf). The IP itself is never stored. */
 export async function clientKey(request, env) {
   const ip = request.headers.get('CF-Connecting-IP') || 'local';
   const salt = env.IP_SALT || env.GROQ_API_KEY || 'ordkort';
-  return (await hmac(salt, `${today()}|${network(ip)}`)).slice(0, 24);
+  const [own, wide] = await Promise.all([hmac(salt, `${today()}|${network(ip)}`), hmac(salt, `${today()}|net|${wideNetwork(ip)}`)]);
+  return `${own.slice(0, 24)}.${wide.slice(0, 16)}`;
 }
+// the fingerprint of a key's wider network (a key without one is its own network)
+export const networkOf = (key) => String(key).split('.')[1] || String(key);
 
 /* Bursts: at most `limit` requests per `windowMs` from one fingerprint, within this isolate. A class opening the
    same deck at once is one fingerprint asking for every card's picture, so the limit is for floods, not people. */
@@ -62,17 +75,32 @@ export function burst(key, limit = 150, windowMs = 10000) {
   if (b.n > limit) throw new HttpError(429, 'slow_down');
 }
 
+/* What one wider network may take of the site's day, however many addresses it has: a quarter of the budget, and
+   never less than a class behind one address may take while the site is quiet. Without it a script with a server's
+   IPv6 /48 would count as thousands of people and spend the whole day's budget for everyone. */
+const NET_SHARE = 0.25;
+/* The last part of the day's budget is kept for people who have hardly used the AI today (a twelfth of one person's
+   day, from a network that has hardly used it either). On a day a script with many addresses spends the rest, someone
+   who comes to look up a word still can, and to spend this part too the script needs many more addresses, a few from
+   each network. Nothing new is kept: the same daily counters decide. */
+const RESERVE = 0.2;
+
 /* Take one AI generation. Returns what is left and a function that gives it back (if the generation failed). */
 export async function takeAI(env, key) {
-  const { budget } = limitsOf(env);
+  const { budget, perDay, shared } = limitsOf(env);
   const db = env.DB;
-  const kh = `ai:h:${key}:${hourStamp()}`, kd = `ai:d:${key}:${today()}`, kg = `ai:g:${today()}`;
-  const [h, d, g] = await Promise.all([bump(db, kh, 2 * HOUR), bump(db, kd, 26 * HOUR), bump(db, kg, 26 * HOUR)]);
-  const refund = () => Promise.all([bump(db, kh, 2 * HOUR, -1), bump(db, kd, 26 * HOUR, -1), bump(db, kg, 26 * HOUR, -1)]).catch(() => {});
+  const kh = `ai:h:${key}:${hourStamp()}`, kd = `ai:d:${key}:${today()}`, kg = `ai:g:${today()}`, kn = `ai:n:${networkOf(key)}:${today()}`;
+  const [h, d, g, n] = await Promise.all([bump(db, kh, 2 * HOUR), bump(db, kd, 26 * HOUR), bump(db, kg, 26 * HOUR), bump(db, kn, 26 * HOUR)]);
+  const refund = () => Promise.all([bump(db, kh, 2 * HOUR, -1), bump(db, kd, 26 * HOUR, -1), bump(db, kg, 26 * HOUR, -1), bump(db, kn, 26 * HOUR, -1)]).catch(() => {});
   if (g > budget) { await refund(); throw new HttpError(429, 'budget'); }
+  const light = Math.max(1, Math.round(perDay / 12));
+  if (g > budget * (1 - RESERVE) && (d > light || n > light * 4)) { await refund(); throw new HttpError(429, 'budget'); }
   // the site's count before this generation: the one that crosses half the budget is still let through
   const caps = capsOf(env, g - 1);
-  if (h > caps.hour || d > caps.day) { await refund(); throw new HttpError(429, 'quota', { left: 0, limit: shown(caps, d - 1).limit }); }
+  if (h > caps.hour || d > caps.day || n > Math.max(budget * NET_SHARE, perDay * shared)) {
+    await refund();
+    throw new HttpError(429, 'quota', { left: 0, limit: shown(caps, d - 1).limit });
+  }
   return { ...shown(caps, d), refund };
 }
 
