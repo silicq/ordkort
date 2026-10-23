@@ -155,6 +155,25 @@ test('votes and adds count once a day per person; reports from three people hide
   } finally { restore(); }
 });
 
+test('addresses side by side are one person: one vote and one report a day from their whole network', async () => {
+  const restore = fakeGuard();
+  try {
+    const [, pub] = await jsonOf(await L.publish(req('library', { method: 'POST', body: deck('Nett') }), env, 'k4'));
+    // a key is the address's own fingerprint, then its network's after the dot (src/core/limits.js clientKey)
+    const act = (who, what, body = {}) => L.act(req(`library/${pub.id}/${what}`, { method: 'POST', body }), env, who, pub.id, what);
+    for (const who of ['x1.lab', 'x2.lab', 'x3.lab']) {
+      await act(who, 'vote', { v: 1 });
+      await act(who, 'report', { why: 'spam' });
+    }
+    const [, got] = await jsonOf(await L.get(env, 'reader', pub.id));
+    assert.equal(got.up, 1, 'one vote from the network');
+    await act('y.home', 'report', { why: 'spam' });
+    assert.equal((await L.get(env, 'reader', pub.id)).status, 200, 'two networks: still listed');
+    await act('z.work', 'report', { why: 'spam' });
+    await assert.rejects(L.get(env, 'reader', pub.id), (e) => e.status === 404, 'three networks: hidden');
+  } finally { restore(); }
+});
+
 test('the publisher or the site’s owner takes a deck down; nobody else', async () => {
   const restore = fakeGuard();
   try {

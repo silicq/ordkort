@@ -4,7 +4,7 @@
 import { App, LEVELS, lang, pairOf } from '../core/shared.js';
 import { groq } from './groq.js';
 import { cacheGet, cacheSet, cacheForget, cacheOf } from '../core/db.js';
-import { takeAI, aiLeft, takeSimple } from '../core/limits.js';
+import { takeAI, aiLeft, takeSimple, networkOf } from '../core/limits.js';
 import { HttpError, json, readJSON, str, arr, int, sha256, norm } from '../core/util.js';
 import * as P from './prompts.js';
 import * as W from '../sources/wiktionary.js';
@@ -44,6 +44,8 @@ function once(k, fn) {
 }
 
 async function generate(env, key, cacheKey, { fresh, prompt, clean, keep = () => true }) {
+  // a fresh answer replaces the one everybody is served: a few a day, apart from the AI limits
+  if (fresh) await takeSimple(env, 'fresh', key, 20, 864e5);
   if (!fresh) {
     const hit = await cacheGet(env.DB, cacheKey);
     if (hit) return json(hit, 200, quotaHeaders(null));
@@ -377,7 +379,8 @@ export async function report(request, env, key) {
   } else {
     throw new HttpError(400, 'bad_kind');
   }
-  await env.DB.prepare('INSERT OR IGNORE INTO reports (k, who, t) VALUES (?, ?, ?)').bind(k, key, Date.now()).run();
+  // one report per wider network: a handful of addresses side by side cannot drop what everybody is served
+  await env.DB.prepare('INSERT OR IGNORE INTO reports (k, who, t) VALUES (?, ?, ?)').bind(k, networkOf(key), Date.now()).run();
   const row = await env.DB.prepare('SELECT count(*) AS n FROM reports WHERE k = ?').bind(k).first();
   if ((row?.n || 0) >= (Number(env.REPORTS_TO_DROP) || 2)) {
     await drop();
