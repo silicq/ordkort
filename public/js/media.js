@@ -145,9 +145,66 @@
     return u;
   }
 
+  /* Recordings on Wiktionary are as loud as their speakers made them, and many are hard to hear next to the others.
+     A site voice is decoded on the device and brought to one level of speech: what is measured is its 20 ms windows
+     within 30 dB of the loudest one (the silence around a word does not count, however long), the gain is kept
+     between a fifth and ten times, and the few peaks the gain would push past full scale are rounded off below it
+     instead of clipped. It then plays as a WAV made
+     here, by the same audio element as before. A voice that cannot be decoded plays as it came. */
+  const LEVEL = 0.12, GAIN_MIN = 0.2, GAIN_MAX = 10, KNEE = 0.9, CEIL = 0.98, RATE = 24000;
+  function speechLevel(x, rate) {
+    const n = Math.max(1, Math.round(rate * 0.02)), windows = [];
+    for (let i = 0; i + n <= x.length; i += n) {
+      let e = 0;
+      for (let j = i; j < i + n; j++) e += x[j] * x[j];
+      windows.push(e / n);
+    }
+    const top = Math.max(0, ...windows);
+    if (!(top > 0)) return 0;
+    const speech = windows.filter((e) => e >= top / 1000);
+    return Math.sqrt(speech.reduce((a, b) => a + b, 0) / speech.length);
+  }
+  function even(x, rate) {
+    const level = speechLevel(x, rate);
+    if (!(level > 1e-4)) return x; // silence: nothing to bring up
+    const gain = Math.min(GAIN_MAX, Math.max(GAIN_MIN, LEVEL / level));
+    const out = new Float32Array(x.length);
+    for (let i = 0; i < x.length; i++) {
+      const v = x[i] * gain, a = Math.abs(v);
+      out[i] = a <= KNEE ? v : Math.sign(v) * (KNEE + (CEIL - KNEE) * Math.tanh((a - KNEE) / (CEIL - KNEE)));
+    }
+    return out;
+  }
+  // samples (-1…1) → a 16-bit mono WAV
+  function wavOf(x, rate) {
+    const b = new Uint8Array(44 + x.length * 2), v = new DataView(b.buffer);
+    const w = (o, t) => { for (let i = 0; i < 4; i++) b[o + i] = t.charCodeAt(i); };
+    w(0, 'RIFF'); v.setUint32(4, 36 + x.length * 2, true); w(8, 'WAVE'); w(12, 'fmt '); v.setUint32(16, 16, true);
+    v.setUint16(20, 1, true); v.setUint16(22, 1, true); v.setUint32(24, rate, true); v.setUint32(28, rate * 2, true);
+    v.setUint16(32, 2, true); v.setUint16(34, 16, true); w(36, 'data'); v.setUint32(40, x.length * 2, true);
+    for (let i = 0; i < x.length; i++) v.setInt16(44 + 2 * i, Math.round(Math.max(-1, Math.min(1, x[i])) * 32767), true);
+    return b;
+  }
+  async function evened(blob) {
+    try {
+      const Ctx = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+      if (!Ctx) return blob;
+      const ctx = new Ctx(1, 1, RATE), data = await blob.arrayBuffer();
+      const buf = await new Promise((ok, no) => { const p = ctx.decodeAudioData(data, ok, no); if (p?.then) p.then(ok, no); });
+      const mono = new Float32Array(buf.length);
+      for (let c = 0; c < buf.numberOfChannels; c++) {
+        const ch = buf.getChannelData(c);
+        for (let i = 0; i < ch.length; i++) mono[i] += ch[i] / buf.numberOfChannels;
+      }
+      return new Blob([wavOf(even(mono, buf.sampleRate), buf.sampleRate)], { type: 'audio/wav' });
+    } catch {
+      return blob;
+    }
+  }
+
   /* The site's voice for a card without a recording (src/sources/voice.js): a native speaker's recording from Wiktionary,
-     or a synthetic one. Kept for the visit by language and text: an object URL, '' when the site has none (the
-     system's voice then speaks), or the promise while it loads. */
+     or a synthetic one, brought to one level (evened). Kept for the visit by language and text: an object URL, '' when
+     the site has none (the system's voice then speaks), or the promise while it loads. */
   const voices = new Map();
   const vkey = (text, lang) => lang + '\n' + String(text || '').trim().toLowerCase();
   function voice(text, lang) {
@@ -155,7 +212,8 @@
     if (voices.has(k)) return Promise.resolve(voices.get(k));
     const p = A.ai.call(`tts?l=${encodeURIComponent(lang)}&q=${encodeURIComponent(String(text).trim().slice(0, 200))}`)
       .then((r) => (r.ok ? r.blob() : null))
-      .then((b) => { const u = b && /^audio\//.test(b.type) ? URL.createObjectURL(b) : ''; voices.set(k, u); return u; })
+      .then((b) => (b && /^audio\//.test(b.type) ? evened(b) : null))
+      .then((b) => { const u = b ? URL.createObjectURL(b) : ''; voices.set(k, u); return u; })
       .catch(() => { voices.delete(k); return ''; }); // offline: ask again next time
     voices.set(k, p);
     return p;
@@ -174,5 +232,5 @@
     } catch { /* next time */ }
   }
 
-  A.media = { add, addUrl, url, blob, el, search, tidy, addAudio, audio, audioNow, voice, voiceNow, cover, coverUrl, coverOf, autoCover, topicQuery, isCover, face, _test: { shrink } };
+  A.media = { add, addUrl, url, blob, el, search, tidy, addAudio, audio, audioNow, voice, voiceNow, cover, coverUrl, coverOf, autoCover, topicQuery, isCover, face, _test: { shrink, speechLevel, even, wavOf, evened } };
 })();
