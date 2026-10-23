@@ -90,7 +90,10 @@
         const v = a.value.trim().toLowerCase().replace(/\s+/g, '');
         if (/^on/i.test(a.name) || /^(javascript|vbscript|data):/.test(v) && a.name !== 'class' || a.name === 'srcdoc' || a.name === 'formaction') el.removeAttribute(a.name);
         else if (a.name === 'style') el.setAttribute('style', cleanCss(a.value));
-        else if (a.name === 'srcset') el.removeAttribute(a.name);
+        else if (a.name === 'srcset' || a.name === 'ping') el.removeAttribute(a.name);
+        // a card is no place for links out: fields are filled into the template, so href="https://…/{{term}}" stretched
+        // over the card would take the word to another site with the tap that turns the card
+        else if (/^(xlink:)?href$/.test(a.name) && !a.value.trim().startsWith('#')) el.removeAttribute(a.name);
       }
       // a picture from the web waits for its blob: URL; one from anywhere else is not shown
       const src = el.getAttribute('src');
