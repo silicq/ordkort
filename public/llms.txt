@@ -21,12 +21,16 @@ To restyle the site, call design_guide first: it describes how a look is applied
 
 ## Norwegian words, readable without the app
 
-Plain HTML pages for learners of Norwegian (Bokmål), in four interface languages: 29 topic word lists with forms and example sentences, and about 530 of the most common words, each with translations, the full inflection from Bokmålsordboka (University of Bergen and the Language Council of Norway, CC BY 4.0), examples, useful phrases and a note on typical mistakes.
+Plain HTML pages for learners of Norwegian (Bokmål), in six interface languages: 29 topic word lists with forms and example sentences, and about 530 of the most common words (a hand-made list, roughly by frequency), each with translations, the full inflection from Bokmålsordboka (University of Bergen and the Language Council of Norway, CC BY 4.0), examples, useful phrases and a note on typical mistakes.
 
 - [English: Norwegian by topic](https://ordkort.com/en/norwegian/) · [Norwegian–English dictionary](https://ordkort.com/en/ordbok/nb/)
 - [Русский: норвежский по темам](https://ordkort.com/ru/norvezhskij/) · [Норвежско-русский словарь](https://ordkort.com/ru/ordbok/nb/)
 - [Українська: норвезька за темами](https://ordkort.com/uk/norvezka/) · [Норвезько-український словник](https://ordkort.com/uk/ordbok/nb/)
 - [Norsk: gloser etter tema](https://ordkort.com/nb/norsk/) · [De vanligste norske ordene](https://ordkort.com/nb/ordbok/nb/)
+- [Polski: norweski według tematów](https://ordkort.com/pl/norweski/) · [Słownik norwesko-polski](https://ordkort.com/pl/ordbok/nb/)
+- [العربية: النرويجية حسب الموضوع](https://ordkort.com/ar/narwiji/) · [القاموس النرويجي العربي](https://ordkort.com/ar/ordbok/nb/)
+
+The topic lists hold only words checked by hand; the forms come from Bokmålsordboka, and where several dictionary entries are spelt alike the right one is chosen by hand. A word with æ, ø or å has an ASCII address (gå → /ordbok/nb/gaa/); the address with the letter itself redirects there.
 
 ## For teachers of Norwegian
 
@@ -37,5 +41,6 @@ How to give a class a topic with one link (each learner picks the language of th
 ## More
 
 - [The app](https://ordkort.com/): needs JavaScript
+- [About Ordkort](https://ordkort.com/en/about/): who makes it, where the words come from, how mistakes are corrected
 - [Source code and README](https://github.com/silicq/ordkort): architecture, privacy, limits
 - Contact: hei@ordkort.com (questions, help, teachers, security reports)

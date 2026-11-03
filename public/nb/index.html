@@ -162,10 +162,10 @@ footer a{color:var(--ink-2)}
     "Din egen KI, gjennom MCP"
    ],
    "provider": {
-    "@type": "Organization",
-    "name": "Ordkort",
-    "url": "https://ordkort.com/",
-    "email": "hei@ordkort.com"
+    "@id": "https://ordkort.com/#org"
+   },
+   "isPartOf": {
+    "@id": "https://ordkort.com/#site"
    }
   },
   {
@@ -177,6 +177,9 @@ footer a{color:var(--ink-2)}
    "inLanguage": "nb",
    "about": {
     "@id": "https://ordkort.com/#app"
+   },
+   "isPartOf": {
+    "@id": "https://ordkort.com/#site"
    }
   },
   {
@@ -241,6 +244,45 @@ footer a{color:var(--ink-2)}
      }
     }
    ]
+  },
+  {
+   "@type": "WebSite",
+   "@id": "https://ordkort.com/#site",
+   "url": "https://ordkort.com/",
+   "name": "Ordkort",
+   "publisher": {
+    "@id": "https://ordkort.com/#org"
+   }
+  },
+  {
+   "@type": "Organization",
+   "@id": "https://ordkort.com/#org",
+   "name": "Ordkort",
+   "url": "https://ordkort.com/",
+   "email": "hei@ordkort.com",
+   "sameAs": [
+    "https://github.com/silicq/ordkort"
+   ],
+   "logo": {
+    "@type": "ImageObject",
+    "url": "https://ordkort.com/icons/icon-512.png",
+    "width": 512,
+    "height": 512
+   },
+   "contactPoint": {
+    "@type": "ContactPoint",
+    "contactType": "customer support",
+    "email": "hei@ordkort.com",
+    "availableLanguage": [
+     "en",
+     "ru",
+     "uk",
+     "nb",
+     "pl",
+     "ar",
+     "zh-Hans"
+    ]
+   }
   }
  ]
 }</script>
@@ -285,12 +327,12 @@ footer a{color:var(--ink-2)}
         <h2>Ærlig fra grunnen av</h2>
         <p>Ingen reklame, ingen sporing og ingen konto. Kortene og framgangen din lagres i nettleseren, og synkroniseringen krypteres på enheten, så serveren ser dem aldri.</p>
         <p>Ordkort har åpen kildekode (AGPL-3.0). KI-svarene deles: det noen allerede har spurt om, åpnes med en gang for nestemann – derfor kan siden være gratis.</p>
-        <p class="links"><a href="/#/about">Slik fungerer det</a><a href="https://github.com/silicq/ordkort" rel="noopener">Kildekode på GitHub</a></p>
+        <p class="links"><a href="/#/about">Slik fungerer det</a><a href="/nb/om/">Om Ordkort</a><a href="https://github.com/silicq/ordkort" rel="noopener">Kildekode på GitHub</a></p>
       </section>
       <section>
         <h2>Norsk, klart til å leses</h2>
-        <p>Gloser etter tema og de 500 vanligste ordene – med bøyning og eksempler, rett her på siden.</p>
-        <p class="links"><a href="/nb/norsk/">Norske gloser etter tema</a><a href="/nb/ordbok/nb/">De 500 vanligste norske ordene</a><a href="/nb/laerer/">For lærere</a></p>
+        <p>Gloser etter tema og de vanligste ordene – med bøyning og eksempler, rett her på siden.</p>
+        <p class="links"><a href="/nb/norsk/ordkort/">Norske ordkort</a><a href="/nb/norsk/">Norske gloser etter tema</a><a href="/nb/ordbok/nb/">De vanligste norske ordene</a><a href="/nb/laerer/">For lærere</a></p>
       </section>
       <section>
         <h2>60 språk</h2>
@@ -316,6 +358,7 @@ footer a{color:var(--ink-2)}
     <footer>
       <span>Ordkort</span>
       <a href="/#/about">Slik fungerer det</a>
+      <a href="/nb/om/">Om Ordkort</a>
       <a href="https://github.com/silicq/ordkort" rel="noopener">GitHub</a>
       <a href="mailto:hei@ordkort.com">hei@ordkort.com</a>
       <a href="https://www.gnu.org/licenses/agpl-3.0.html" rel="noopener">AGPL-3.0</a>

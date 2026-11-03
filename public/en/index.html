@@ -162,10 +162,10 @@ footer a{color:var(--ink-2)}
     "Your own AI, through MCP"
    ],
    "provider": {
-    "@type": "Organization",
-    "name": "Ordkort",
-    "url": "https://ordkort.com/",
-    "email": "hei@ordkort.com"
+    "@id": "https://ordkort.com/#org"
+   },
+   "isPartOf": {
+    "@id": "https://ordkort.com/#site"
    }
   },
   {
@@ -177,6 +177,9 @@ footer a{color:var(--ink-2)}
    "inLanguage": "en",
    "about": {
     "@id": "https://ordkort.com/#app"
+   },
+   "isPartOf": {
+    "@id": "https://ordkort.com/#site"
    }
   },
   {
@@ -241,6 +244,45 @@ footer a{color:var(--ink-2)}
      }
     }
    ]
+  },
+  {
+   "@type": "WebSite",
+   "@id": "https://ordkort.com/#site",
+   "url": "https://ordkort.com/",
+   "name": "Ordkort",
+   "publisher": {
+    "@id": "https://ordkort.com/#org"
+   }
+  },
+  {
+   "@type": "Organization",
+   "@id": "https://ordkort.com/#org",
+   "name": "Ordkort",
+   "url": "https://ordkort.com/",
+   "email": "hei@ordkort.com",
+   "sameAs": [
+    "https://github.com/silicq/ordkort"
+   ],
+   "logo": {
+    "@type": "ImageObject",
+    "url": "https://ordkort.com/icons/icon-512.png",
+    "width": 512,
+    "height": 512
+   },
+   "contactPoint": {
+    "@type": "ContactPoint",
+    "contactType": "customer support",
+    "email": "hei@ordkort.com",
+    "availableLanguage": [
+     "en",
+     "ru",
+     "uk",
+     "nb",
+     "pl",
+     "ar",
+     "zh-Hans"
+    ]
+   }
   }
  ]
 }</script>
@@ -285,12 +327,12 @@ footer a{color:var(--ink-2)}
         <h2>Honest by design</h2>
         <p>No ads, no tracking and no account. Your cards and progress are stored in your browser; syncing between devices is encrypted on the device, so the server never sees them.</p>
         <p>Ordkort is open source (AGPL-3.0). The AI answers are shared: whatever someone has already asked opens instantly for the next person, which keeps the site free.</p>
-        <p class="links"><a href="/#/about">How it works</a><a href="https://github.com/silicq/ordkort" rel="noopener">Source code on GitHub</a></p>
+        <p class="links"><a href="/#/about">How it works</a><a href="/en/about/">About Ordkort</a><a href="https://github.com/silicq/ordkort" rel="noopener">Source code on GitHub</a></p>
       </section>
       <section>
         <h2>Norwegian, ready to study</h2>
-        <p>Word lists by topic and the 500 most common Norwegian words — readable right here, without installing anything.</p>
-        <p class="links"><a href="/en/norwegian/">Norwegian words by topic</a><a href="/en/ordbok/nb/">The 500 most common Norwegian words</a><a href="/en/teachers/">For teachers</a></p>
+        <p>Word lists by topic and the most common Norwegian words — readable right here, without installing anything.</p>
+        <p class="links"><a href="/en/norwegian/flashcards/">Norwegian flashcards</a><a href="/en/norwegian/">Norwegian words by topic</a><a href="/en/ordbok/nb/">The most common Norwegian words</a><a href="/en/teachers/">For teachers</a></p>
       </section>
       <section>
         <h2>60 languages</h2>
@@ -316,6 +358,7 @@ footer a{color:var(--ink-2)}
     <footer>
       <span>Ordkort</span>
       <a href="/#/about">How it works</a>
+      <a href="/en/about/">About Ordkort</a>
       <a href="https://github.com/silicq/ordkort" rel="noopener">GitHub</a>
       <a href="mailto:hei@ordkort.com">hei@ordkort.com</a>
       <a href="https://www.gnu.org/licenses/agpl-3.0.html" rel="noopener">AGPL-3.0</a>

@@ -6,10 +6,21 @@
 import '../public/js/langs.js';
 import { UI as SEO, LEARN } from './seo-text.mjs';
 import { TEACH } from './teachers-text.mjs';
+import { ABOUT } from './about-text.mjs';
+import { FLASH } from './flashcards-text.mjs';
 
 const SITE = 'https://ordkort.com';
 const REPO = 'https://github.com/silicq/ordkort';
 export const MAIL = 'hei@ordkort.com'; // questions and help (src/mail.js)
+// the site and who publishes it, in the schema of every static page (the word pages' isPartOf points here)
+export const SITE_NODES = [
+  { '@type': 'WebSite', '@id': `${SITE}/#site`, url: `${SITE}/`, name: 'Ordkort', publisher: { '@id': `${SITE}/#org` } },
+  {
+    '@type': 'Organization', '@id': `${SITE}/#org`, name: 'Ordkort', url: `${SITE}/`, email: MAIL, sameAs: [REPO],
+    logo: { '@type': 'ImageObject', url: `${SITE}/icons/icon-512.png`, width: 512, height: 512 },
+    contactPoint: { '@type': 'ContactPoint', contactType: 'customer support', email: MAIL, availableLanguage: ['en', 'ru', 'uk', 'nb', 'pl', 'ar', 'zh-Hans'] },
+  },
+];
 const LANGS = globalThis.App.langs.list;
 
 /* ---------- texts ---------- */
@@ -452,13 +463,14 @@ function jsonLd(code, p) {
       offers: { '@type': 'Offer', price: '0', priceCurrency: 'EUR' },
       inLanguage: CODES.map((c) => PAGES[c].hreflang), license: 'https://www.gnu.org/licenses/agpl-3.0.html',
       sameAs: [REPO], featureList: p.features.map(([h]) => h),
-      provider: { '@type': 'Organization', name: 'Ordkort', url: `${SITE}/`, email: MAIL },
+      provider: { '@id': `${SITE}/#org` }, isPartOf: { '@id': `${SITE}/#site` },
     },
-    { '@type': 'WebPage', '@id': url(code), url: url(code), name: p.title, description: p.desc, inLanguage: p.hreflang, about: { '@id': `${SITE}/#app` } },
+    { '@type': 'WebPage', '@id': url(code), url: url(code), name: p.title, description: p.desc, inLanguage: p.hreflang, about: { '@id': `${SITE}/#app` }, isPartOf: { '@id': `${SITE}/#site` } },
     {
       '@type': 'FAQPage', '@id': `${url(code)}#faq`, inLanguage: p.hreflang,
       mainEntity: p.faq.map(([q, a]) => ({ '@type': 'Question', name: q, acceptedAnswer: { '@type': 'Answer', text: a } })),
     },
+    ...SITE_NODES,
   ];
   return JSON.stringify({ '@context': 'https://schema.org', '@graph': graph }, null, 1).replace(/</g, '\\u003c');
 }
@@ -527,12 +539,12 @@ ${ogAlt}
       <section class="honest">
         <h2>${esc(p.honestH)}</h2>
         ${p.honest.map((t) => `<p>${esc(t)}</p>`).join('\n        ')}
-        <p class="links"><a href="/#/about">${esc(p.how)}</a><a href="${REPO}" rel="noopener">${esc(p.source)}</a></p>
+        <p class="links"><a href="/#/about">${esc(p.how)}</a>${ABOUT[code] ? `<a href="${ABOUT[code].path}">${esc(ABOUT[code].nav)}</a>` : ''}<a href="${REPO}" rel="noopener">${esc(p.source)}</a></p>
       </section>
 ${SEO[code] ? `      <section>
         <h2>${esc(SEO[code].hubsH)}</h2>
         <p>${esc(SEO[code].hubsP)}</p>
-        <p class="links"><a href="/${code}/${SEO[code].learn}/">${esc(SEO[code].alsoTopics)}</a>${SEO[code].noDict ? '' : `<a href="/${code}/ordbok/${LEARN}/">${esc(SEO[code].alsoDict)}</a>`}${TEACH[code] ? `<a href="${TEACH[code].path}">${esc(TEACH[code].nav)}</a>` : ''}</p>
+        <p class="links">${FLASH[code] ? `<a href="/${code}/${SEO[code].learn}/${FLASH[code].slug}/">${esc(FLASH[code].nav)}</a>` : ''}<a href="/${code}/${SEO[code].learn}/">${esc(SEO[code].alsoTopics)}</a>${SEO[code].noDict ? '' : `<a href="/${code}/ordbok/${LEARN}/">${esc(SEO[code].alsoDict)}</a>`}${TEACH[code] ? `<a href="${TEACH[code].path}">${esc(TEACH[code].nav)}</a>` : ''}</p>
       </section>
 ` : ''}      <section>
         <h2>${esc(p.languagesH)}</h2>
@@ -552,6 +564,7 @@ ${SEO[code] ? `      <section>
     <footer>
       <span>Ordkort</span>
       <a href="/#/about">${esc(p.how)}</a>
+      ${ABOUT[code] ? `<a href="${ABOUT[code].path}">${esc(ABOUT[code].nav)}</a>` : ''}
       <a href="${REPO}" rel="noopener">GitHub</a>
       <a href="mailto:${MAIL}">${MAIL}</a>
       <a href="https://www.gnu.org/licenses/agpl-3.0.html" rel="noopener">AGPL-3.0</a>

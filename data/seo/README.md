@@ -7,9 +7,9 @@ Run `npm run seo` after changing any of them and commit the result.
 |---|---|---|
 | `nb-frequent.txt` | ~530 of the most frequent Bokmål words, with their word class | hand-made list, roughly in order of frequency |
 | `dict/*.json` | one entry per word: translations (en, ru, uk), a plain Norwegian explanation, example sentences with translations, useful phrases, a note for learners in four languages | written for this site, forms and senses checked against Bokmålsordboka |
-| `topics/*.json` | the 29 topics of `public/js/topics.js`: an introduction per interface language and ~22 words each, with translations and an example | written for this site |
+| `topics/*.json` | the 29 topics of `public/js/topics.js`: an introduction per interface language and ~22 words each, with translations and an example | written for this site; only these checked words are published (the AI words of the shared bank are not) |
 | `ordbok-nb.json` | word class, gender, every form, definitions, examples, fixed expressions and compounds from Bokmålsordboka | `npm run seo:ordbok` (needs the network; answers are cached) |
-| `bank.json` | the Norwegian part of the shared word bank (D1 table `words`), added to the topic lists after the hand-made words | `npm run seo:bank` reads the local `wrangler dev` database; `npm run seo:bank -- --remote` reads production |
+| `homographs.json` | which Bokmålsordboka article a word means when several are spelt alike (`"hete verb": [23468]`, to be called, not to heat); with two ids the page shows the senses of both | chosen by hand; a test fails while a word has several articles and no choice here |
 
 Bokmålsordboka data: *Bokmålsordboka, Universitetet i Bergen og Språkrådet, ordbøkene.no, CC-BY 4.0* — every page that shows
 it says so and links to the entry.

@@ -179,15 +179,21 @@
       fillBtn.disabled = true;
       fillBtn.lastChild.textContent = t('card.filling');
       try {
-        const w = await A.ai.fill({ term, tr });
+        // the deck's topic picks the meaning of a word with several; the others go into "Other meanings"
+        const w = await A.ai.fill({ term, tr, topic: A.ai.deckTopic(A.store.deck(card?.deck || deckId)) });
         for (const [k, src] of [['term', 'term'], ['tr', 'tr'], ['pron', 'pron'], ['gram', 'gram'], ['forms', 'forms'], ['ex', 'ex'], ['exTr', 'ex_tr']]) {
           if (w[src] && (!f[k].value.trim() || k === 'term')) f[k].value = w[src];
         }
+        if (!f.alt.value.trim()) f.alt.value = A.store.altText(w.alt);
         f.pos = w.pos || '';
       } catch (e) { A.toast(A.ai.errorText(e), 'error'); }
       fillBtn.disabled = false;
       fillBtn.lastChild.textContent = t('card.autofill');
     });
+
+    // other meanings of the word, one line: "field (in general); area (of knowledge)"
+    f.alt = h('input', { class: 'input', lang: s.native, dir: 'auto', value: A.store.altText(card?.alt), placeholder: t('card.alt_ph') });
+    const altField = h('label', { class: 'field' }, h('span', null, `${t('card.alt')} · ${N}`), f.alt);
 
     const pic = { img: card?.img || '', imgUrl: card?.imgUrl || '', imgBy: card?.imgBy || '' };
     const picture = pictureField(pic, () => f.term.value.trim(), () => f.tr.value.trim());
@@ -208,6 +214,7 @@
       field('term', `${t('card.term')} · ${T}`, s.target, { ph: t('card.term_ph') }),
       h('small', { class: 'muted gap-hint' }, t('card.gap_hint')),
       field('tr', `${t('card.translation')} · ${N}`, s.native),
+      altField,
       h('div', { class: 'fill-row' }, fillBtn, h('small', { class: 'muted' }, t('card.autofill_hint'))),
       picture.el,
       field('pron', t('card.pron'), s.target, { half: true }),
@@ -223,6 +230,8 @@
       if (!data.term || (!data.tr && !A.store.isCloze(data))) { A.toast(t('card.need_both'), 'error'); return; }
       data.extra = A.store.cleanExtra([...extras.children].map((r) => ({ k: r.querySelector('.extra-k').value, v: r.querySelector('.extra-v').value })));
       if (!data.extra.length) data.extra = undefined;
+      data.alt = A.store.parseAlt(f.alt.value);
+      if (!data.alt.length) data.alt = undefined;
       if (typeof f.pos === 'string') data.pos = f.pos;
       Object.assign(data, { img: pic.img, imgUrl: pic.imgUrl, imgBy: pic.imgBy });
       if (card) A.store.updateCard(card.id, data);

@@ -156,6 +156,8 @@ globalThis.App.i18nData.uk = {
   'card.need_one': 'Спершу введіть слово або переклад',
   'card.term': 'Слово',
   'card.translation': 'Переклад',
+  'card.alt': 'Інші значення',
+  'card.alt_ph': 'поле (загалом); галузь (знань)',
   'card.term_ph': 'Мовою, яку вивчаєте',
   'card.autofill_hint': 'Заповніть один бік — ШІ допише решту',
   'card.pron': 'Вимова',

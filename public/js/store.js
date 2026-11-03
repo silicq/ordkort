@@ -273,6 +273,17 @@
     .map((f) => ({ k: String(f?.k || '').trim().slice(0, 60), v: String(f?.v || '').trim().slice(0, 1000) }))
     .filter((f) => f.k && f.v).slice(0, 8);
 
+  // the word's other meanings, in other contexts than the deck's ("felt" in a deck about driving is a lane;
+  // elsewhere a field): [{ tr, ctx }]; as one line to read and edit, "поле (в общем); область (знаний)"
+  const cleanAlt = (x) => (Array.isArray(x) ? x : [])
+    .map((a) => ({ tr: String(a?.tr || '').trim().slice(0, 80), ctx: String(a?.ctx || '').trim().slice(0, 60) }))
+    .filter((a) => a.tr).slice(0, 3);
+  const altText = (alt) => cleanAlt(alt).map((a) => (a.ctx ? `${a.tr} (${a.ctx})` : a.tr)).join('; ');
+  const parseAlt = (s) => cleanAlt(String(s || '').split(';').map((x) => {
+    const m = /^(.*?)\s*\(([^()]*)\)\s*$/.exec(x.trim());
+    return m ? { tr: m[1], ctx: m[2] } : { tr: x };
+  }));
+
   function addCards(deckId, words) {
     const p = pair();
     const seen = new Set(Object.values(p.cards).map((c) => norm(c.term)));
@@ -302,6 +313,8 @@
       if (w.imgBy || w.img_by) c.imgBy = String(w.imgBy || w.img_by).slice(0, 200);
       const extra = cleanExtra(w.extra);
       if (extra.length) c.extra = extra;
+      const alt = cleanAlt(w.alt);
+      if (alt.length) c.alt = alt;
       p.cards[c.id] = c;
       added++;
     }
@@ -328,6 +341,7 @@
     const p = { af: 1 }; // tried: not asked again, whatever came back
     if (!w) return p;
     if (junkTr(c) && w.tr) p.tr = w.tr;
+    if (!c.alt?.length && cleanAlt(w.alt).length) p.alt = cleanAlt(w.alt);
     for (const k of ['pos', 'gram', 'forms', 'pron']) if (!c[k] && w[k]) p[k] = w[k];
     if (!c.ex && w.ex) { p.ex = w.ex; if (w.ex_tr) p.exTr = w.ex_tr; }
     else if (c.ex && !c.exTr && w.ex_tr && (!w.ex || w.ex.trim() === c.ex.trim())) p.exTr = w.ex_tr;
@@ -689,7 +703,7 @@
     get ready() { return !!state.settings; },
     decks, deck, addDeck, updateDeck, deleteDeck, mineDeck,
     cards, card, addCards, updateCard, updateCards, deleteCard, resetCard, hasTerm, norm, fromBank, applyChecks, needsFill, junkTr, fillPatch,
-    isCloze, gaps, plain, cleanExtra,
+    isCloze, gaps, plain, cleanExtra, cleanAlt, altText, parseAlt,
     sentences, sentenceWith, example, shown,
     overview, streak, week, today, newToday,
     today, buildSession, cramQueue, answer, stage, MAX_BOX, schedule, preview, suspend, LEECH, boxFromS, dayKey, pairKey: () => pairKey(),

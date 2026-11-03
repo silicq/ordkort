@@ -30,16 +30,16 @@ a { color: var(--blue-ink); }
 .top { display: flex; align-items: center; gap: 8px 18px; flex-wrap: wrap; padding: 16px 0 8px; }
 .brand { display: flex; align-items: center; gap: 9px; color: var(--ink); text-decoration: none; font: 700 21px var(--serif); }
 .sections { display: flex; gap: 4px 16px; flex-wrap: wrap; margin-inline-end: auto; font-size: 15px; font-weight: 600; }
-.sections a { color: var(--ink-2); text-decoration: none; }
+.sections a { display: inline-block; padding: 10px 6px; color: var(--ink-2); text-decoration: none; } /* a finger needs about 44px */
 .sections a:hover { color: var(--blue-ink); }
 .langs { display: flex; flex-wrap: wrap; gap: 2px; margin: 0; padding: 4px; list-style: none; border-radius: 999px; background: var(--paper-2); border: 1px solid var(--line); }
-.langs a { display: block; padding: 5px 12px; border-radius: 999px; color: var(--ink-2); font: 550 14px/1.2 var(--ui); text-decoration: none; }
+.langs a { display: block; padding: 12px 14px; border-radius: 999px; color: var(--ink-2); font: 550 14px/1.2 var(--ui); text-decoration: none; }
 .langs a:hover { color: var(--ink); }
 .langs a[aria-current] { background: var(--card); color: var(--ink); box-shadow: 0 1px 0 var(--line-2), 0 3px 10px -5px rgba(0,0,0,.18); }
 .crumbs ol { display: flex; flex-wrap: wrap; gap: 4px; margin: 6px 0 0; padding: 0; list-style: none; font-size: 14px; color: var(--ink-3); }
 .crumbs li + li::before { content: '›'; margin-inline-end: 4px; }
 [dir="rtl"] .crumbs li + li::before { content: '‹'; }
-.crumbs a { color: var(--ink-2); }
+.crumbs a { display: inline-block; padding: 12px 0; color: var(--ink-2); }
 
 /* text */
 main { padding: 20px 0 40px; }
@@ -53,7 +53,7 @@ section, .related, .intopics, .more { padding: 26px 0 0; margin-top: 26px; borde
 .btn:hover { filter: brightness(1.04); }
 .btn:active { transform: translateY(2px); box-shadow: 0 2px 0 var(--blue-edge); }
 .links { display: flex; gap: 8px 20px; flex-wrap: wrap; font-weight: 600; margin: 18px 0 0; }
-.source { font-size: 13.5px; color: var(--ink-3); margin: 16px 0 0; }
+.source { font-size: 14px; color: var(--ink-3); margin: 16px 0 0; }
 .source a { color: var(--ink-3); }
 
 /* a word */
@@ -84,13 +84,13 @@ section, .related, .intopics, .more { padding: 26px 0 0; margin-top: 26px; borde
 .expr li { margin: 0 0 6px; }
 .compounds { margin: 0; color: var(--ink-2); font-family: var(--serif); }
 .chips { display: flex; flex-wrap: wrap; gap: 8px; }
-.chips a { display: inline-block; background: var(--card); border: 1px solid var(--line); border-radius: 999px; padding: 5px 13px; text-decoration: none; color: var(--ink); }
+.chips a { display: inline-block; background: var(--card); border: 1px solid var(--line); border-radius: 999px; padding: 11px 15px; text-decoration: none; color: var(--ink); }
 .chips a:hover { border-color: var(--blue); }
 .chips small { color: var(--ink-3); }
 .pager { display: flex; justify-content: space-between; gap: 12px; margin-top: 30px; }
 .pager a { display: flex; flex-direction: column; text-decoration: none; padding: 10px 14px; border: 1px solid var(--line); border-radius: 14px; background: var(--card); min-width: 0; }
 .pager a[rel="next"] { text-align: end; margin-inline-start: auto; }
-.pager small { color: var(--ink-3); font-size: 13px; }
+.pager small { color: var(--ink-3); font-size: 14px; }
 .pager span { font: 600 18px var(--serif); color: var(--ink); }
 
 /* a topic */

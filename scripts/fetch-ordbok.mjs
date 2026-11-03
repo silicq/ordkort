@@ -31,12 +31,6 @@ if (existsSync(topicsDir)) {
     for (const topic of [JSON.parse(readFileSync(new URL(f, topicsDir), 'utf8'))].flat()) for (const w of topic.words || []) words.add(lemmaOf(w.nb));
   }
 }
-const bankFile = new URL('bank.json', DATA);
-if (existsSync(bankFile)) {
-  for (const topics of Object.values(JSON.parse(readFileSync(bankFile, 'utf8')).words)) {
-    for (const list of Object.values(topics)) for (const w of list) words.add(lemmaOf(w.term));
-  }
-}
 
 /* ---------- a polite, cached fetch ---------- */
 const raw = new Map(); // url → JSON, for the forms below

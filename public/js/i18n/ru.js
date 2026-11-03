@@ -156,6 +156,8 @@ globalThis.App.i18nData.ru = {
   'card.need_one': 'Сначала введите слово или перевод',
   'card.term': 'Слово',
   'card.translation': 'Перевод',
+  'card.alt': 'Другие значения',
+  'card.alt_ph': 'поле (в общем); область (знаний)',
   'card.term_ph': 'На изучаемом языке',
   'card.autofill_hint': 'Заполните одну сторону — ИИ допишет остальное',
   'card.pron': 'Произношение',

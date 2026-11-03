@@ -265,7 +265,10 @@
   const FIELDS = ['Term', 'Translation', 'Pronunciation', 'Grammar', 'Forms', 'Example', 'Example translation', 'Picture', 'Audio', 'Notes'];
   const CLOZE_FIELDS = ['Text', 'Back Extra', 'Picture', 'Audio', 'Notes'];
   // a card's own fields as one Anki field
-  const notes = (c) => (c.extra || []).map((x) => `<b>${esc(x.k)}</b>: ${esc(x.v)}`).join('<br>');
+  const notes = (c) => [
+    ...(c.alt?.length ? [`<b>Other meanings</b>: ${esc(c.alt.map((a) => (a.ctx ? `${a.tr} (${a.ctx})` : a.tr)).join('; '))}`] : []),
+    ...(c.extra || []).map((x) => `<b>${esc(x.k)}</b>: ${esc(x.v)}`),
+  ].join('<br>');
   // a card with gaps in Anki's own form, {{c1::bor}}, and the numbers of its gaps (one Anki card each)
   function clozeText(term) {
     const ns = new Set();

@@ -144,6 +144,8 @@ globalThis.App.i18nData.zh = {
   'card.need_one': '请先输入单词或翻译',
   'card.term': '单词',
   'card.translation': '翻译',
+  'card.alt': '其他意思',
+  'card.alt_ph': '田野（一般）；领域（知识）',
   'card.term_ph': '用你在学的语言',
   'card.autofill_hint': '填写一面——其余由 AI 补全',
   'card.pron': '发音',

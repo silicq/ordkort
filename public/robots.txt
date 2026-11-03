@@ -5,4 +5,15 @@ Content-Signal: search=yes, ai-input=yes, ai-train=no
 Allow: /
 Disallow: /api/
 
+# The crawlers that only gather texts to train AI models are asked to stay away, as the signal above says.
+# Search engines and the AI assistants that answer with a link (OAI-SearchBot, PerplexityBot…) are not.
+User-agent: GPTBot
+User-agent: ClaudeBot
+User-agent: CCBot
+User-agent: Applebot-Extended
+User-agent: Bytespider
+User-agent: meta-externalagent
+User-agent: cohere-training-data-crawler
+Disallow: /
+
 Sitemap: https://ordkort.com/sitemap.xml
