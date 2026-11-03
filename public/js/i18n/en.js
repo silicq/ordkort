@@ -148,6 +148,8 @@ globalThis.App.i18nData.en = {
   'card.need_one': 'Type the word or its translation first',
   'card.term': 'Word',
   'card.translation': 'Translation',
+  'card.alt': 'Other meanings',
+  'card.alt_ph': 'field (in general); area (of knowledge)',
   'card.term_ph': 'In the language you learn',
   'card.autofill_hint': 'Fill in one side — AI completes the rest',
   'card.pron': 'Pronunciation',

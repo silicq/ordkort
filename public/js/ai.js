@@ -119,14 +119,18 @@
     } catch { return []; }
   }
 
-  async function fill({ term = '', tr = '' }) {
-    const { data } = await api('fill', { ...pair(), level: S().level, term, tr });
+  // what a deck is about, for the AI to pick the meaning of a word with several: an app topic by its id, or the
+  // topic the person typed for their own deck. "" for a deck whose title is only a name: imported, shared, made by hand
+  const deckTopic = (d) => (!d ? '' : d.topic || (typeof d.phrases === 'string' ? d.phrases : d.manual ? '' : d.title) || '');
+
+  async function fill({ term = '', tr = '', topic = '' }) {
+    const { data } = await api('fill', { ...pair(), level: S().level, term, tr, ...(topic ? { topic } : {}) });
     return data;
   }
 
   // up to 20 cards at once: [{ term, tr, ex }] → the same number of filled-in words (null where none came back)
-  async function fillMany(words) {
-    const { data } = await api('fillmany', { ...pair(), level: S().level, words });
+  async function fillMany(words, topic = '') {
+    const { data } = await api('fillmany', { ...pair(), level: S().level, words, ...(topic ? { topic } : {}) });
     return Array.isArray(data?.words) ? data.words : [];
   }
 
@@ -204,5 +208,5 @@
     return A.t('err.' + (e?.kind || 'server'));
   };
 
-  A.ai = { api, words, ready, fill, fillMany, lookup, wikt, chapter, ask, translate, uiPart, limits, report, gloss, check, shareDeck, sharedDeck, errorText, AIError, blocked, call, img, quota: null };
+  A.ai = { api, words, ready, fill, fillMany, deckTopic, lookup, wikt, chapter, ask, translate, uiPart, limits, report, gloss, check, shareDeck, sharedDeck, errorText, AIError, blocked, call, img, quota: null };
 })();

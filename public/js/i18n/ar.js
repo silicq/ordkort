@@ -164,6 +164,8 @@ globalThis.App.i18nData.ar = {
   'card.need_one': 'اكتب الكلمة أو ترجمتها أولًا',
   'card.term': 'الكلمة',
   'card.translation': 'الترجمة',
+  'card.alt': 'معانٍ أخرى',
+  'card.alt_ph': 'حقل (عمومًا)؛ مجال (معرفي)',
   'card.term_ph': 'باللغة التي تتعلّمها',
   'card.autofill_hint': 'املأ جانبًا واحدًا — وسيكمل الذكاء الاصطناعي الباقي',
   'card.pron': 'النطق',

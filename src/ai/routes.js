@@ -173,6 +173,20 @@ export async function check(request, env, key) {
 }
 
 /* ---------- card autofill (personal, not cached) ---------- */
+// the deck a card is filled in for: one of the app's topics by its id, or the title of the person's own deck.
+// It picks the meaning of a word with several ("felt" in a deck about driving: lane, not field)
+const deckTopic = (b) => {
+  const tp = typeof b.topic === 'string' ? App.topics.get(b.topic) : null;
+  return tp ? tp.en + (tp.hint ? ` (${tp.hint})` : '') : str(b.topic, 80);
+};
+// the bank groups (their prefixes, see groupOf) of a deck's own topic: [] for a deck without one
+async function topicGroups(b, target, native) {
+  if (typeof b.topic !== 'string' || !b.topic.trim()) return [];
+  const tp = App.topics.get(b.topic);
+  if (tp) return [`${target}:${native}:${tp.id}:`];
+  const h = await h32(norm(str(b.topic, 80)));
+  return [`${target}:${native}:c:${h}:`, `${target}:${native}:p:${h}:`];
+}
 export async function fill(request, env, key) {
   const b = await readJSON(request, 4000);
   const { target, native } = pairOf(b);
@@ -180,7 +194,7 @@ export async function fill(request, env, key) {
   if (!term && !tr) throw new HttpError(400, 'empty');
   const quota = await takeAI(env, key);
   try {
-    const w = P.aiWord(await groq(env, P.fillPrompt({ target, native, level: LEVELS.includes(b.level) ? b.level : 'A1', term, tr })), target);
+    const w = P.aiWord(await groq(env, P.fillPrompt({ target, native, level: LEVELS.includes(b.level) ? b.level : 'A1', term, tr, topic: deckTopic(b) })), target);
     await checkWords(env, target, [w]);
     return json(w, 200, quotaHeaders(quota));
   } catch (e) {
@@ -193,15 +207,16 @@ export async function fill(request, env, key) {
    Up to 20 cards in one request, which counts as one generation. A word the shared bank already has, or one
    someone filled in before (the same word and translation), costs nothing: it comes from there. */
 const FILL_MAX = 20;
-const fillKey = async (target, native, w) => 'fill1:' + (await sha256([target, native, norm(w.term), norm(w.tr)].join('\n'))).slice(0, 32);
+const fillKey = async (target, native, w, topic) => 'fill1:' + (await sha256([target, native, norm(w.term), norm(w.tr), ...(topic ? [norm(topic)] : [])].join('\n'))).slice(0, 32);
 export async function fillMany(request, env, key) {
   const b = await readJSON(request, 20000);
   const { target, native } = pairOf(b);
   const level = LEVELS.includes(b.level) ? b.level : 'A1';
   const items = arr(b.words, FILL_MAX).map((w) => ({ term: str(w?.term, 80), tr: str(w?.tr, 120), ex: str(w?.ex, 300) }));
   if (!items.length || items.some((w) => !w.term && !w.tr)) throw new HttpError(400, 'empty');
+  const topic = deckTopic(b);
   const out = new Array(items.length).fill(null);
-  const keys = await Promise.all(items.map((w) => fillKey(target, native, w)));
+  const keys = await Promise.all(items.map((w) => fillKey(target, native, w, topic)));
   // 1. filled before
   await Promise.all(keys.map(async (k, i) => { out[i] = (await cacheGet(env.DB, k)) || null; }));
   // 2. the shared bank, for a word with no example of its own (the bank's example would not be the card's)
@@ -209,9 +224,12 @@ export async function fillMany(request, env, key) {
   const bankable = ask.filter((i) => items[i].term && !items[i].ex);
   if (bankable.length) {
     const norms = [...new Set(bankable.map((i) => norm(items[i].term)))];
-    const rows = (await env.DB.prepare(`SELECT norm, data FROM words WHERE norm IN (${norms.map(() => '?').join(',')}) AND grp >= ? AND grp < ?`)
+    // the word as the bank has it for the deck's own topic first (elsewhere it may mean another thing), then any
+    const own = new Set(await topicGroups(b, target, native));
+    const rows = (await env.DB.prepare(`SELECT norm, grp, data FROM words WHERE norm IN (${norms.map(() => '?').join(',')}) AND grp >= ? AND grp < ?`)
       .bind(...norms, `${target}:${native}:`, `${target}:${native};`).all()).results || [];
-    const bank = new Map(rows.map((r) => [r.norm, JSON.parse(r.data)]));
+    const mine = (r) => [...own].some((g) => r.grp.startsWith(g));
+    const bank = new Map(rows.sort((x, y) => mine(x) - mine(y)).map((r) => [r.norm, JSON.parse(r.data)])); // the deck's own row last: it wins
     for (const i of bankable) {
       const w = bank.get(norm(items[i].term));
       if (w) out[i] = { ...w, tr: items[i].tr && items[i].tr.length > 1 ? items[i].tr : w.tr };
@@ -222,7 +240,7 @@ export async function fillMany(request, env, key) {
   if (!rest.length) return json({ words: out }, 200, quotaHeaders(null));
   const quota = await takeAI(env, key);
   try {
-    const raw = await groq(env, P.fillManyPrompt({ target, native, level, items: rest.map((i) => items[i]) }));
+    const raw = await groq(env, P.fillManyPrompt({ target, native, level, items: rest.map((i) => items[i]), topic }));
     const got = arr(raw?.words, FILL_MAX);
     const made = [];
     got.forEach((r, j) => {

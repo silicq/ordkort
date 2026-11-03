@@ -148,6 +148,8 @@ globalThis.App.i18nData.nb = {
   'card.need_one': 'Skriv inn ordet eller oversettelsen først',
   'card.term': 'Ord',
   'card.translation': 'Oversettelse',
+  'card.alt': 'Andre betydninger',
+  'card.alt_ph': 'jorde (generelt); fagområde (kunnskap)',
   'card.term_ph': 'På språket du lærer',
   'card.autofill_hint': 'Fyll ut én side — KI-en fyller ut resten',
   'card.pron': 'Uttale',

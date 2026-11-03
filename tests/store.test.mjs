@@ -327,3 +327,18 @@ test('filling in changes only what is empty, and a translation that is not one',
   assert.equal(other.exTr, undefined, 'a translation of another example is not put under the card’s own');
   assert.deepEqual({ ...S.fillPatch(card, null) }, { af: 1 }, 'nothing came back: tried all the same');
 });
+
+test('a card keeps the other meanings of its word, and they read and edit as one line', () => {
+  const S = device();
+  const deck = S.addDeck({ title: 'Trafikk' });
+  S.addCards(deck.id, [{ term: 'et felt', tr: 'полоса (движения)', alt: [{ tr: 'поле', ctx: 'в общем' }, { tr: ' область ', ctx: 'знаний' }, { tr: '' }] }]);
+  const c = S.cards(deck.id)[0];
+  const plain = (x) => JSON.parse(JSON.stringify(x)); // made inside the device's own realm
+  assert.deepEqual(plain(c.alt), [{ tr: 'поле', ctx: 'в общем' }, { tr: 'область', ctx: 'знаний' }]);
+  assert.equal(S.altText(c.alt), 'поле (в общем); область (знаний)');
+  assert.deepEqual(plain(S.parseAlt('поле (в общем); область;  ')), [{ tr: 'поле', ctx: 'в общем' }, { tr: 'область', ctx: '' }]);
+  assert.deepEqual(plain(S.parseAlt(S.altText(c.alt))), plain(c.alt), 'the line reads back as it was');
+  // filling in gives a card its other meanings only when it has none of its own
+  assert.deepEqual(plain(S.fillPatch({ term: 'et felt', tr: 'поле', pos: 'noun', ex: 'x' }, { tr: 'поле', alt: [{ tr: 'полоса', ctx: 'на дороге' }] }).alt), [{ tr: 'полоса', ctx: 'на дороге' }]);
+  assert.equal(S.fillPatch(c, { tr: 'поле', alt: [{ tr: 'x' }] }).alt, undefined);
+});

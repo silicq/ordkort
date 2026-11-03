@@ -2,7 +2,9 @@
 //   /<ui>/                          the pages about the site (scripts/landing.mjs)
 //   /<ui>/<learn>/                  Norwegian word lists by topic, and one page per topic
 //   /<ui>/ordbok/nb/                the most common Norwegian words from A to Å, and one page per word
-//   /sitemap.xml                    every page with its translations (a sitemap index past 5000 pages)
+//   /<ui>/<learn>/flashcards/       straight into practising a topic, for "Norwegian flashcards" (scripts/flashcards-text.mjs)
+//   /<ui>/about/ (in its language)  who makes Ordkort and where the words come from (scripts/about-text.mjs)
+//   /sitemap.xml                    an index of sitemaps by section and language, every page with its translations
 // The content comes from data/seo/ (see data/seo/README.md); the words around it from scripts/seo-text.mjs.
 // A page is published only with at least MIN_WORDS words of its own content, so no thin pages reach the index.
 // Run `npm run seo` after changing any of them and commit the result (a test checks that the files are up to date).
@@ -11,6 +13,8 @@ import { fileURLToPath } from 'node:url';
 import * as Landing from './landing.mjs';
 import { UI, UIS, LEARN, slug, translit } from './seo-text.mjs';
 import { TEACH } from './teachers-text.mjs';
+import { ABOUT } from './about-text.mjs';
+import { FLASH } from './flashcards-text.mjs';
 import '../public/js/topics.js';
 import '../public/js/i18n/en.js';
 import '../public/js/i18n/ru.js';
@@ -38,7 +42,8 @@ const FREQ = readFileSync(new URL('nb-frequent.txt', DATA), 'utf8').split('\n')
 const ORDBOK = json('ordbok-nb.json');
 const DICT = new Map(dir('dict').flatMap((f) => json('dict/' + f)).map((e) => [e.w, e]));
 const TOPICS = new Map(dir('topics').flatMap((f) => [json('topics/' + f)].flat()).map((d) => [d.id, d])); // one file per group of topics
-const BANK = existsSync(new URL('bank.json', DATA)) ? json('bank.json').words : {};
+// when each kind of page last changed (data/seo/README.md): shown on the pages, in their schema and in the sitemap
+const UPDATED = json('checked.json');
 
 /* ---------- Bokmålsordboka: the article, its forms ---------- */
 
@@ -50,12 +55,41 @@ const ART = { Masc: 'en', Fem: 'ei', Neuter: 'et' };
 const GENDER_OF = { en: 'Masc', ei: 'Fem', et: 'Neuter' };
 const lemmaOf = (term) => term.replace(/^(en|ei|et|å)\s+/i, '').trim();
 
-// the article of this word with this word class (and, for a noun, this gender) — homonyms are left out
-function article(lemma, pos, gender) {
+// Words spelt alike ("hete" to be called, "hete" to heat): which article, by its id, is the one these pages mean.
+// "lemma pos" → ids; with two ids the page shows the senses of both and the forms of the first.
+const HOMOGRAPHS = json('homographs.json');
+const candidates = (lemma, pos, gender) => {
   const arts = (ORDBOK[lemma] || []).filter((a) => WC[pos]?.includes(a.wc));
-  return (gender && arts.find((a) => a.g.includes(gender))) || arts[0] || null;
+  const byGender = gender ? arts.filter((a) => a.g.includes(gender)) : [];
+  return byGender.length ? byGender : arts;
+};
+// the article of this word with this word class (and, for a noun, this gender)
+function article(lemma, pos, gender) {
+  const ids = HOMOGRAPHS[`${lemma} ${pos}`];
+  if (ids) {
+    const chosen = ids.map((id) => (ORDBOK[lemma] || []).find((a) => a.id === id)).filter(Boolean);
+    if (chosen.length) {
+      return { ...chosen[0], senses: chosen.flatMap((a) => a.senses), expr: chosen.flatMap((a) => a.expr), compounds: [...new Set(chosen.flatMap((a) => a.compounds))] };
+    }
+  }
+  return candidates(lemma, pos, gender)[0] || null;
 }
-const get = (a, ...keys) => { for (const k of keys) if (a.forms[k]?.length) return a.forms[k].join(' / '); return ''; };
+// words with more than one possible article and no choice in homographs.json: a test keeps this empty
+export function unresolvedHomographs() {
+  const out = new Set();
+  const check = (term, pos) => {
+    const lemma = lemmaOf(term);
+    const given = /^(en|ei|et)\s/.exec(term)?.[1];
+    if (!HOMOGRAPHS[`${lemma} ${pos}`] && candidates(lemma, pos, GENDER_OF[given]).length > 1) out.add(`${lemma} ${pos}`);
+  };
+  for (const f of FREQ) check(f.w, f.pos);
+  for (const d of TOPICS.values()) for (const x of d.words) check(x.nb, x.pos);
+  return [...out];
+}
+// of two correct forms, the one textbooks teach first leads: "husene" before "husa", "snakket" before "snakka"
+const taught = (x) => /(ene|et)$/.test(x);
+const lead = (list) => [...list.filter(taught), ...list.filter((x) => !taught(x))];
+const get = (a, ...keys) => { for (const k of keys) if (a.forms[k]?.length) return lead(a.forms[k]).join(' / '); return ''; };
 const articleOf = (a) => a.g.map((g) => ART[g]).join('/');
 // words used in the plural (klær, penger): no article, no singular column
 const plural = (a, lemma) => a?.wc === 'NOUN' && !a.forms['Sing+Ind'] || (a?.forms['Plur+Ind']?.includes(lemma) && !a.forms['Sing+Ind']?.includes(lemma));
@@ -83,13 +117,27 @@ function formsTable(ui, a, lemma) {
 // the few forms a flashcard shows: "huset, hus, husene", "er, var, har vært", "stort, store, større, størst"
 export function keyForms(a, lemma) {
   if (!a) return '';
-  // of two correct forms, the one textbooks teach first: "husene" rather than "husa"
-  const first = (...k) => { const v = get(a, ...k).split(' / '); return v.find((x) => /ene$/.test(x)) || v[0]; };
+  const first = (...k) => get(a, ...k).split(' / ')[0];
   const list = a.wc === 'NOUN' ? (plural(a, lemma) ? [first('Plur+Def')] : [first('Sing+Def'), first('Plur+Ind'), first('Plur+Def')])
     : a.wc === 'VERB' ? [first('Pres'), first('Past'), first('<PerfPart>') && `har ${first('<PerfPart>')}`]
       : a.wc === 'ADJ' ? [first('Pos+Neuter+Ind+Sing', 'Pos+Neuter'), first('Pos+Plur'), first('Cmp'), first('Sup+Ind')]
         : [];
   return list.filter(Boolean).join(', ');
+}
+
+// the same forms with their names, for an English description: "Definite: huset; plural: hus, husene"
+export function namedForms(a, lemma) {
+  if (!a) return '';
+  const first = (...k) => get(a, ...k).split(' / ')[0];
+  const parts = a.wc === 'NOUN'
+    ? (plural(a, lemma) ? [['Definite', first('Plur+Def')]] : [['Definite', first('Sing+Def')], ['plural', [first('Plur+Ind'), first('Plur+Def')].filter(Boolean).join(', ')]])
+    : a.wc === 'VERB' ? [['Present', first('Pres')], ['past', first('Past')], ['perfect', first('<PerfPart>') && `har ${first('<PerfPart>')}`]]
+      : a.wc === 'ADJ' ? [['Neuter', first('Pos+Neuter+Ind+Sing', 'Pos+Neuter')], ['plural', first('Pos+Plur')], ['comparative', first('Cmp')], ['superlative', first('Sup+Ind')]]
+        : [];
+  const kept = parts.filter(([, f]) => f);
+  if (!kept.length) return '';
+  kept[0][0] = kept[0][0][0].toUpperCase() + kept[0][0].slice(1);
+  return kept.map(([n, f]) => `${n}: ${f}`).join('; ');
 }
 
 // headword as a learner sees it: "et hus", "å være", "stor"
@@ -126,9 +174,10 @@ const EX = { en: 1, ru: 2, uk: 3, pl: 4, ar: 5 };
 // a link to the dictionary, if this interface language has one (Polish does not yet)
 const dictA = (ui, label) => (UI[ui].noDict ? '' : `<a href="${dictHubPath(ui)}">${esc(label)}</a>`);
 
-// topic word lists: the hand-made seed first, then words of the shared word bank it does not have yet
+// topic word lists: the hand-made, checked words only, the same in every language (the AI words of the
+// shared bank stay in the app: unchecked, they would put a wrong form or an unnatural sentence in front of a search)
 export function topicWords(ui, id) {
-  const seed = TOPICS.get(id).words.map((x) => {
+  return TOPICS.get(id).words.map((x) => {
     const lemma = lemmaOf(x.nb);
     const given = /^(en|ei|et)\s/.exec(x.nb)?.[1];
     const a = article(lemma, x.pos, GENDER_OF[given]);
@@ -136,19 +185,6 @@ export function topicWords(ui, id) {
     const term = given && x.pos === 'noun' && a?.g.length && !a.g.includes(GENDER_OF[given]) ? `${ART[a.g[0]]} ${lemma}` : x.nb;
     return { term, lemma, pos: x.pos, a, tr: ui === 'nb' ? '' : x[ui], ex: x.ex[0], exTr: ui === 'nb' ? '' : x.ex[EX[ui]] };
   });
-  const seen = new Set(seed.map((x) => x.lemma.toLowerCase()));
-  const natives = ui === 'nb' ? Object.keys(BANK) : [ui];
-  const bank = [];
-  for (const n of natives) {
-    for (const c of BANK[n]?.[id] || []) {
-      const lemma = lemmaOf(c.term);
-      if (seen.has(lemma.toLowerCase()) || !c.term || !c.ex) continue;
-      seen.add(lemma.toLowerCase());
-      const a = article(lemma, c.pos, GENDER_OF[/^(en|ei|et)\s/.exec(c.term)?.[1]]);
-      bank.push({ term: c.term, lemma, pos: c.pos, a, tr: ui === 'nb' ? '' : c.tr, ex: c.ex, exTr: ui === 'nb' ? '' : c.ex_tr });
-    }
-  }
-  return [...seed, ...bank].slice(0, 45);
 }
 
 // which topics a dictionary word appears in
@@ -185,6 +221,16 @@ const crumbsLd = (path, crumbs) => ({
   itemListElement: crumbs.map(([name, p], i) => ({ '@type': 'ListItem', position: i + 1, name, item: abs(p) })),
 });
 
+// the fonts a page draws its text with, fetched before the stylesheet asks for them: the interface font and the
+// serif of the headings and Norwegian words, in the alphabet of the page's language (css/fonts.css)
+const FONTS = {
+  latin: ['geologica-latin-wght-normal', 'literata-latin-opsz-normal'],
+  cyrillic: ['geologica-cyrillic-wght-normal', 'literata-latin-opsz-normal'],
+  arabic: ['readex-pro-arabic-wght-normal', 'literata-latin-opsz-normal'],
+};
+const fontsOf = (ui) => FONTS[{ ru: 'cyrillic', uk: 'cyrillic', ar: 'arabic' }[ui] || 'latin'];
+const aboutA = (ui) => (ABOUT[ui] ? `<a href="${ABOUT[ui].path}">${esc(ABOUT[ui].nav)}</a>` : '');
+
 function frame({ ui, path, title, desc, alternates, crumbs, graph, body }) {
   const L = lang(ui), U = UI[ui];
   const nb = L.rtl ? ' lang="nb" dir="ltr"' : ' lang="nb"';
@@ -212,9 +258,10 @@ ${alternates.en ? `  <link rel="alternate" hreflang="x-default" href="${abs(alte
   <meta property="og:locale" content="${L.locale}">
 ${alt.filter((u) => u !== ui).map((u) => `  <meta property="og:locale:alternate" content="${lang(u).locale}">`).join('\n')}
   <meta name="twitter:card" content="summary_large_image">
+${fontsOf(ui).map((f) => `  <link rel="preload" href="/fonts/${f}.woff2" as="font" type="font/woff2" crossorigin>`).join('\n')}
   <link rel="stylesheet" href="/css/fonts.css">
   <link rel="stylesheet" href="/css/pages.css">
-  <script type="application/ld+json">${ld([...graph, crumbsLd(path, crumbs)])}</script>
+  <script type="application/ld+json">${ld([...graph, crumbsLd(path, crumbs), ...Landing.SITE_NODES])}</script>
 </head>
 <body>
   <div class="wrap">
@@ -233,6 +280,7 @@ ${body}
       <a href="/${ui}/">Ordkort</a>
       <a href="${topicsHubPath(ui)}">${esc(U.topicsHub)}</a>
       ${dictA(ui, U.dictHub)}
+      ${aboutA(ui)}
       <a href="/#/about">${esc(t(ui, 'foot.about') || 'About')}</a>
       <a href="https://github.com/silicq/ordkort" rel="noopener">GitHub</a>
       <a href="mailto:${Landing.MAIL}">${Landing.MAIL}</a>
@@ -244,6 +292,14 @@ ${body}
 }
 
 /* ---------- a word ---------- */
+
+// the date of the page's last update and a way to report a mistake in it (by e-mail: no account needed)
+function updatedLine(ui, date, path) {
+  const U = UI[ui], L = lang(ui);
+  const shown = new Intl.DateTimeFormat(L.htmlLang, { dateStyle: 'long', timeZone: 'UTC' }).format(new Date(date + 'T00:00:00Z'));
+  const mail = `mailto:${Landing.MAIL}?subject=${encodeURIComponent(`${U.report}: ${abs(path)}`)}`;
+  return `        <p class="t updated">${esc(U.updated)}: <time datetime="${date}">${esc(shown)}</time> · <a href="${esc(mail)}">${esc(U.report)}</a></p>\n`;
+}
 
 function wordPage(ui, w, live) {
   const U = UI[ui], e = DICT.get(w), f = RANK.get(w);
@@ -280,9 +336,10 @@ function wordPage(ui, w, live) {
   // the forms (unless the language keeps them: Norwegian searches ask for them), then shorten the meaning
   const meaning = tr.replace(/\.$/, '');
   const d = (m, fm, en) => U.wordDesc(w, U.pos[f.pos], m, fm, { ...x, en });
-  let desc = d(meaning, forms, enFull);
-  if (desc.length > 160) desc = d(meaning, forms, x.en);
-  const kept = U.descKeepsForms ? forms : '';
+  const descForms = U.namedForms ? namedForms(a, w) : forms;
+  let desc = d(meaning, descForms, enFull);
+  if (desc.length > 160) desc = d(meaning, descForms, x.en);
+  const kept = U.descKeepsForms ? descForms : '';
   if (desc.length > 160) desc = d(meaning, kept, x.en);
   if (desc.length > 160) desc = d(meaning.slice(0, meaning.length - (desc.length - 159)).replace(/[\s,;]+\S*$/, '') + '…', kept, x.en);
   const body = `      <article class="entry">
@@ -323,7 +380,7 @@ ${ofc.expr.length ? `          <h3 class="t">${esc(U.exprH)}</h3>
           <p class="compounds">${ofc.compounds.map(esc).join(', ')}</p>
 ` : ''}          <p class="t source"><a href="https://ordbokene.no/nob/bm/${encodeURIComponent(w)}" rel="noopener">${esc(U.source)}</a></p>
         </section>
-` : ''}      </article>
+` : ''}${updatedLine(ui, UPDATED.words, path)}      </article>
 ${rel.length ? `      <nav class="related" aria-label="${esc(U.relatedH)}">
         <h2 class="t">${esc(U.relatedH)}</h2>
         <ul class="index">${rel.map((r) => `<li><a href="${wordPath(ui, r)}"${nbA}>${esc(r)}</a> <span>${esc(ui === 'nb' ? DICT.get(r).nb : DICT.get(r).tr[ui])}</span></li>`).join('')}</ul>
@@ -336,13 +393,13 @@ ${rel.length ? `      <nav class="related" aria-label="${esc(U.relatedH)}">
 
   const alternates = Object.fromEntries(UIS.filter((u) => live.words[u].has(w)).map((u) => [u, wordPath(u, w)]));
   const graph = [
-    { '@type': 'WebPage', '@id': abs(path), url: abs(path), name: title, description: desc, inLanguage: lang(ui).hreflang, isPartOf: { '@id': `${SITE}/#site` }, breadcrumb: { '@id': abs(path) + '#crumbs' }, mainEntity: { '@id': abs(path) + '#term' } },
+    { '@type': 'WebPage', '@id': abs(path), url: abs(path), name: title, description: desc, inLanguage: lang(ui).hreflang, isPartOf: { '@id': `${SITE}/#site` }, breadcrumb: { '@id': abs(path) + '#crumbs' }, mainEntity: { '@id': abs(path) + '#term' }, dateModified: UPDATED.words, publisher: { '@id': `${SITE}/#org` } },
     {
       '@type': 'DefinedTerm', '@id': abs(path) + '#term', name: w, inLanguage: 'nb', description: tr, url: abs(path),
-      inDefinedTermSet: { '@type': 'DefinedTermSet', '@id': abs(dictHubPath(ui)) + '#set', name: U.dictH1(live.words[ui].size), url: abs(dictHubPath(ui)) },
+      inDefinedTermSet: { '@id': abs(dictHubPath(ui)) + '#set' },
     },
   ];
-  return { path, title, desc, alternates, body, graph, crumbs: [[U.home, `/${ui}/`], [U.dictHub, dictHubPath(ui)], [w, path]] };
+  return { path, title, desc, alternates, body, graph, updated: UPDATED.words, crumbs: [[U.home, `/${ui}/`], [U.dictHub, dictHubPath(ui)], [w, path]] };
 }
 
 /* ---------- a topic ---------- */
@@ -373,7 +430,7 @@ function topicPage(ui, id, live) {
           <li><div class="w">${link ? `<a href="${link}">${term}</a>` : term}${x.tr ? ` <span class="w-tr">${esc(x.tr)}</span>` : ''}</div>${f ? `<div class="w-forms"${nbA}>${esc(f)}</div>` : ''}<div class="w-ex"><span${nbA}>${esc(x.ex)}</span>${x.exTr ? ` <span class="ex-tr">${esc(x.exTr)}</span>` : ''}</div></li>`;
   }).join('')}
         </ul>
-${usesOrdbok ? `        <p class="t source">${esc(UI[ui].table.forms)}: <a href="https://ordbokene.no" rel="noopener">${esc(U.source)}</a></p>\n` : ''}${ankiLinks(ui, id, live)}${embedBlock(ui, id)}      </section>
+${usesOrdbok ? `        <p class="t source">${esc(UI[ui].table.forms)}: <a href="https://ordbokene.no" rel="noopener">${esc(U.source)}</a></p>\n` : ''}${ankiLinks(ui, id, live)}${embedBlock(ui, id)}${updatedLine(ui, UPDATED.topics, path)}      </section>
 ${sameGroup.length ? `      <nav class="t more" aria-label="${esc(U.otherTopics(t(ui, 'group.' + tp.group)))}">
         <h2>${esc(U.otherTopics(t(ui, 'group.' + tp.group)))}</h2>
         <ul class="chips">${sameGroup.map((x) => `<li><a href="${topicPath(ui, x)}">${App.topics.get(x).emoji} ${esc(t(ui, 'topic.' + x))}</a></li>`).join('')}</ul>
@@ -382,16 +439,24 @@ ${sameGroup.length ? `      <nav class="t more" aria-label="${esc(U.otherTopics(
 
   const alternates = Object.fromEntries(UIS.filter((u) => live.topics[u].has(id)).map((u) => [u, topicPath(u, id)]));
   const graph = [
-    { '@type': 'WebPage', '@id': abs(path), url: abs(path), name: title, description: desc, inLanguage: lang(ui).hreflang, isPartOf: { '@id': `${SITE}/#site` }, breadcrumb: { '@id': abs(path) + '#crumbs' }, mainEntity: { '@id': abs(path) + '#words' } },
+    {
+      '@type': ['WebPage', 'LearningResource'], '@id': abs(path), url: abs(path), name: title, description: desc, inLanguage: lang(ui).hreflang,
+      isPartOf: { '@id': `${SITE}/#site` }, breadcrumb: { '@id': abs(path) + '#crumbs' }, mainEntity: { '@id': abs(path) + '#words' },
+      learningResourceType: 'vocabulary list', teaches: `${App.topics.get(id).en} in Norwegian`, isAccessibleForFree: true,
+      audience: { '@type': 'EducationalAudience', educationalRole: 'student' }, dateModified: UPDATED.topics, publisher: { '@id': `${SITE}/#org` },
+    },
     {
       '@type': 'ItemList', '@id': abs(path) + '#words', name: U.topicH1(name), numberOfItems: words.length,
       itemListElement: words.map((x, i) => ({
         '@type': 'ListItem', position: i + 1,
-        item: { '@type': 'DefinedTerm', name: x.term, inLanguage: 'nb', ...(x.tr ? { description: x.tr } : {}), ...(live.words[ui].has(x.lemma) ? { url: abs(wordPath(ui, x.lemma)) } : {}) },
+        // a word with a page of its own is the same thing as the term on that page
+        item: live.words[ui].has(x.lemma)
+          ? { '@type': 'DefinedTerm', '@id': abs(wordPath(ui, x.lemma)) + '#term', name: x.term, inLanguage: 'nb', ...(x.tr ? { description: x.tr } : {}), url: abs(wordPath(ui, x.lemma)), inDefinedTermSet: { '@id': abs(dictHubPath(ui)) + '#set' } }
+          : { '@type': 'DefinedTerm', name: x.term, inLanguage: 'nb', ...(x.tr ? { description: x.tr } : {}) },
       })),
     },
   ];
-  return { path, title, desc, alternates, body, graph, crumbs: [[U.home, `/${ui}/`], [U.topicsHub, topicsHubPath(ui)], [name, path]] };
+  return { path, title, desc, alternates, body, graph, updated: UPDATED.topics, crumbs: [[U.home, `/${ui}/`], [U.topicsHub, topicsHubPath(ui)], [name, path]] };
 }
 
 // a topic's deck and the deck of every topic, for the languages that have deck names
@@ -485,15 +550,15 @@ ${App.topics.groups.map((g) => {
         </ul>
       </section>`;
   }).filter(Boolean).join('\n')}
-${ankiLinks(ui, null, live)}      ${U.noDict ? '' : `<p class="t links">${dictA(ui, U.alsoDict)}</p>`}`;
+${ankiLinks(ui, null, live)}      ${FLASH[ui] || !U.noDict ? `<p class="t links">${FLASH[ui] ? `<a href="${flashPath(ui)}">${esc(FLASH[ui].nav)}</a>` : ''}${dictA(ui, U.alsoDict)}</p>` : ''}`;
   const title = U.topicsTitle(ids.length);
   const desc = U.topicsDesc(ids.length, total);
   const alternates = Object.fromEntries(UIS.filter((u) => live.topics[u].size).map((u) => [u, topicsHubPath(u)]));
   const graph = [
-    { '@type': 'CollectionPage', '@id': abs(path), url: abs(path), name: title, description: desc, inLanguage: lang(ui).hreflang, isPartOf: { '@id': `${SITE}/#site` }, breadcrumb: { '@id': abs(path) + '#crumbs' } },
-    { '@type': 'ItemList', '@id': abs(path) + '#topics', itemListElement: ids.map((id, i) => ({ '@type': 'ListItem', position: i + 1, name: t(ui, 'topic.' + id), url: abs(topicPath(ui, id)) })) },
+    { '@type': 'CollectionPage', '@id': abs(path), url: abs(path), name: title, description: desc, inLanguage: lang(ui).hreflang, isPartOf: { '@id': `${SITE}/#site` }, breadcrumb: { '@id': abs(path) + '#crumbs' }, mainEntity: { '@id': abs(path) + '#topics' }, dateModified: UPDATED.topics },
+    { '@type': 'ItemList', '@id': abs(path) + '#topics', name: U.topicsH1, itemListElement: ids.map((id, i) => ({ '@type': 'ListItem', position: i + 1, name: t(ui, 'topic.' + id), url: abs(topicPath(ui, id)) })) },
   ];
-  return { path, title, desc, alternates, body, graph, crumbs: [[U.home, `/${ui}/`], [U.topicsHub, path]] };
+  return { path, title, desc, alternates, body, graph, updated: UPDATED.topics, crumbs: [[U.home, `/${ui}/`], [U.topicsHub, path]] };
 }
 
 /* ---------- for teachers ---------- */
@@ -547,7 +612,61 @@ function teachersPage(ui) {
   const graph = [
     { '@type': 'WebPage', '@id': abs(path), url: abs(path), name: T.title, description: T.desc, inLanguage: lang(ui).hreflang, isPartOf: { '@id': `${SITE}/#site` }, breadcrumb: { '@id': abs(path) + '#crumbs' }, audience: { '@type': 'EducationalAudience', educationalRole: 'teacher' }, about: { '@id': `${SITE}/#app` } },
   ];
-  return { path, title: T.title, desc: T.desc, alternates, body, graph, crumbs: [[U.home, `/${ui}/`], [T.nav, path]] };
+  return { path, title: T.title, desc: T.desc, alternates, body, graph, updated: UPDATED.pages, crumbs: [[U.home, `/${ui}/`], [T.nav, path]] };
+}
+
+/* ---------- Norwegian flashcards: a topic, and straight into the app ---------- */
+
+export const flashPath = (ui) => `/${ui}/${UI[ui].learn}/${FLASH[ui].slug}/`;
+function flashcardsPage(ui, live) {
+  const F = FLASH[ui], U = UI[ui], path = flashPath(ui);
+  const ids = TOPIC_IDS.filter((id) => live.topics[ui].has(id));
+  const body = `      <h1>${esc(F.h1)}</h1>
+      ${F.lede.map((p) => `<p class="lede">${esc(p)}</p>`).join('\n      ')}
+      <a class="t btn" href="/#/?${invite(ui)}">${esc(U.ctaTopic)}</a>
+      <section>
+        <h2 class="t">${esc(F.startH)}</h2>
+        <ul class="index">${ids.map((id) => `
+          <li><a href="/#/?${invite(ui)}&amp;topic=${id}"><span class="t" aria-hidden="true">${App.topics.get(id).emoji}</span> ${esc(t(ui, 'topic.' + id))}</a> <span class="t">· <a href="${topicPath(ui, id)}">${esc(F.list)}</a></span></li>`).join('')}
+        </ul>
+      </section>
+      <section>
+        <h2 class="t">${esc(F.moreH)}</h2>
+        <ul>${F.more.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>
+${ankiLinks(ui, null, live)}        <p class="t links"><a href="${topicsHubPath(ui)}">${esc(U.alsoTopics)}</a>${dictA(ui, U.alsoDict)}${TEACH[ui] ? `<a href="${TEACH[ui].path}">${esc(TEACH[ui].nav)}</a>` : ''}</p>
+      </section>`;
+  const alternates = Object.fromEntries(UIS.filter((u) => FLASH[u] && live.topics[u].size).map((u) => [u, flashPath(u)]));
+  const graph = [
+    {
+      '@type': 'WebPage', '@id': abs(path), url: abs(path), name: F.title, description: F.desc, inLanguage: lang(ui).hreflang,
+      isPartOf: { '@id': `${SITE}/#site` }, breadcrumb: { '@id': abs(path) + '#crumbs' }, about: { '@id': `${SITE}/#app` }, dateModified: UPDATED.pages,
+      mainEntity: { '@id': abs(path) + '#topics' },
+    },
+    { '@type': 'ItemList', '@id': abs(path) + '#topics', name: F.startH, itemListElement: ids.map((id, i) => ({ '@type': 'ListItem', position: i + 1, name: t(ui, 'topic.' + id), url: abs(topicPath(ui, id)) })) },
+  ];
+  return { path, title: F.title, desc: F.desc, alternates, body, graph, updated: UPDATED.pages, crumbs: [[U.home, `/${ui}/`], [U.topicsHub, topicsHubPath(ui)], [F.nav, path]] };
+}
+
+/* ---------- about Ordkort ---------- */
+
+function aboutPage(ui) {
+  const A = ABOUT[ui], U = UI[ui], path = A.path;
+  const body = `      <h1>${esc(A.h1)}</h1>
+      ${A.lede.map((p) => `<p class="lede">${esc(p)}</p>`).join('\n      ')}
+${A.sections.map(([h, ps]) => `      <section>
+        <h2 class="t">${esc(h)}</h2>
+        ${ps.map((p) => `<p>${esc(p).replace(Landing.MAIL, `<a href="mailto:${Landing.MAIL}">${Landing.MAIL}</a>`)}</p>`).join('\n        ')}
+      </section>`).join('\n')}
+      <section>
+        <h2 class="t">${esc(A.contactH)}</h2>
+        <p class="t links"><a href="mailto:${Landing.MAIL}">${Landing.MAIL}</a><a href="https://github.com/silicq/ordkort" rel="noopener">${esc(A.source)}</a></p>
+      </section>
+      <p class="t links"><a href="${topicsHubPath(ui)}">${esc(U.alsoTopics)}</a>${dictA(ui, U.alsoDict)}</p>`;
+  const alternates = Object.fromEntries(UIS.filter((u) => ABOUT[u]).map((u) => [u, ABOUT[u].path]));
+  const graph = [
+    { '@type': 'AboutPage', '@id': abs(path), url: abs(path), name: A.title, description: A.desc, inLanguage: lang(ui).hreflang, isPartOf: { '@id': `${SITE}/#site` }, breadcrumb: { '@id': abs(path) + '#crumbs' }, about: { '@id': `${SITE}/#org` }, dateModified: UPDATED.pages },
+  ];
+  return { path, title: A.title, desc: A.desc, alternates, body, graph, updated: UPDATED.pages, crumbs: [[U.home, `/${ui}/`], [A.nav, path]] };
 }
 
 const letterOf = (w) => w[0].toUpperCase();
@@ -570,10 +689,10 @@ ${letters.map((l) => `      <section id="${letterId(l)}">
   const desc = U.dictDesc(words.length);
   const alternates = Object.fromEntries(UIS.filter((u) => live.words[u].size).map((u) => [u, dictHubPath(u)]));
   const graph = [
-    { '@type': 'CollectionPage', '@id': abs(path), url: abs(path), name: title, description: desc, inLanguage: lang(ui).hreflang, isPartOf: { '@id': `${SITE}/#site` }, breadcrumb: { '@id': abs(path) + '#crumbs' }, mainEntity: { '@id': abs(path) + '#set' } },
+    { '@type': 'CollectionPage', '@id': abs(path), url: abs(path), name: title, description: desc, inLanguage: lang(ui).hreflang, isPartOf: { '@id': `${SITE}/#site` }, breadcrumb: { '@id': abs(path) + '#crumbs' }, mainEntity: { '@id': abs(path) + '#set' }, dateModified: UPDATED.words },
     { '@type': 'DefinedTermSet', '@id': abs(path) + '#set', name: U.dictH1(words.length), url: abs(path), inLanguage: ['nb', lang(ui).hreflang] },
   ];
-  return { path, title, desc, alternates, body, graph, crumbs: [[U.home, `/${ui}/`], [U.dictHub, path]] };
+  return { path, title, desc, alternates, body, graph, updated: UPDATED.words, crumbs: [[U.home, `/${ui}/`], [U.dictHub, path]] };
 }
 
 /* ---------- building everything ---------- */
@@ -604,68 +723,92 @@ export function build() {
   }
 
   const pages = new Map(); // public path ("ru/ordbok/nb/hus/index.html") → html
-  const entries = []; // for the sitemap: { loc, alternates }
-  const add = (ui, p) => {
+  const entries = []; // for the sitemap: { loc, alternates, lastmod, map: the sitemap file it goes into }
+  const add = (ui, p, map) => {
     pages.set(p.path.slice(1) + 'index.html', render(ui, p));
-    entries.push({ loc: abs(p.path), alternates: Object.entries(p.alternates).map(([u, q]) => [lang(u).hreflang, abs(q)]), xdefault: p.alternates.en && abs(p.alternates.en) });
+    entries.push({ loc: abs(p.path), alternates: Object.entries(p.alternates).map(([u, q]) => [lang(u).hreflang, abs(q)]), xdefault: p.alternates.en && abs(p.alternates.en), lastmod: p.updated, map });
   };
   // the app and the pages about the site
-  entries.push({ loc: `${SITE}/`, alternates: [] });
+  entries.push({ loc: `${SITE}/`, alternates: [], lastmod: UPDATED.pages, map: 'pages' });
   const landingAlt = Landing.CODES.map((c) => [Landing.PAGES[c].hreflang, Landing.url(c)]);
   for (const c of Landing.CODES) {
     pages.set(`${c}/index.html`, Landing.render(c));
-    entries.push({ loc: Landing.url(c), alternates: landingAlt, xdefault: Landing.url('en') });
+    entries.push({ loc: Landing.url(c), alternates: landingAlt, xdefault: Landing.url('en'), lastmod: UPDATED.pages, map: 'pages' });
   }
   for (const ui of UIS) {
-    if (live.topics[ui].size) add(ui, topicsHub(ui, live));
-    for (const id of TOPIC_IDS) if (live.topics[ui].has(id)) add(ui, topicPage(ui, id, live));
-    if (live.words[ui].size) add(ui, dictHub(ui, live));
-    for (const f of FREQ) if (live.words[ui].has(f.w)) add(ui, wordPage(ui, f.w, live));
+    if (live.topics[ui].size) add(ui, topicsHub(ui, live), 'pages');
+    for (const id of TOPIC_IDS) if (live.topics[ui].has(id)) add(ui, topicPage(ui, id, live), 'topics');
+    if (live.words[ui].size) add(ui, dictHub(ui, live), 'pages');
+    for (const f of FREQ) if (live.words[ui].has(f.w)) add(ui, wordPage(ui, f.w, live), `words-${ui}`);
   }
-  for (const ui of UIS) if (TEACH[ui]) add(ui, teachersPage(ui));
+  for (const ui of UIS) if (TEACH[ui]) add(ui, teachersPage(ui), 'pages');
+  for (const ui of UIS) if (ABOUT[ui]) add(ui, aboutPage(ui), 'pages');
+  for (const ui of UIS) if (FLASH[ui] && live.topics[ui].size) add(ui, flashcardsPage(ui, live), 'pages');
   const embeds = new Map(); // the cards for other sites: not in the sitemap, not indexed
   for (const ui of UIS) if (UI[ui].embed) for (const id of TOPIC_IDS) if (live.topics[ui].has(id)) embeds.set(embedPath(ui, id).slice(1) + 'index.html', embedPage(ui, id));
-  return { pages, embeds, sitemaps: sitemaps(entries), thin: [...thin].map(([k, n]) => `${k} (${n})`), live };
+  return { pages, embeds, sitemaps: sitemaps(entries), redirects: redirects(live), thin: [...thin].map(([k, n]) => `${k} (${n})`), live };
+}
+
+/* ---------- addresses with Norwegian letters ----------
+   The address of "gå" is /ordbok/nb/gaa/; someone (or an AI) who types /ordbok/nb/gå/ is sent there for good.
+   Written to public/_redirects (Cloudflare's static redirects), with the letters as a browser sends them. */
+function redirects(live) {
+  const lines = [];
+  for (const ui of UIS) {
+    for (const w of [...live.words[ui]].sort(collator.compare)) {
+      const to = wordPath(ui, w), raw = `/${ui}/ordbok/${LEARN}/${encodeURIComponent(w.toLowerCase())}`;
+      if (raw + '/' !== to) lines.push(`${raw}/ ${to} 301`, `${raw} ${to} 301`);
+    }
+    // a word whose page is no longer published here (too little of its own): its address leads to the dictionary
+    for (const f of FREQ) if (DICT.has(f.w) && !live.words[ui].has(f.w) && live.words[ui].size) lines.push(`${wordPath(ui, f.w)} ${dictHubPath(ui)} 301`);
+  }
+  return `# Written by scripts/seo-pages.mjs: words with æ, ø or å, by the letters themselves, to their ASCII address\n${lines.join('\n')}\n`;
 }
 
 /* ---------- sitemap ---------- */
 
 function urlset(entries) {
+  const lastmod = (e) => (e.lastmod ? `\n    <lastmod>${e.lastmod}</lastmod>` : '');
   return `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
-${entries.map((e) => (e.alternates.length
-    ? `  <url>\n    <loc>${esc(e.loc)}</loc>\n${e.alternates.map(([h, href]) => `    <xhtml:link rel="alternate" hreflang="${h}" href="${esc(href)}"/>`).join('\n')}\n${e.xdefault ? `    <xhtml:link rel="alternate" hreflang="x-default" href="${esc(e.xdefault)}"/>\n` : ''}  </url>`
-    : `  <url><loc>${esc(e.loc)}</loc></url>`)).join('\n')}
+${entries.map((e) => `  <url>\n    <loc>${esc(e.loc)}</loc>${lastmod(e)}\n${e.alternates.map(([h, href]) => `    <xhtml:link rel="alternate" hreflang="${h}" href="${esc(href)}"/>\n`).join('')}${e.xdefault ? `    <xhtml:link rel="alternate" hreflang="x-default" href="${esc(e.xdefault)}"/>\n` : ''}  </url>`).join('\n')}
 </urlset>
 `;
 }
 
-// one sitemap.xml while it fits, otherwise sitemap.xml becomes an index of sitemap-1.xml, sitemap-2.xml…
+// sitemap.xml is an index of one sitemap per section and language (sitemap-pages.xml, sitemap-topics.xml,
+// sitemap-words-ru.xml…), so Search Console shows how much of each is indexed; one past `limit` URLs is split
 export function sitemaps(entries, limit = SITEMAP_LIMIT) {
-  if (entries.length <= limit) return new Map([['sitemap.xml', urlset(entries)]]);
+  const groups = new Map();
+  for (const e of entries) groups.set(e.map || 'pages', [...(groups.get(e.map || 'pages') || []), e]);
   const out = new Map();
-  for (let i = 0; i * limit < entries.length; i++) out.set(`sitemap-${i + 1}.xml`, urlset(entries.slice(i * limit, (i + 1) * limit)));
+  for (const [name, list] of groups) {
+    const parts = Math.ceil(list.length / limit);
+    for (let i = 0; i < parts; i++) out.set(`sitemap-${name}${parts > 1 ? '-' + (i + 1) : ''}.xml`, urlset(list.slice(i * limit, (i + 1) * limit)));
+  }
+  const newest = (f) => [...out.get(f).matchAll(/<lastmod>([^<]+)</g)].map((m) => m[1]).sort().pop();
   out.set('sitemap.xml', `<?xml version="1.0" encoding="UTF-8"?>
 <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${[...out.keys()].map((f) => `  <sitemap><loc>${SITE}/${f}</loc></sitemap>`).join('\n')}
+${[...out.keys()].map((f) => `  <sitemap><loc>${SITE}/${f}</loc>${newest(f) ? `<lastmod>${newest(f)}</lastmod>` : ''}</sitemap>`).join('\n')}
 </sitemapindex>
 `);
   return out;
 }
 
 // folders this script owns: removed before writing, so a page that is no longer published disappears
-export const OWNED = [...UIS.flatMap((ui) => [`${ui}/${UI[ui].learn}/`, `${ui}/ordbok/`]), 'embed/'];
+export const OWNED = [...UIS.flatMap((ui) => [`${ui}/${UI[ui].learn}/`, `${ui}/ordbok/`]), ...Object.values(ABOUT).map((a) => a.path.slice(1)), 'embed/'];
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
-  const { pages, embeds, sitemaps: maps, thin, live } = build();
+  const { pages, embeds, sitemaps: maps, redirects: moved, thin, live } = build();
   const pub = fileURLToPath(PUBLIC);
   for (const d of OWNED) rmSync(pub + d, { recursive: true, force: true });
-  for (const f of readdirSync(pub)) if (/^sitemap-\d+\.xml$/.test(f)) rmSync(pub + f);
+  for (const f of readdirSync(pub)) if (/^sitemap-.+\.xml$/.test(f)) rmSync(pub + f);
   for (const [p, html] of [...pages, ...embeds]) {
     mkdirSync(pub + p.replace(/[^/]+$/, ''), { recursive: true });
     writeFileSync(pub + p, html);
   }
   for (const [f, xml] of maps) writeFileSync(pub + f, xml);
+  writeFileSync(pub + '_redirects', moved);
   const n = (ui) => `${ui}: ${live.topics[ui].size} topics, ${live.words[ui].size} words`;
   console.log(`${pages.size} pages (${UIS.map(n).join('; ')}) + ${[...maps.keys()].join(', ')} + ${embeds.size} cards for other sites`);
   if (thin.length) console.log(`not published, under ${MIN_WORDS} words of their own: ${thin.join(', ')}`);

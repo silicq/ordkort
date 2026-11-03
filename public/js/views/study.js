@@ -288,6 +288,8 @@
         A.media.el(c, 'flash-img'),
         A.lt(fwd ? c.term : c.tr, fwd ? T : N, 'flash-asked', 'div'),
         A.lt(fwd ? c.tr : c.term, fwd ? N : T, 'flash-word serif' + sizeOf(fwd ? c.tr : c.term), 'div'),
+        // the word's other meanings: the translation above is the one the deck's topic needs
+        c.alt?.length ? h('p', { class: 'flash-alt' }, h('span', { class: 'muted' }, `${t('card.alt')}: `), A.lt(A.store.altText(c.alt), N, '', 'span')) : null,
         S.mode !== 'flip' || !fwd || peek ? h('div', { class: 'row gap center' }, pron ? h('span', { class: 'flash-pron' }, pron) : null, A.speakBtn(c.term, T, '', c)) : null,
         gram || forms ? h('div', { class: 'flash-gram' },
           gram ? h('span', null, gram) : null,

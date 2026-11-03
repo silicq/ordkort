@@ -279,7 +279,7 @@
         while (!stopped && asked < max) {
           const part = todo(deckId).slice(0, BATCH);
           if (!part.length) break;
-          const res = await A.ai.fillMany(part.map((c) => ({ term: c.term, tr: junk(c) ? '' : c.tr, ex: c.ex || '' })));
+          const res = await A.ai.fillMany(part.map((c) => ({ term: c.term, tr: junk(c) ? '' : c.tr, ex: c.ex || '' })), A.ai.deckTopic(A.store.deck(deckId)));
           A.store.updateCards(part.map((c, i) => ({ id: c.id, ...merge(c, res[i]) })));
           done += part.length;
           asked++;

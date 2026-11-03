@@ -955,6 +955,8 @@ dialog.modal::backdrop { background: rgba(20, 16, 10, 0.45); backdrop-filter: bl
 .pron-peek:hover { color: var(--ink); border-color: var(--ink-3); }
 .flash-small { font-size: 15px; color: var(--ink-3); }
 .flash-asked { font: 500 20px/1.25 var(--font-serif); color: var(--ink-2); overflow-wrap: anywhere; max-width: 100%; }
+/* the word's other meanings, under the translation the deck needs */
+.flash-alt { margin: 0; font-size: 14px; color: var(--ink-2); max-width: 46ch; text-align: center; }
 .flash-gram { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 12px; font-size: 13.5px; color: var(--ink-2); max-width: 46ch; }
 .flash-gram .serif { font-style: italic; }
 .flash-ex { max-width: 46ch; margin-top: 6px; }
