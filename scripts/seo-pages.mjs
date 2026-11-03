@@ -371,14 +371,14 @@ ${e.ph?.length ? `        <section>
           <h2 class="t">${esc(U.noteH)}</h2>
           <p>${esc(e.note[ui])}</p>
         </section>
-${ofc && (ofc.senses.length || ofc.expr.length) ? `        <section class="official"${nbA}>
+${ofc && (ofc.senses.length || ofc.expr.length) ? `        <section class="official">
           <h2 class="t">${esc(U.officialH)}</h2>
-          <ol class="senses">${ofc.senses.map((s) => `<li>${esc(clean(s.def))}${s.ex.length ? ` <i>${s.ex.map((x) => esc(clean(x))).join(' · ')}</i>` : ''}</li>`).join('')}</ol>
+          <ol class="senses">${ofc.senses.map((s) => `<li><span${nbA}>${esc(clean(s.def))}</span>${s.ex.length ? ` <i${nbA}>${s.ex.map((x) => esc(clean(x))).join(' · ')}</i>` : ''}</li>`).join('')}</ol>
 ${ofc.expr.length ? `          <h3 class="t">${esc(U.exprH)}</h3>
-          <ul class="expr">${ofc.expr.map((x) => `<li><b>${esc(clean(x.text))}</b>${x.meaning ? ` – ${esc(clean(x.meaning))}` : ''}</li>`).join('')}</ul>
+          <ul class="expr">${ofc.expr.map((x) => `<li${nbA}><b>${esc(clean(x.text))}</b>${x.meaning ? ` – ${esc(clean(x.meaning))}` : ''}</li>`).join('')}</ul>
 ` : ''}${ofc.compounds.length ? `          <h3 class="t">${esc(U.compoundsH)}</h3>
-          <p class="compounds">${ofc.compounds.map(esc).join(', ')}</p>
-` : ''}          <p class="t source"><a href="https://ordbokene.no/nob/bm/${encodeURIComponent(w)}" rel="noopener">${esc(U.source)}</a></p>
+          <p class="compounds"${nbA}>${ofc.compounds.map(esc).join(', ')}</p>
+` : ''}          <p class="t source"><a href="https://ordbokene.no/nob/bm/${encodeURIComponent(w)}" rel="noopener"${nbA}>${esc(U.source)}</a></p>
         </section>
 ` : ''}${updatedLine(ui, UPDATED.words, path)}      </article>
 ${rel.length ? `      <nav class="related" aria-label="${esc(U.relatedH)}">

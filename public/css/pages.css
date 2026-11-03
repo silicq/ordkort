@@ -36,7 +36,8 @@ a { color: var(--blue-ink); }
 .langs a { display: block; padding: 12px 14px; border-radius: 999px; color: var(--ink-2); font: 550 14px/1.2 var(--ui); text-decoration: none; }
 .langs a:hover { color: var(--ink); }
 .langs a[aria-current] { background: var(--card); color: var(--ink); box-shadow: 0 1px 0 var(--line-2), 0 3px 10px -5px rgba(0,0,0,.18); }
-.crumbs ol { display: flex; flex-wrap: wrap; gap: 4px; margin: 6px 0 0; padding: 0; list-style: none; font-size: 14px; color: var(--ink-3); }
+/* baseline: the links are taller than the current page's name (their padding is for a finger), the text stays on one line */
+.crumbs ol { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px; margin: 6px 0 0; padding: 0; list-style: none; font-size: 14px; color: var(--ink-3); }
 .crumbs li + li::before { content: '›'; margin-inline-end: 4px; }
 [dir="rtl"] .crumbs li + li::before { content: '‹'; }
 .crumbs a { display: inline-block; padding: 12px 0; color: var(--ink-2); }
@@ -55,15 +56,17 @@ section, .related, .intopics, .more { padding: 26px 0 0; margin-top: 26px; borde
 .links { display: flex; gap: 8px 20px; flex-wrap: wrap; font-weight: 600; margin: 18px 0 0; }
 .source { font-size: 14px; color: var(--ink-3); margin: 16px 0 0; }
 .source a { color: var(--ink-3); }
+.updated { font-size: 14px; color: var(--ink-3); margin: 18px 0 0; }
 
 /* a word */
 .entry h1 { margin-bottom: 4px; }
 .pos { margin: 0; color: var(--ink-3); font-size: 15px; }
 .tr { font: 600 clamp(20px, 3vw, 24px)/1.35 var(--serif); margin: 10px 0 8px; }
 .scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-.forms { border-collapse: collapse; background: var(--card); border: 1px solid var(--line); border-radius: 12px; min-width: 280px; }
-.forms th, .forms td { padding: 8px 14px; text-align: start; border-bottom: 1px solid var(--line); vertical-align: top; }
-.forms tr:last-child th, .forms tr:last-child td { border-bottom: 0; }
+/* separate borders, or the corners stay square */
+.forms { border-collapse: separate; border-spacing: 0; overflow: hidden; background: var(--card); border: 1px solid var(--line); border-radius: 12px; min-width: 280px; }
+.forms th, .forms td { padding: 8px 14px; text-align: start; border-bottom: 1px solid var(--line); vertical-align: baseline; }
+.forms tbody tr:last-child th, .forms tbody tr:last-child td { border-bottom: 0; }
 .forms th { font-weight: 500; color: var(--ink-3); font-size: 14.5px; }
 .forms td { font-family: var(--serif); font-size: 17px; }
 .trs { display: grid; grid-template-columns: max-content 1fr; gap: 4px 16px; margin: 0; }
@@ -123,6 +126,8 @@ section[id] { scroll-margin-top: 12px; }
 footer { border-top: 1px solid var(--line); padding: 22px 0 36px; color: var(--ink-3); font-size: 14px; display: flex; gap: 8px 18px; flex-wrap: wrap; }
 footer a { color: var(--ink-2); }
 :lang(ar) { line-height: 1.8; }
+/* Norwegian blocks keep their own direction on a right-to-left page, but sit on the same side as the rest of it */
+[dir="rtl"] [dir="ltr"] { text-align: right; }
 :lang(ar) h1, :lang(ar) h2 { font-family: 'Noto Naskh Arabic', var(--serif); }
 @media (max-width: 560px) {
   body { font-size: 16px; }
