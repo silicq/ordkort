@@ -49,7 +49,7 @@
   "ting noun": [61047],
   "politi noun": [45452],
   "lov noun": [35829, 35831],
-  "rett noun": [48355, 48354],
+  "rett noun": [48355, 48354, 48356],
   "bank noun": [4386],
   "tur noun": [62896],
   "elv noun": [12477],
@@ -60,7 +60,7 @@
   "plan noun": [45117],
   "mål noun": [39943],
   "stein noun": [107184],
-  "vare noun": [66635],
+  "vare noun": [66635, 66638],
   "leie verb": [34328],
   "koste verb": [31810],
   "regne verb": [47821, 47822],
@@ -80,5 +80,6 @@
   "bære verb": [8439],
   "stoppe verb": [57356],
   "gjelde verb": [19726],
-  "klare verb": [29921]
+  "klare verb": [29921],
+  "tre numeral": [61960, 61959]
 }

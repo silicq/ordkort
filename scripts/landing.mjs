@@ -14,7 +14,7 @@ const REPO = 'https://github.com/silicq/ordkort';
 export const MAIL = 'hei@ordkort.com'; // questions and help (src/mail.js)
 // the site and who publishes it, in the schema of every static page (the word pages' isPartOf points here)
 export const SITE_NODES = [
-  { '@type': 'WebSite', '@id': `${SITE}/#site`, url: `${SITE}/`, name: 'Ordkort', publisher: { '@id': `${SITE}/#org` } },
+  { '@type': 'WebSite', '@id': `${SITE}/#site`, url: `${SITE}/`, name: 'Ordkort', inLanguage: ['en', 'ru', 'uk', 'nb', 'pl', 'ar', 'zh-Hans'], publisher: { '@id': `${SITE}/#org` } },
   {
     '@type': 'Organization', '@id': `${SITE}/#org`, name: 'Ordkort', url: `${SITE}/`, email: MAIL, sameAs: [REPO],
     logo: { '@type': 'ImageObject', url: `${SITE}/icons/icon-512.png`, width: 512, height: 512 },
@@ -460,7 +460,7 @@ function jsonLd(code, p) {
       '@type': 'WebApplication', '@id': `${SITE}/#app`, name: 'Ordkort', url: `${SITE}/`,
       description: p.desc, applicationCategory: 'EducationalApplication', operatingSystem: 'Any (web browser)',
       browserRequirements: 'Requires JavaScript', isAccessibleForFree: true,
-      offers: { '@type': 'Offer', price: '0', priceCurrency: 'EUR' },
+      offers: { '@type': 'Offer', price: '0', priceCurrency: 'EUR', availability: 'https://schema.org/OnlineOnly' },
       inLanguage: CODES.map((c) => PAGES[c].hreflang), license: 'https://www.gnu.org/licenses/agpl-3.0.html',
       sameAs: [REPO], featureList: p.features.map(([h]) => h),
       provider: { '@id': `${SITE}/#org` }, isPartOf: { '@id': `${SITE}/#site` },
@@ -504,6 +504,7 @@ ${alternates}
   <meta property="og:locale" content="${p.locale}">
 ${ogAlt}
   <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="${SITE}/og.jpg">
   <link rel="stylesheet" href="/css/fonts.css">
   <style>${STYLE.trim()}</style>
   <script type="application/ld+json">${jsonLd(code, p)}</script>

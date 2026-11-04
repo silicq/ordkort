@@ -1531,6 +1531,10 @@ dialog.modal::backdrop { background: rgba(20, 16, 10, 0.45); backdrop-filter: bl
   .onb-tap { top: 322px; inset-inline: 0; text-align: center; }
   .onb-hero { min-height: 0; display: flex; flex-direction: column; }
   .onb-hero .onb-cards { order: -1; }
+  /* the way in right under the title, on the first screen of a phone; the list of features follows it */
+  .onb-hero .onb-feats { order: 1; }
+  .onb-hero .onb-note { order: 2; }
+  .onb-hero .lede { margin-bottom: 20px; }
 }
 
 @media (max-width: 760px) {
@@ -1690,7 +1694,7 @@ dialog.modal::backdrop { background: rgba(20, 16, 10, 0.45); backdrop-filter: bl
 .about-item .link-btn { margin-top: 10px; }
 .about-foot { margin-top: 26px; }
 .onb-note { margin: 16px 0 0; }
-.onb-note a { color: var(--blue-ink); }
+.onb-note a { display: inline-block; padding: 12px 0; color: var(--blue-ink); } /* a finger needs about 44px */
 .view-about.onboarding-mode .main, .view-link.onboarding-mode .main { padding-top: 0; }
 
 @media (max-width: 560px) {
