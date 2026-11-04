@@ -1,0 +1,78 @@
+[
+ {
+  "ord": "hús",
+  "guid": "901782b13e501e63240b61d27dff1fd3",
+  "ofl_heiti": "nafnorð",
+  "ofl": "no",
+  "kyn": "hk",
+  "hluti": "Almennt mál",
+  "hluti_id": "ALM",
+  "skyring": "hvorugkynsnafnorð",
+  "bmyndir": [
+   {
+    "g": "NFET",
+    "b": "hús"
+   },
+   {
+    "g": "NFETgr",
+    "b": "húsið"
+   },
+   {
+    "g": "ÞFET",
+    "b": "hús"
+   },
+   {
+    "g": "ÞFETgr",
+    "b": "húsið"
+   },
+   {
+    "g": "ÞGFET",
+    "b": "húsi"
+   },
+   {
+    "g": "ÞGFETgr",
+    "b": "húsinu"
+   },
+   {
+    "g": "EFET",
+    "b": "húss"
+   },
+   {
+    "g": "EFETgr",
+    "b": "hússins"
+   },
+   {
+    "g": "NFFT",
+    "b": "hús"
+   },
+   {
+    "g": "NFFTgr",
+    "b": "húsin"
+   },
+   {
+    "g": "ÞFFT",
+    "b": "hús"
+   },
+   {
+    "g": "ÞFFTgr",
+    "b": "húsin"
+   },
+   {
+    "g": "ÞGFFT",
+    "b": "húsum"
+   },
+   {
+    "g": "ÞGFFTgr",
+    "b": "húsunum"
+   },
+   {
+    "g": "EFFT",
+    "b": "húsa"
+   },
+   {
+    "g": "EFFTgr",
+    "b": "húsanna"
+   }
+  ]
+ }
+]

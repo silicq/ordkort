@@ -246,6 +246,8 @@ globalThis.App.i18nData.ru = {
   'dict.wk_source': 'Викисловарь · открытый словарь, объяснения на английском',
   'dict.wk_none': 'В Викисловаре не найдено.',
   'dict.wk_open': 'Открыть в Викисловаре',
+  'dict.free_source': "Свободный словарь · {license}",
+  'dict.free_open': "Открыть в {name}",
   'dict.refs': 'Словари языка',
   'dict.pick_default': 'по умолчанию',
   'dict.pick_deck': 'В какую колоду?',

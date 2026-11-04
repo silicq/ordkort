@@ -234,6 +234,8 @@ globalThis.App.i18nData.zh = {
   'dict.wk_source': '维基词典 · 开放词典，英文释义',
   'dict.wk_none': '维基词典中未找到。',
   'dict.wk_open': '在维基词典中打开',
+  'dict.free_source': "开放词典 · {license}",
+  'dict.free_open': "在 {name} 中打开",
   'dict.refs': '该语言的词典',
   'dict.pick_default': '默认',
   'dict.pick_deck': '加入哪个卡组？',

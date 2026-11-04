@@ -364,8 +364,9 @@ function fits(lang, want, genders, lemma) {
 /* Checks a noun or verb card: a noun's article must fit its gender ("die Hund" → "der Hund"); a noun in a
    language without articles (or with an elided one, "l’école") gets its gender `g` from Wiktionary; and forms
    Wiktionary has never heard of are dropped — only when it knows the word's forms well and at least one of the
-   card's forms, so a gap in its tables never wipes a card. → { term, forms, g } (unchanged when all is right)
-   or null when Wiktionary cannot tell (no entry, a phrase, a language that hardly inflects). */
+   card's forms, so a gap in its tables never wipes a card. Where Wiktionary has no entry or too few forms, the free
+   dictionaries given as opts.more add what they know. → { term, forms, g } (unchanged when all is right)
+   or null when none can tell (no entry, a phrase, a language that hardly inflects). */
 export async function check(cache, lang, { term, pos, forms }, opts) {
   if (!supports(lang) || (pos !== 'noun' && pos !== 'verb')) return null;
   const t = String(term || '').trim();
@@ -375,7 +376,13 @@ export async function check(cache, lang, { term, pos, forms }, opts) {
     : elided ? t.replace(/^l['’]\s*/i, '')
       : pos === 'verb' ? t.replace(/^(to|att|at)\s+/i, '') : t;
   if (!lemma) return null;
-  const e = await entry(cache, lang, lemma, pos, opts);
+  let e = await entry(cache, lang, lemma, pos, opts);
+  // where Wiktionary has no entry, or too few forms to judge them, the free dictionaries of opts.more (src/sources/
+  // dicts.js) add theirs: the genders and forms either knows count
+  if (opts?.more && (!e || e.forms.size < 5 || (pos === 'noun' && !e.genders.size))) {
+    const m = await opts.more(lemma, pos).catch(() => null);
+    if (m) e = { genders: e?.genders.size ? e.genders : m.genders, forms: new Set([...(e?.forms || []), ...m.forms]) };
+  }
   if (!e) return null;
 
   let out = t, g = '';
