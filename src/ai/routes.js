@@ -47,17 +47,25 @@ function once(k, fn) {
 // a fresh answer replaces the one everybody is served: a few a day, apart from the AI limits, counted only when one
 // was made (a failed try, and the Retry after it, cost nothing)
 const FRESH_PER_DAY = 20;
-async function generate(env, key, cacheKey, { fresh, prompt, clean, keep = () => true }) {
+// `retry`: an answer that is worth asking for once more (the second is taken only if it is better, and costs the
+// person nothing extra); `served`: what is done to every answer before it is shown, a saved one too
+async function generate(env, key, cacheKey, { fresh, prompt, clean, keep = () => true, retry = () => false, served = (x) => x }) {
   const fk = `fresh:${key}:${today()}`;
   if (fresh && (await peek(env.DB, fk)) >= FRESH_PER_DAY) throw new HttpError(429, 'slow_down');
   if (!fresh) {
     const hit = await cacheGet(env.DB, cacheKey);
-    if (hit) return json(hit, 200, quotaHeaders(null));
+    if (hit) return json(served(hit), 200, quotaHeaders(null));
   }
   const { data, q } = await once(cacheKey + (fresh ? ':fresh' : ''), async () => {
     const quota = await takeAI(env, key);
     try {
-      const out = clean(await groq(env, await prompt()));
+      const p = await prompt();
+      let out = clean(await groq(env, p));
+      if (out && retry(out)) {
+        const next = await groq(env, p).then(clean, () => null);
+        if (next && !retry(next)) out = next;
+      }
+      out = out && served(out);
       if (!out) throw new HttpError(502, 'bad_ai');
       if (keep(out)) await cacheSet(env.DB, cacheKey, out);
       if (fresh) await bump(env.DB, fk, 26 * 36e5);
@@ -271,11 +279,15 @@ export async function lookup(request, env, key) {
   const q = str(b.q, 60);
   if (!q) throw new HttpError(400, 'empty');
   const cacheKey = await KEYS.lookup(target, native, b);
+  // a note or origin written in the language being learnt instead of the learner's: asked for once more, and if it
+  // comes so again, left out (in an entry saved before this check too)
   return generate(env, key, cacheKey, {
     fresh: !!b.fresh,
     prompt: async () => ({ ...P.lookupPrompt({ target, native, q, ...(await groundFor(env, target, q)) }) }),
     clean: P.cleanEntry,
     keep: (e) => e.found !== false,
+    retry: (e) => !P.isNative(e, native, target),
+    served: (e) => P.inNative(e, native, target),
   });
 }
 
@@ -318,12 +330,14 @@ export async function wikt(request, env, key) {
   const seen = await cache.get(`wk3:${target}:${W.plain(q, target)}`, 30 * 864e5) && await cache.get(`lx1:${target}:${W.plain(q, target)}`, 30 * 864e5);
   if (!seen) await takeSimple(env, 'wikt', key, 120, 36e5);
   const signal = AbortSignal.timeout(8000);
-  const [r, more] = await Promise.all([
-    W.lookup(cache, target, q, { budget: { left: 3 }, signal }).catch(() => null),
-    D.lookup(cache, target, q, { budget: { left: 4 }, signal }).catch(() => []),
+  // `checked`: the dictionaries that answered, so "not found" names each of them (one that was down is not named)
+  const [wk, free] = await Promise.all([
+    W.lookup(cache, target, q, { budget: { left: 3 }, signal }).then((r) => ({ r, ok: true }), () => ({ r: null, ok: false })),
+    D.search(cache, target, q, { budget: { left: 4 }, signal }).catch(() => ({ found: [], checked: [] })),
   ]);
-  if (!r && !more.length) return json({ found: false });
-  return json({ found: true, ...(r || { articles: [] }), more: D.shown(more) });
+  const checked = [...(wk.ok ? ['Wiktionary'] : []), ...free.checked];
+  if (!wk.r && !free.found.length) return json({ found: false, checked });
+  return json({ found: true, ...(wk.r || { articles: [] }), more: D.shown(free.found), checked });
 }
 
 /* ---------- textbook chapter ---------- */

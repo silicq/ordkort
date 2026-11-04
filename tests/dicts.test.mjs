@@ -119,6 +119,21 @@ test('a language gets the dictionaries made for it first, and one that is down l
   } finally { w.restore(); }
 });
 
+test('the dictionaries that answered are named, with the word or without it; one that is down is not', async () => {
+  let w = apis();
+  try {
+    const none = await D.search(w.cache, 'is', 'ekkiorð');
+    assert.deepEqual(none, { found: [], checked: ['BÍN', 'Wikidata'] }, 'asked, and neither has it');
+    const some = await D.search(w.cache, 'sv', 'hus');
+    assert.deepEqual(some.found.map((d) => d.name), ['SALDO']);
+    assert.deepEqual(some.checked, ['SALDO', 'Wikidata']);
+  } finally { w.restore(); }
+  w = apis({ down: 'wikidata' });
+  try {
+    assert.deepEqual(await D.search(w.cache, 'de', 'Hund'), { found: [], checked: [] }, 'Wikidata did not answer: not "not found"');
+  } finally { w.restore(); }
+});
+
 test('a card Wiktionary cannot check is checked against the free dictionaries: "die Hund" → "der Hund"', async () => {
   const w = apis();
   try {

@@ -18,7 +18,7 @@ export const ABOUT = {
         'The translations, example sentences and notes for learners were drafted with the help of AI and then checked. The word lists by topic contain only these checked words.',
       ]],
       ['Decks made in the app', [
-        'A deck you ask the app for — any topic, any language — is written by AI on request. Its words are checked against dictionaries where one is available (ordbokene.no for Norwegian, Wiktionary for other languages), but such a deck can still contain a mistake.',
+        'A deck you ask the app for — any topic, any language — is written by AI on request. Its words are checked against dictionaries where one is available (ordbokene.no for Norwegian; Wiktionary for other languages, and the free dictionaries Wikidata Lexemes, BÍN for Icelandic and SALDO for Swedish where Wiktionary cannot tell), but such a deck can still contain a mistake.',
       ]],
       ['Corrections', [
         'Every word page has a “Report a mistake” link, and every card in the app has a button for it. You can also write to hei@ordkort.com. A correction appears with the next update of the pages; each page shows the date of its last update.',
@@ -41,7 +41,7 @@ export const ABOUT = {
         'Переводы, примеры и пояснения для учащихся подготовлены с помощью ИИ, а затем проверены. В подборки по темам входят только эти проверенные слова.',
       ]],
       ['Колоды, созданные в приложении', [
-        'Колоду, которую вы просите у приложения, — на любую тему и на любом языке — пишет ИИ по запросу. Её слова сверяются со словарями, где они есть (ordbokene.no для норвежского, Викисловарь для других языков), но ошибка в такой колоде всё же возможна.',
+        'Колоду, которую вы просите у приложения, — на любую тему и на любом языке — пишет ИИ по запросу. Её слова сверяются со словарями, где они есть (ordbokene.no для норвежского; для других языков — Викисловарь, а где его не хватает, свободные словари: лексемы Wikidata, BÍN для исландского, SALDO для шведского), но ошибка в такой колоде всё же возможна.',
       ]],
       ['Исправления', [
         'На каждой странице слова есть ссылка «Сообщить об ошибке», у каждой карточки в приложении — такая же кнопка. Можно также написать на hei@ordkort.com. Исправление появляется со следующим обновлением страниц; на каждой странице указана дата её последнего обновления.',
@@ -64,7 +64,7 @@ export const ABOUT = {
         'Переклади, приклади й пояснення для учнів підготовлено за допомогою ШІ, а потім перевірено. До добірок за темами входять лише ці перевірені слова.',
       ]],
       ['Колоди, створені в застосунку', [
-        'Колоду, яку ви просите в застосунку, — на будь-яку тему й будь-якою мовою — пише ШІ на запит. Її слова звіряються зі словниками, де вони є (ordbokene.no для норвезької, Вікісловник для інших мов), але помилка в такій колоді все ж можлива.',
+        'Колоду, яку ви просите в застосунку, — на будь-яку тему й будь-якою мовою — пише ШІ на запит. Її слова звіряються зі словниками, де вони є (ordbokene.no для норвезької; для інших мов — Вікісловник, а де його не вистачає, вільні словники: лексеми Wikidata, BÍN для ісландської, SALDO для шведської), але помилка в такій колоді все ж можлива.',
       ]],
       ['Виправлення', [
         'На кожній сторінці слова є посилання «Повідомити про помилку», у кожної картки в застосунку — така сама кнопка. Можна також написати на hei@ordkort.com. Виправлення з’являється з наступним оновленням сторінок; на кожній сторінці вказано дату її останнього оновлення.',
@@ -87,7 +87,7 @@ export const ABOUT = {
         'Oversettelsene, eksempelsetningene og rådene til innlærere er skrevet med hjelp av KI og deretter kontrollert. Ordlistene etter tema inneholder bare disse kontrollerte ordene.',
       ]],
       ['Kortstokker laget i appen', [
-        'En kortstokk du ber appen om – om hvilket som helst tema og på hvilket som helst språk – skrives av KI på forespørsel. Ordene sjekkes mot ordbøker der det finnes en (ordbokene.no for norsk, Wiktionary for andre språk), men en slik kortstokk kan likevel inneholde feil.',
+        'En kortstokk du ber appen om – om hvilket som helst tema og på hvilket som helst språk – skrives av KI på forespørsel. Ordene sjekkes mot ordbøker der det finnes en (ordbokene.no for norsk; Wiktionary for andre språk, og der Wiktionary ikke vet, de frie ordbøkene Wikidata-leksemer, BÍN for islandsk og SALDO for svensk), men en slik kortstokk kan likevel inneholde feil.',
       ]],
       ['Rettelser', [
         'Hver ordside har lenken «Meld fra om feil», og hvert kort i appen har en knapp for det. Du kan også skrive til hei@ordkort.com. En rettelse kommer med neste oppdatering av sidene; hver side viser datoen den sist ble oppdatert.',
@@ -110,7 +110,7 @@ export const ABOUT = {
         'Tłumaczenia, przykładowe zdania i wskazówki dla uczących się przygotowano z pomocą AI, a potem sprawdzono. Listy według tematów zawierają tylko te sprawdzone słowa.',
       ]],
       ['Talie tworzone w aplikacji', [
-        'Talię, o którą prosisz aplikację — na dowolny temat i w dowolnym języku — pisze AI na żądanie. Jej słowa są sprawdzane w słownikach, jeśli taki istnieje (ordbokene.no dla norweskiego, Wikisłownik dla innych języków), ale błąd w takiej talii wciąż jest możliwy.',
+        'Talię, o którą prosisz aplikację — na dowolny temat i w dowolnym języku — pisze AI na żądanie. Jej słowa są sprawdzane w słownikach, jeśli taki istnieje (ordbokene.no dla norweskiego; Wikisłownik dla innych języków, a tam, gdzie mu brakuje, wolne słowniki: leksemy Wikidata, BÍN dla islandzkiego i SALDO dla szwedzkiego), ale błąd w takiej talii wciąż jest możliwy.',
       ]],
       ['Poprawki', [
         'Każda strona słowa ma link „Zgłoś błąd”, a każda fiszka w aplikacji ma taki przycisk. Możesz też napisać na hei@ordkort.com. Poprawka pojawia się z następną aktualizacją stron; każda strona podaje datę swojej ostatniej aktualizacji.',
@@ -133,7 +133,7 @@ export const ABOUT = {
         'أُعدّت الترجمات والجمل المثالية والملاحظات للمتعلّمين بمساعدة الذكاء الاصطناعي ثم رُوجعت. وقوائم المواضيع لا تضمّ إلا هذه الكلمات المراجَعة.',
       ]],
       ['الرزم التي تُصنع في التطبيق', [
-        'الرزمة التي تطلبها من التطبيق، في أي موضوع وبأي لغة، يكتبها الذكاء الاصطناعي عند الطلب. وتُطابَق كلماتها مع القواميس حيث يوجد قاموس (ordbokene.no للنرويجية وويكاموس للغات الأخرى)، لكن الخطأ يبقى ممكنًا في مثل هذه الرزمة.',
+        'الرزمة التي تطلبها من التطبيق، في أي موضوع وبأي لغة، يكتبها الذكاء الاصطناعي عند الطلب. وتُطابَق كلماتها مع القواميس حيث يوجد قاموس (ordbokene.no للنرويجية، وويكاموس للغات الأخرى، وحيث لا يكفي فالقواميس الحرة: مفردات Wikidata وBÍN للآيسلندية وSALDO للسويدية)، لكن الخطأ يبقى ممكنًا في مثل هذه الرزمة.',
       ]],
       ['التصحيحات', [
         'في كل صفحة كلمة رابط «أبلغ عن خطأ»، ولكل بطاقة في التطبيق زرّ لذلك. ويمكنك أيضًا الكتابة إلى hei@ordkort.com. يظهر التصحيح مع التحديث التالي للصفحات، وتعرض كل صفحة تاريخ آخر تحديث لها.',

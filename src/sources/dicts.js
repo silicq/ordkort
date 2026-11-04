@@ -18,15 +18,23 @@ const SOURCES = [
 ];
 export const sourcesOf = (lang) => SOURCES.filter((s) => s.supports(lang));
 
-/* What the free dictionaries have on a word → [{ name, license, url, articles }], each found in time; one that is
-   slow or down is left out, never the others. opts: { signal, budget } */
-export async function lookup(cache, lang, word, opts = {}) {
+/* What the free dictionaries have on a word → { found: [{ name, license, url, articles }], checked: [names] }:
+   `checked` names every dictionary that answered, with the word or without it, so the page can say where it is
+   missing; one that is slow or down is left out of both, never the others. opts: { signal, budget } */
+export async function search(cache, lang, word, opts = {}) {
   const got = await Promise.all(sourcesOf(lang).map(async (s) => {
-    const r = await s.lookup(cache, lang, word, opts).catch(() => null);
-    return r?.articles?.length ? { name: s.name, license: s.license, url: r.url, articles: r.articles } : null;
+    try {
+      const r = await s.lookup(cache, lang, word, opts);
+      return { name: s.name, hit: r?.articles?.length ? { name: s.name, license: s.license, url: r.url, articles: r.articles } : null };
+    } catch {
+      return null;
+    }
   }));
-  return got.filter(Boolean);
+  const answered = got.filter(Boolean);
+  return { found: answered.map((x) => x.hit).filter(Boolean), checked: answered.map((x) => x.name) };
 }
+// only what they have → [{ name, license, url, articles }]
+export const lookup = async (cache, lang, word, opts = {}) => (await search(cache, lang, word, opts)).found;
 
 // what the page shows of an article: not the lists the checks use
 export const shown = (list) => list.map((d) => ({ ...d, articles: d.articles.map(({ lemma, cls, pron, table, senses, etym }) => ({ lemma, cls, pron, table, senses, etym })) }));
