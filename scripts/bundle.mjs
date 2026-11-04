@@ -38,6 +38,7 @@ export const APP_SCRIPTS = [
   'js/views/onboarding.js',
   'js/views/devices.js',
   'js/views/about.js',
+  'js/readlib.js',
   'js/views/read.js',
   'js/views/share.js',
   'js/openlink.js',
