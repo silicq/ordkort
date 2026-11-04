@@ -1931,6 +1931,20 @@ html.kb-open body.view-study .flash-tag { height: 26px; }
 .rw.st-known:hover, .rw.st-new:hover, .rw.st-learning:hover { background: color-mix(in srgb, var(--blue) 24%, transparent); }
 .read-legend .rw { cursor: default; font-weight: 500; }
 .read-note { display: flex; align-items: center; gap: 6px; margin-top: 12px; }
+/* the texts kept on this device (js/readlib.js), and the earlier versions of the one being read */
+.read-lib { display: grid; gap: 22px; margin-top: 30px; }
+.read-lib-group h2 { margin: 0 0 10px; font-size: 17px; }
+.read-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.read-item { display: flex; align-items: center; gap: 4px; padding: 4px 6px 4px 4px; border: 1.5px solid var(--line); border-radius: 14px; background: var(--card); }
+.read-open { flex: 1; min-width: 0; display: grid; gap: 2px; padding: 10px 12px; border: 0; border-radius: 10px; background: none; color: inherit; font: inherit; text-align: start; cursor: pointer; }
+.read-open:hover { background: var(--paper-2); }
+.read-item-title { font-size: 17px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* a saved text: its star filled */
+.icon-btn.on svg, .btn.on svg { color: var(--yellow-ink); fill: var(--yellow); }
+.read-versions { position: relative; }
+.read-versions > summary { list-style: none; }
+.read-versions > summary::-webkit-details-marker { display: none; }
+.read-versions[open] > .read-list { position: absolute; z-index: 5; inset-inline-start: 0; top: calc(100% + 6px); width: min(420px, 86vw); padding: 8px; border: 1.5px solid var(--line); border-radius: 16px; background: var(--card); box-shadow: var(--shadow, 0 14px 30px -18px rgba(0,0,0,.4)); }
 .word-sheet {
   position: fixed; z-index: 80; inset-inline: 0; bottom: 20px; width: min(460px, calc(100vw - 24px)); margin-inline: auto;
   display: grid; gap: 8px; padding: 16px 18px; border-radius: 20px; border: 1.5px solid var(--line-2); background: var(--card);

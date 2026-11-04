@@ -1,12 +1,14 @@
 /* Reading mode (in the spirit of LingQ): paste a text in the language you learn,
    tap unknown words to see their meaning in context and add them to your cards.
-   Words are coloured: new (not in your cards), learning, known. */
+   Words are coloured: new (not in your cards), learning, known.
+   The texts stay on the device (js/readlib.js): the recent ones, the saved ones, and the earlier wordings of a text
+   that was edited, each with its analysis. */
 (() => {
   const A = window.App;
   const { h, icon, t } = A;
   const MAX = 3000, PART = 600;
   const NO_SPACES = ['zh', 'ja', 'th'];
-  let R = null; // { pair, text, parts: [{ text, gloss, error }], showTr }
+  let R = null; // the text being read: an entry of js/readlib.js, { id, pair, text, parts: [{ text, gloss, error }], showTr, … }
   let ctrl = null;
 
   const SAMPLES = {
@@ -17,15 +19,14 @@
     fr: 'C’était un matin froid à Lyon. Anne a pris le bus pour aller au travail, mais il était en retard, alors elle a acheté un café et elle a attendu. Elle pensait au week-end : peut-être irait-elle marcher en montagne s’il ne pleuvait pas.',
   };
 
-  try { R = JSON.parse(localStorage.getItem('ordkort.read') || 'null'); } catch { R = null; }
-  const persist = () => { try { localStorage.setItem('ordkort.read', JSON.stringify(R)); } catch { /* ignore */ } };
+  const persist = () => A.readlib.put();
+  const pairOf = () => A.store.settings.target + ':' + A.store.settings.native;
+  const partsOf = (text) => split(text).map((p) => ({ text: p }));
 
   A.views.read = {
     live: false,
     render(root) {
       const s = A.store.settings;
-      const pairId = s.target + ':' + s.native;
-      if (R && R.pair !== pairId) R = null;
       A.add(root,
         h('section', { class: 'page-head' },
           A.rich(t('read.title'), 'h1'),
@@ -33,22 +34,26 @@
       root.querySelector('.page-head h1').className = 'display';
       const body = h('div', { class: 'read-body' });
       root.append(body);
-      if (R?.text) reader(body); else editor(body);
+      A.readlib.ready().then(() => {
+        if (!body.isConnected) return; // the person went elsewhere meanwhile
+        R = A.readlib.current(pairOf());
+        if (R?.text) reader(body); else editor(body);
+      });
     },
     leave() { ctrl?.abort(); closeSheet(); },
   };
 
-  /* ---------- entering a text ---------- */
-  function editor(body) {
+  /* ---------- entering a text, or changing the one being read ---------- */
+  function editor(body, editing = null) {
     const s = A.store.settings;
     const ta = h('textarea', { class: 'input read-input serif', lang: s.target, dir: 'auto', maxlength: MAX, rows: 9, placeholder: t('read.placeholder', { lang: A.langs.name(s.target) }) });
     const count = h('span', { class: 'muted small' }, `0 / ${MAX}`);
     ta.addEventListener('input', () => { count.textContent = `${ta.value.length} / ${MAX}`; });
+    if (editing) { ta.value = editing.text; count.textContent = `${ta.value.length} / ${MAX}`; }
     const go = () => {
       const text = ta.value.trim();
       if (text.length < 2) { ta.focus(); return; }
-      R = { pair: s.target + ':' + s.native, text, parts: split(text).map((p) => ({ text: p })), showTr: false };
-      persist();
+      R = editing ? A.readlib.edit(editing.id, text, partsOf(text)) : A.readlib.start(pairOf(), text, partsOf(text));
       body.replaceChildren();
       reader(body);
     };
@@ -58,11 +63,49 @@
         ta,
         h('div', { class: 'row gap wrap read-tools' },
           h('button', { class: 'btn btn-primary', type: 'button', onclick: go }, icon('read', 18), t('read.go')),
-          sample ? h('button', { class: 'btn btn-ghost', type: 'button', onclick: () => { ta.value = sample; ta.dispatchEvent(new Event('input')); } }, t('read.sample')) : null,
+          editing
+            ? h('button', { class: 'btn btn-ghost', type: 'button', onclick: () => { body.replaceChildren(); reader(body); } }, t('common.cancel'))
+            : sample ? h('button', { class: 'btn btn-ghost', type: 'button', onclick: () => { ta.value = sample; ta.dispatchEvent(new Event('input')); } }, t('read.sample')) : null,
           h('span', { class: 'grow' }),
           count),
-        h('p', { class: 'muted small' }, icon('info', 14), ' ', t('read.cost'))));
+        h('p', { class: 'muted small' }, icon('info', 14), ' ', t(editing ? 'read.edit_note' : 'read.cost'))),
+      editing ? null : library(body));
     setTimeout(() => ta.focus(), 50);
+  }
+
+  /* ---------- the texts kept on this device ---------- */
+  const when = (ms) => {
+    const opts = { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' };
+    try { return new Date(ms).toLocaleString(A.i18n.lang(), opts); } catch { return new Date(ms).toLocaleString('en', opts); }
+  };
+  function library(body) {
+    const { saved, recent } = A.readlib.list(pairOf());
+    if (!saved.length && !recent.length) return null;
+    const row = (x) => h('li', { class: 'read-item' },
+      h('button', { class: 'read-open', type: 'button', onclick: () => { R = A.readlib.open(x.id); body.replaceChildren(); reader(body); } },
+        h('span', { class: 'read-item-title serif', lang: A.store.settings.target, dir: 'auto' }, x.name || A.readlib.title(x.text)),
+        h('span', { class: 'muted small' }, [when(x.opened), A.readlib.words(x) ? t('read.n_words', { n: A.readlib.words(x) }) : '', x.versions.length ? t('read.n_versions', { n: x.versions.length }) : ''].filter(Boolean).join(' · '))),
+      h('button', { class: 'icon-btn sm' + (x.saved ? ' on' : ''), type: 'button', 'aria-pressed': String(x.saved), 'aria-label': t(x.saved ? 'read.unsave' : 'read.save'), title: t(x.saved ? 'read.unsave' : 'read.save'), onclick: () => { A.readlib.star(x.id, !x.saved); editor(body); } }, icon('star', 18)),
+      x.saved ? h('button', { class: 'icon-btn sm', type: 'button', 'aria-label': t('read.rename'), title: t('read.rename'), onclick: async () => {
+        const name = await A.prompt(t('read.rename'), { value: x.name || A.readlib.title(x.text), ok: t('common.save') });
+        if (name) { A.readlib.rename(x.id, name); editor(body); }
+      } }, icon('edit', 18)) : null,
+      h('button', { class: 'icon-btn sm', type: 'button', 'aria-label': t('read.remove'), title: t('read.remove'), onclick: async () => {
+        if (await A.confirm(t('read.remove_q'), { ok: t('common.delete'), danger: true })) { A.readlib.remove(x.id); editor(body); }
+      } }, icon('trash', 18)));
+    const group = (key, list) => (list.length ? h('section', { class: 'read-lib-group' }, h('h2', { class: 'h3' }, t(key)), h('ul', { class: 'read-list' }, list.map(row))) : null);
+    return h('div', { class: 'read-lib' }, group('read.lib_saved', saved), group('read.lib_recent', recent));
+  }
+
+  // the earlier wordings of the text being read: one tap brings one back
+  function versions(body) {
+    if (!R.versions?.length) return null;
+    return h('details', { class: 'read-versions' },
+      h('summary', { class: 'btn btn-ghost btn-sm' }, icon('refresh', 16), t('read.n_versions', { n: R.versions.length })),
+      h('ul', { class: 'read-list' }, R.versions.map((v, i) => h('li', { class: 'read-item' },
+        h('button', { class: 'read-open', type: 'button', onclick: () => { R = A.readlib.restore(R.id, i); body.replaceChildren(); reader(body); } },
+          h('span', { class: 'read-item-title serif', lang: A.store.settings.target, dir: 'auto' }, A.readlib.title(v.text)),
+          h('span', { class: 'muted small' }, when(v.at)))))));
   }
 
   // split into pieces of ≤ PART characters on sentence boundaries
@@ -94,10 +137,22 @@
       trBtn.lastChild.textContent = t(R.showTr ? 'read.hide_tr' : 'read.show_tr');
     });
 
+    const saveBtn = h('button', { class: 'btn btn-ghost btn-sm' + (R.saved ? ' on' : ''), type: 'button', 'aria-pressed': String(!!R.saved) }, icon('star', 16), t(R.saved ? 'read.saved' : 'read.save'));
+    saveBtn.addEventListener('click', () => {
+      A.readlib.star(R.id, !R.saved);
+      saveBtn.classList.toggle('on', R.saved);
+      saveBtn.setAttribute('aria-pressed', String(R.saved));
+      saveBtn.lastChild.textContent = t(R.saved ? 'read.saved' : 'read.save');
+      A.toast(t(R.saved ? 'read.saved_toast' : 'read.unsaved_toast'), 'ok');
+    });
+
     A.put(body,
       h('div', { class: 'read-bar' },
-        h('button', { class: 'btn btn-ghost btn-sm', type: 'button', onclick: () => { R = null; persist(); editor(body); } }, icon('back', 16), t('read.new')),
+        h('button', { class: 'btn btn-ghost btn-sm', type: 'button', onclick: () => { ctrl?.abort(); A.readlib.close(); R = null; editor(body); } }, icon('back', 16), t('read.new')),
         trBtn,
+        saveBtn,
+        h('button', { class: 'btn btn-ghost btn-sm', type: 'button', onclick: () => { ctrl?.abort(); editor(body, R); } }, icon('edit', 16), t('read.edit')),
+        versions(body),
         h('span', { class: 'grow' }),
         h('div', { class: 'read-legend' },
           h('span', { class: 'rw st-new' }, t('read.st_new')),
