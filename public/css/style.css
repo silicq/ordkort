@@ -76,7 +76,7 @@
     --card: #1e1b16;
     --ink: #f2ece1;
     --ink-2: #bdb4a4;
-    --ink-3: #8a8272;
+    --ink-3: #a59d8c; /* 4.5:1 or more on every dark surface, the yellow notes too */
     --line: #322d24;
     --line-2: #463f33;
     --blue: #4c63ee;
@@ -129,7 +129,7 @@
   --card: #1e1b16;
   --ink: #f2ece1;
   --ink-2: #bdb4a4;
-  --ink-3: #8a8272;
+  --ink-3: #a59d8c;
   --line: #322d24;
   --line-2: #463f33;
   --blue: #4c63ee;
