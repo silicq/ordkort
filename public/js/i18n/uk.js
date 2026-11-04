@@ -246,6 +246,8 @@ globalThis.App.i18nData.uk = {
   'dict.wk_source': 'Вікісловник · відкритий словник, пояснення англійською',
   'dict.wk_none': 'У Вікісловнику не знайдено.',
   'dict.wk_open': 'Відкрити у Вікісловнику',
+  'dict.free_source': "Вільний словник · {license}",
+  'dict.free_open': "Відкрити в {name}",
   'dict.refs': 'Словники мови',
   'dict.pick_default': 'за замовчуванням',
   'dict.pick_deck': 'До якої колоди?',

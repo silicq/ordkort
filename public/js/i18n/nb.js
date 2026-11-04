@@ -238,6 +238,8 @@ globalThis.App.i18nData.nb = {
   'dict.wk_source': 'Wiktionary · en åpen ordbok, forklaringer på engelsk',
   'dict.wk_none': 'Ikke funnet i Wiktionary.',
   'dict.wk_open': 'Åpne i Wiktionary',
+  'dict.free_source': "Fri ordbok · {license}",
+  'dict.free_open': "Åpne i {name}",
   'dict.refs': 'Ordbøker for språket',
   'dict.pick_default': 'standard',
   'dict.pick_deck': 'Hvilken kortstokk?',

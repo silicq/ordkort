@@ -8,6 +8,7 @@ import { takeAI, aiLeft, takeSimple, NET_OF_WHO } from '../core/limits.js';
 import { HttpError, json, readJSON, str, arr, int, sha256, norm, today } from '../core/util.js';
 import * as P from './prompts.js';
 import * as W from '../sources/wiktionary.js';
+import * as D from '../sources/dicts.js';
 
 const BUILT_IN_UI = ['en', 'ru', 'uk', 'nb', 'nn', 'ar', 'zh'];
 const UI_CHUNK = 90;
@@ -143,7 +144,8 @@ async function checkWords(env, target, words) {
       const w = todo[i++];
       try {
         const opts = { signal: ctrl.signal, budget };
-        const r = official ? await App.ordbok.verify(w, target, opts) : await W.check(cache, target, w, opts);
+        const r = official ? await App.ordbok.verify(w, target, opts)
+          : await W.check(cache, target, w, { ...opts, more: (lemma, pos) => D.entry(cache, target, lemma, pos, opts) });
         if (r && r.term !== w.term) w.gram = ''; // a gender label written for the wrong article
         if (r) { w.term = r.term; w.forms = r.forms; if (r.g) w.g = r.g; }
         w.chk = 1;
@@ -280,8 +282,12 @@ export async function lookup(request, env, key) {
 const inTime = (p) => Promise.race([p, new Promise((res) => setTimeout(() => res(null), 4000))]);
 async function groundFor(env, target, q) {
   if (W.hasEntries(target)) {
-    const r = await inTime(W.lookup(cacheOf(env), target, q, { budget: { left: 3 }, signal: AbortSignal.timeout(8000) })).catch(() => null);
-    return { ground: W.summary(r), source: 'wiktionary' };
+    const cache = cacheOf(env), signal = AbortSignal.timeout(8000);
+    const [r, more] = await Promise.all([
+      inTime(W.lookup(cache, target, q, { budget: { left: 3 }, signal })).catch(() => null),
+      inTime(D.lookup(cache, target, q, { budget: { left: 4 }, signal })).catch(() => null),
+    ]);
+    return { ground: [W.summary(r), D.summary(more || [])].filter(Boolean).join('\n'), source: 'wiktionary' };
   }
   return { ground: await officialSummary(env, target, q), source: 'official' };
 }
@@ -299,7 +305,8 @@ async function officialSummary(env, target, q) {
   }
 }
 
-/* ---------- the Wiktionary entry shown next to the AI one (languages without an official dictionary here) ---------- */
+/* ---------- the dictionaries shown next to the AI entry (languages without an official dictionary here) ----------
+   Wiktionary, and in `more` the free dictionaries of src/sources/dicts.js that have the word */
 export async function wikt(request, env, key) {
   const b = await readJSON(request, 2000);
   const { target } = pairOf(b);
@@ -308,10 +315,15 @@ export async function wikt(request, env, key) {
   if (!W.hasEntries(target)) throw new HttpError(400, 'bad_lang');
   const cache = cacheOf(env);
   // a word someone looked up before costs Wikimedia nothing; a new one takes from a small hourly limit
-  if (!(await cache.get(`wk3:${target}:${W.plain(q, target)}`, 30 * 864e5))) await takeSimple(env, 'wikt', key, 120, 36e5);
-  const r = await W.lookup(cache, target, q, { budget: { left: 3 }, signal: AbortSignal.timeout(8000) })
-    .catch(() => { throw new HttpError(503, 'busy'); });
-  return json(r ? { found: true, ...r } : { found: false });
+  const seen = await cache.get(`wk3:${target}:${W.plain(q, target)}`, 30 * 864e5) && await cache.get(`lx1:${target}:${W.plain(q, target)}`, 30 * 864e5);
+  if (!seen) await takeSimple(env, 'wikt', key, 120, 36e5);
+  const signal = AbortSignal.timeout(8000);
+  const [r, more] = await Promise.all([
+    W.lookup(cache, target, q, { budget: { left: 3 }, signal }).catch(() => null),
+    D.lookup(cache, target, q, { budget: { left: 4 }, signal }).catch(() => []),
+  ]);
+  if (!r && !more.length) return json({ found: false });
+  return json({ found: true, ...(r || { articles: [] }), more: D.shown(more) });
 }
 
 /* ---------- textbook chapter ---------- */

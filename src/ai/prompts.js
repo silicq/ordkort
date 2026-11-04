@@ -129,10 +129,10 @@ Reply with every card, in the same order, with its "i". JSON shape: {"words":[${
 
 export function lookupPrompt({ target, native, q, ground, source = 'official' }) {
   const T = nameOf(target), N = nameOf(native);
-  // Wiktionary lists no idioms here and only key forms, so it grounds what it has without limiting the rest
+  // Wiktionary and the free dictionaries list no idioms and not every form, so they ground what they have without limiting the rest
   const grounding = !ground ? ''
     : source === 'wiktionary'
-      ? `\nWIKTIONARY DATA for this query — treat the lemma, word class, gender, the forms listed and the meanings as ground truth and translate the meanings into ${N} (simplify them Lexin style). Complete the paradigm, examples and fixed expressions yourself where it has none, only with what you are sure of, and never contradict it. It may list several words spelt alike: describe the one the query most likely means. Still write "pos_label" and all table labels in ${N}:\n${ground}\n`
+      ? `\nOPEN DICTIONARY DATA for this query (Wiktionary and the free dictionaries named in it) — treat the lemma, word class, gender, the forms listed and the meanings as ground truth and translate the meanings into ${N} (simplify them Lexin style). Complete the paradigm, examples and fixed expressions yourself where it has none, only with what you are sure of, and never contradict it. It may list several words spelt alike: describe the one the query most likely means. Still write "pos_label" and all table labels in ${N}:\n${ground}\n`
       : `\nOFFICIAL DICTIONARY DATA for this query — treat it as ground truth. Take the lemma, word class, all forms, meanings, examples, fixed expressions and etymology from it and translate them into ${N}. You may simplify definitions (Lexin style) and add common compounds, but never contradict it and do not invent idioms that are not listed here. Still write "pos_label" and all table labels in ${N}:\n${ground}\n`;
   const user = `Write a learner's dictionary entry — in the style of the Norwegian dictionaries ordbokene.no and Lexin (bilingual, for immigrants) — for a ${N} speaker learning ${T}.
 Query: ${JSON.stringify(q)}${grounding}

@@ -125,14 +125,15 @@
     const refSlot = h('div', { class: 'slot-ob' }, A.skeleton(5));
     out.replaceChildren(h('div', { class: 'dict-grid two' }, aiSlot, refSlot));
 
-    // the dictionary is shown right away: the official one for Norwegian (asked from here), Wiktionary for other
-    // languages (through our server); the server passes the same data to the AI as ground truth itself
+    // the dictionary is shown right away: the official one for Norwegian (asked from here), Wiktionary and the free
+    // dictionaries that have the word for other languages (through our server: Wikidata, BÍN for Icelandic, SALDO for
+    // Swedish); the server passes the same data to the AI as ground truth itself
     const ref = (w) => (A.ordbok.supports(T) ? A.ordbok.lookup(w, T, signal)
       : A.ai.wikt(w, { signal }).then((d) => (d?.found ? { wk: true, name: 'Wiktionary', ...d } : null))).catch(() => null);
     const refPromise = ref(q);
     refPromise.then((r) => {
       if (my !== seq || signal.aborted) return;
-      refSlot.replaceChildren(r?.articles?.length ? reference(r, q) : noReference(q));
+      refSlot.replaceChildren(...(found(r) ? references(r, q) : [noReference(q)]));
     });
 
     try {
@@ -143,9 +144,9 @@
       aiSlot.replaceChildren(e.found === false ? notFound(e, q) : entry(e, q));
       // the query was in the native language — show the dictionary's entry for the translation found
       const first = await refPromise;
-      if (e.found !== false && e.lemma && !first?.articles?.length && e.lemma.toLowerCase() !== q.toLowerCase()) {
+      if (e.found !== false && e.lemma && !found(first) && e.lemma.toLowerCase() !== q.toLowerCase()) {
         const r = await ref(e.lemma);
-        if (my === seq && r?.articles?.length) refSlot.replaceChildren(reference(r, e.lemma));
+        if (my === seq && found(r)) refSlot.replaceChildren(...references(r, e.lemma));
       }
     } catch (err) {
       if (my !== seq || err.name === 'AbortError') return;
@@ -227,6 +228,9 @@
   /* The dictionary next to the AI entry: ordbokene.no (Norwegian labels) or Wiktionary (English, `wk`), whose
      examples come with their translation */
   const wikiLink = (r) => `https://en.wiktionary.org/wiki/${encodeURIComponent(r.page)}${r.section ? '#' + encodeURIComponent(r.section) : ''}`;
+  const found = (r) => !!(r?.articles?.length || r?.more?.length);
+  // Wiktionary's entry, then each free dictionary that has the word (`url`: its page, `license`)
+  const references = (r, q) => [r.articles?.length ? reference(r, q) : null, ...(r.more || []).map((d) => reference({ wk: true, ...d }, q))].filter(Boolean);
   function reference(r, q) {
     const T = A.store.settings.target;
     const exLine = (x) => h('p', { class: 'ob-ex' }, A.lt(x.text, T, 'serif'), x.tr ? h('span', { class: 'ob-tr' }, ' — ' + x.tr) : null);
@@ -239,7 +243,7 @@
     return h('aside', { class: 'official' },
       h('div', { class: 'official-head' },
         h('span', { class: 'official-badge' + (r.wk ? ' wk' : '') }, r.name),
-        h('small', null, t(r.wk ? 'dict.wk_source' : 'dict.ob_source'))),
+        h('small', null, r.url ? t('dict.free_source', { license: r.license }) : t(r.wk ? 'dict.wk_source' : 'dict.ob_source'))),
       r.articles.map((a) => h('div', { class: 'oa' },
         h('div', { class: 'oa-head' },
           h('h3', { class: 'serif', lang: T }, a.lemma, a.hgno ? h('sup', null, a.hgno) : null),
@@ -250,9 +254,9 @@
         a.expr?.length ? h('div', { class: 'ob-block' }, h('h4', null, r.labels.expr),
           h('ul', { class: 'ob-expr' }, a.expr.slice(0, 8).map((x) => h('li', null, h('b', { lang: T }, x.text), x.meaning ? ' — ' + x.meaning : '')))) : null,
         a.etym ? h('p', { class: 'ob-etym' }, h('span', { class: 'k' }, r.wk ? 'Etymology' : r.labels.etym), a.etym) : null)),
-      h('a', { class: 'link-btn small', href: r.wk ? wikiLink(r) : A.ordbok.link(q), target: '_blank', rel: 'noopener' },
-        t(r.wk ? 'dict.wk_open' : 'dict.ob_open'), icon('external', 14)),
-      r.wk ? refLinks(T, r.page) : null);
+      h('a', { class: 'link-btn small', href: r.url || (r.wk ? wikiLink(r) : A.ordbok.link(q)), target: '_blank', rel: 'noopener' },
+        r.url ? t('dict.free_open', { name: r.name }) : t(r.wk ? 'dict.wk_open' : 'dict.ob_open'), icon('external', 14)),
+      r.wk && !r.url ? refLinks(T, r.page) : null);
   }
   function noReference(q) {
     const T = A.store.settings.target;

@@ -54,7 +54,13 @@ Ordkort is a lightweight site for learning almost any language from almost any o
   forms Wiktionary has never heard of are dropped. The dictionary page for these languages shows the
   Wiktionary entry next to the AI one (gender, key forms, pronunciation, senses with short examples, origin;
   explanations in English), uses it as ground truth for the AI entry, and links to the main dictionaries of
-  the language (RAE, Duden, Larousse, Treccani, Jisho…). Translations still come from the AI alone.
+  the language (RAE, Duden, Larousse, Treccani, Jisho…). Wiktionary has no entry, or no table, for many words,
+  so free dictionaries stand beside it, each shown with its name, licence and a link, and used the same way
+  (ground for the AI entry, and the check of a card where Wiktionary cannot tell): [Wikidata
+  Lexemes](https://www.wikidata.org/wiki/Wikidata:Lexicographical_data) (CC0) for every language, with every
+  form and its features, the gender and IPA; [BÍN](https://bin.arnastofnun.is) (CC BY-SA 4.0) for Icelandic;
+  [SALDO](https://spraakbanken.gu.se/resurs/saldom) of Språkbanken (CC BY 4.0) for Swedish. Translations
+  still come from the AI alone.
 - **Grammar book**: 15 chapters by part of speech (nouns, adjectives, verbs, word order…) with tables,
   examples, typical mistakes and exercises, plus free-form grammar questions.
 - **Translator with explanations**: every word colour-coded by part of speech, with its form and the rule
@@ -171,6 +177,7 @@ src/               Cloudflare Worker — runs only for /api/*
                    group of the shared word bank, from the decks used most to the rarer ones
   sources/         other sites the Worker reads
     wiktionary.js  Wiktionary for other languages: checks cards, the dictionary entry, recordings
+    dicts.js       the free dictionaries beside it: lexemes.js (Wikidata), bin.js (Icelandic), saldo.js (Swedish)
     images.js      free pictures (Wikidata/Commons, Pixabay, Openverse) and the picture proxy
     voice.js       a voice for cards without a recording
   decks/           decks that leave the device
@@ -330,7 +337,8 @@ npm run deploy
   ('wasm-unsafe-eval') only for SQLite, which reads and writes Anki packages and loads from the site itself
   the first time someone imports or exports. The only third-party
   request from the browser is the open ordbokene.no API for Norwegian. The server looks words up in
-  Wiktionary (only the word, with a User-Agent as Wikimedia asks) and caches the answers for 30 days.
+  Wiktionary, Wikidata, BÍN and SALDO (only the word, with a User-Agent as Wikimedia asks) and caches the answers
+  for 30 days.
   Pictures for cards are searched (Wikidata, Wikimedia Commons, Pixabay, Openverse) and fetched by the server too, so the visitor’s IP never reaches
   other sites: https only, raster images of at most 5 MB, under an hourly limit per person.
 - Worker request logs are off. Limit counters, link codes and abandoned sync copies are deleted

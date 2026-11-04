@@ -1,0 +1,70 @@
+{
+ "total": 1,
+ "hits": [
+  {
+   "entry": {
+    "inflectionTable": [
+     {
+      "msd": "sg indef nom",
+      "writtenForm": "hus"
+     },
+     {
+      "msd": "sg indef gen",
+      "writtenForm": "hus"
+     },
+     {
+      "msd": "sg def nom",
+      "writtenForm": "huset"
+     },
+     {
+      "msd": "sg def gen",
+      "writtenForm": "husets"
+     },
+     {
+      "msd": "pl indef nom",
+      "writtenForm": "hus"
+     },
+     {
+      "msd": "pl indef gen",
+      "writtenForm": "hus"
+     },
+     {
+      "msd": "pl def nom",
+      "writtenForm": "husen"
+     },
+     {
+      "msd": "pl def gen",
+      "writtenForm": "husens"
+     },
+     {
+      "msd": "ci",
+      "writtenForm": "hus-"
+     },
+     {
+      "msd": "ci",
+      "writtenForm": "hus"
+     },
+     {
+      "msd": "cm",
+      "writtenForm": "hus-"
+     },
+     {
+      "msd": "cm",
+      "writtenForm": "hus"
+     },
+     {
+      "msd": "sms",
+      "writtenForm": "hus-"
+     }
+    ],
+    "baseform": "hus",
+    "inherent": [
+     "n"
+    ],
+    "lemgram": "hus..nn.1",
+    "paradigm": "nn_6n_system",
+    "partOfSpeech": "nn"
+   }
+  }
+ ]
+}

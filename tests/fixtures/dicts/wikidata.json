@@ -1,0 +1,630 @@
+{
+ "de:Hund": {
+  "search": {
+   "search": [
+    {
+     "id": "L34727"
+    },
+    {
+     "id": "L32379"
+    }
+   ]
+  },
+  "entities": {
+   "entities": {
+    "L34727": {
+     "id": "L34727",
+     "lemmas": {
+      "de": {
+       "language": "de",
+       "value": "Hund"
+      }
+     },
+     "lexicalCategory": "Q1084",
+     "claims": {
+      "P5185": [
+       {
+        "mainsnak": {
+         "snaktype": "value",
+         "property": "P5185",
+         "hash": "432320b20cb3975ff4969b6ade525ca6bd81ca47",
+         "datavalue": {
+          "value": {
+           "entity-type": "item",
+           "numeric-id": 499327,
+           "id": "Q499327"
+          },
+          "type": "wikibase-entityid"
+         },
+         "datatype": "wikibase-item"
+        },
+        "type": "statement",
+        "id": "L34727$DB51D84F-13B0-45EA-8089-8D197C513CA1",
+        "rank": "normal"
+       }
+      ]
+     },
+     "forms": [
+      {
+       "representations": {
+        "de": {
+         "language": "de",
+         "value": "Hund"
+        }
+       },
+       "grammaticalFeatures": [
+        "Q110786",
+        "Q131105"
+       ],
+       "claims": {
+        "P898": [
+         {
+          "mainsnak": {
+           "snaktype": "value",
+           "property": "P898",
+           "hash": "6e429f556575b732fe0bae94d7a58ea180ff518d",
+           "datavalue": {
+            "value": "hʊnt",
+            "type": "string"
+           },
+           "datatype": "string"
+          },
+          "type": "statement",
+          "id": "L34727-F1$b1b1a4aa-4718-1593-0993-69f89b59c8ff",
+          "rank": "normal"
+         }
+        ]
+       }
+      },
+      {
+       "representations": {
+        "de": {
+         "language": "de",
+         "value": "Hunds"
+        }
+       },
+       "grammaticalFeatures": [
+        "Q110786",
+        "Q146233"
+       ],
+       "claims": {
+        "P898": [
+         {
+          "mainsnak": {
+           "snaktype": "value",
+           "property": "P898",
+           "hash": "15886320852a2adea09e35156a292af468796664",
+           "datavalue": {
+            "value": "hʊnt͡s",
+            "type": "string"
+           },
+           "datatype": "string"
+          },
+          "type": "statement",
+          "id": "L34727-F2$3d08894c-4cfa-a4c9-ae4b-af249d0fc003",
+          "rank": "normal"
+         }
+        ]
+       }
+      },
+      {
+       "representations": {
+        "de": {
+         "language": "de",
+         "value": "Hundes"
+        }
+       },
+       "grammaticalFeatures": [
+        "Q110786",
+        "Q146233"
+       ],
+       "claims": {
+        "P898": [
+         {
+          "mainsnak": {
+           "snaktype": "value",
+           "property": "P898",
+           "hash": "d605fb9e2fd38c1507b035704c77a33e04d85243",
+           "datavalue": {
+            "value": "ˈhʊndəs",
+            "type": "string"
+           },
+           "datatype": "string"
+          },
+          "type": "statement",
+          "id": "L34727-F3$361254e3-42e7-6ec1-b719-baab0a7b7d16",
+          "rank": "normal"
+         }
+        ]
+       }
+      },
+      {
+       "representations": {
+        "de": {
+         "language": "de",
+         "value": "Hund"
+        }
+       },
+       "grammaticalFeatures": [
+        "Q110786",
+        "Q145599"
+       ],
+       "claims": {}
+      },
+      {
+       "representations": {
+        "de": {
+         "language": "de",
+         "value": "Hunde"
+        }
+       },
+       "grammaticalFeatures": [
+        "Q110786",
+        "Q145599"
+       ],
+       "claims": {}
+      },
+      {
+       "representations": {
+        "de": {
+         "language": "de",
+         "value": "Hund"
+        }
+       },
+       "grammaticalFeatures": [
+        "Q110786",
+        "Q146078"
+       ],
+       "claims": {}
+      },
+      {
+       "representations": {
+        "de": {
+         "language": "de",
+         "value": "Hunde"
+        }
+       },
+       "grammaticalFeatures": [
+        "Q131105",
+        "Q146786"
+       ],
+       "claims": {}
+      },
+      {
+       "representations": {
+        "de": {
+         "language": "de",
+         "value": "Hunde"
+        }
+       },
+       "grammaticalFeatures": [
+        "Q146233",
+        "Q146786"
+       ],
+       "claims": {}
+      },
+      {
+       "representations": {
+        "de": {
+         "language": "de",
+         "value": "Hunden"
+        }
+       },
+       "grammaticalFeatures": [
+        "Q145599",
+        "Q146786"
+       ],
+       "claims": {}
+      },
+      {
+       "representations": {
+        "de": {
+         "language": "de",
+         "value": "Hunde"
+        }
+       },
+       "grammaticalFeatures": [
+        "Q146078",
+        "Q146786"
+       ],
+       "claims": {}
+      }
+     ],
+     "senses": [
+      {
+       "glosses": {
+        "de": {
+         "language": "de",
+         "value": "männlicher domestizierter Wolf"
+        },
+        "en": {
+         "language": "en",
+         "value": "male domestic animal"
+        }
+       }
+      },
+      {
+       "glosses": {
+        "de": {
+         "language": "de",
+         "value": "Sternenbild"
+        }
+       }
+      },
+      {
+       "glosses": {
+        "de": {
+         "language": "de",
+         "value": "Wappentier"
+        }
+       }
+      },
+      {
+       "glosses": {
+        "en": {
+         "language": "en",
+         "value": "person"
+        }
+       }
+      }
+     ]
+    }
+   }
+  },
+  "labels": {
+   "Q1084": "noun",
+   "Q110786": "singular",
+   "Q131105": "nominative case",
+   "Q145599": "dative case",
+   "Q146078": "accusative case",
+   "Q146233": "genitive case",
+   "Q146786": "plural",
+   "Q499327": "masculine"
+  }
+ },
+ "fi:talo": {
+  "search": {
+   "search": [
+    {
+     "id": "L29606"
+    },
+    {
+     "id": "L32379"
+    }
+   ]
+  },
+  "entities": {
+   "entities": {
+    "L29606": {
+     "id": "L29606",
+     "lemmas": {
+      "fi": {
+       "language": "fi",
+       "value": "talo"
+      }
+     },
+     "lexicalCategory": "Q1084",
+     "claims": {},
+     "forms": [
+      {
+       "representations": {
+        "fi": {
+         "language": "fi",
+         "value": "talo"
+        }
+       },
+       "grammaticalFeatures": [
+        "Q110786",
+        "Q131105"
+       ],
+       "claims": {}
+      },
+      {
+       "representations": {
+        "fi": {
+         "language": "fi",
+         "value": "talot"
+        }
+       },
+       "grammaticalFeatures": [
+        "Q131105",
+        "Q146786"
+       ],
+       "claims": {}
+      },
+      {
+       "representations": {
+        "fi": {
+         "language": "fi",
+         "value": "talon"
+        }
+       },
+       "grammaticalFeatures": [
+        "Q110786",
+        "Q146233"
+       ],
+       "claims": {}
+      },
+      {
+       "representations": {
+        "fi": {
+         "language": "fi",
+         "value": "talojen"
+        }
+       },
+       "grammaticalFeatures": [
+        "Q146233",
+        "Q146786"
+       ],
+       "claims": {}
+      },
+      {
+       "representations": {
+        "fi": {
+         "language": "fi",
+         "value": "taloa"
+        }
+       },
+       "grammaticalFeatures": [
+        "Q110786",
+        "Q857325"
+       ],
+       "claims": {}
+      },
+      {
+       "representations": {
+        "fi": {
+         "language": "fi",
+         "value": "taloja"
+        }
+       },
+       "grammaticalFeatures": [
+        "Q146786",
+        "Q857325"
+       ],
+       "claims": {}
+      },
+      {
+       "representations": {
+        "fi": {
+         "language": "fi",
+         "value": "talona"
+        }
+       },
+       "grammaticalFeatures": [
+        "Q110786",
+        "Q148465"
+       ],
+       "claims": {}
+      },
+      {
+       "representations": {
+        "fi": {
+         "language": "fi",
+         "value": "taloina"
+        }
+       },
+       "grammaticalFeatures": [
+        "Q146786",
+        "Q148465"
+       ],
+       "claims": {}
+      },
+      {
+       "representations": {
+        "fi": {
+         "language": "fi",
+         "value": "taloksi"
+        }
+       },
+       "grammaticalFeatures": [
+        "Q110786",
+        "Q950170"
+       ],
+       "claims": {}
+      },
+      {
+       "representations": {
+        "fi": {
+         "language": "fi",
+         "value": "taloiksi"
+        }
+       },
+       "grammaticalFeatures": [
+        "Q146786",
+        "Q950170"
+       ],
+       "claims": {}
+      },
+      {
+       "representations": {
+        "fi": {
+         "language": "fi",
+         "value": "talossa"
+        }
+       },
+       "grammaticalFeatures": [
+        "Q110786",
+        "Q282031"
+       ],
+       "claims": {}
+      },
+      {
+       "representations": {
+        "fi": {
+         "language": "fi",
+         "value": "taloissa"
+        }
+       },
+       "grammaticalFeatures": [
+        "Q146786",
+        "Q282031"
+       ],
+       "claims": {}
+      },
+      {
+       "representations": {
+        "fi": {
+         "language": "fi",
+         "value": "talosta"
+        }
+       },
+       "grammaticalFeatures": [
+        "Q110786",
+        "Q394253"
+       ],
+       "claims": {}
+      },
+      {
+       "representations": {
+        "fi": {
+         "language": "fi",
+         "value": "taloista"
+        }
+       },
+       "grammaticalFeatures": [
+        "Q146786",
+        "Q394253"
+       ],
+       "claims": {}
+      },
+      {
+       "representations": {
+        "fi": {
+         "language": "fi",
+         "value": "taloon"
+        }
+       },
+       "grammaticalFeatures": [
+        "Q110786",
+        "Q474668"
+       ],
+       "claims": {}
+      },
+      {
+       "representations": {
+        "fi": {
+         "language": "fi",
+         "value": "taloihin"
+        }
+       },
+       "grammaticalFeatures": [
+        "Q146786",
+        "Q474668"
+       ],
+       "claims": {}
+      },
+      {
+       "representations": {
+        "fi": {
+         "language": "fi",
+         "value": "talolla"
+        }
+       },
+       "grammaticalFeatures": [
+        "Q110786",
+        "Q281954"
+       ],
+       "claims": {}
+      },
+      {
+       "representations": {
+        "fi": {
+         "language": "fi",
+         "value": "taloilla"
+        }
+       },
+       "grammaticalFeatures": [
+        "Q146786",
+        "Q281954"
+       ],
+       "claims": {}
+      },
+      {
+       "representations": {
+        "fi": {
+         "language": "fi",
+         "value": "talolta"
+        }
+       },
+       "grammaticalFeatures": [
+        "Q110786",
+        "Q156986"
+       ],
+       "claims": {}
+      },
+      {
+       "representations": {
+        "fi": {
+         "language": "fi",
+         "value": "taloilta"
+        }
+       },
+       "grammaticalFeatures": [
+        "Q146786",
+        "Q156986"
+       ],
+       "claims": {}
+      },
+      {
+       "representations": {
+        "fi": {
+         "language": "fi",
+         "value": "talolle"
+        }
+       },
+       "grammaticalFeatures": [
+        "Q110786",
+        "Q655020"
+       ],
+       "claims": {}
+      },
+      {
+       "representations": {
+        "fi": {
+         "language": "fi",
+         "value": "taloille"
+        }
+       },
+       "grammaticalFeatures": [
+        "Q146786",
+        "Q655020"
+       ],
+       "claims": {}
+      }
+     ],
+     "senses": [
+      {
+       "glosses": {
+        "nl": {
+         "language": "nl",
+         "value": "huis"
+        },
+        "en": {
+         "language": "en",
+         "value": "house"
+        }
+       }
+      }
+     ]
+    }
+   }
+  },
+  "labels": {
+   "Q1084": "noun",
+   "Q110786": "singular",
+   "Q131105": "nominative case",
+   "Q146233": "genitive case",
+   "Q146786": "plural",
+   "Q148465": "essive case",
+   "Q156986": "ablative case",
+   "Q281954": "adessive case",
+   "Q282031": "inessive case",
+   "Q394253": "elative case",
+   "Q474668": "illative case",
+   "Q655020": "allative case",
+   "Q857325": "partitive case",
+   "Q950170": "translative case"
+  }
+ }
+}

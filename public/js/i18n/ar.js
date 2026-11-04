@@ -254,6 +254,8 @@ globalThis.App.i18nData.ar = {
   'dict.wk_source': 'ويكاموس · قاموس مفتوح، الشروح بالإنجليزية',
   'dict.wk_none': 'لم يُعثر عليها في ويكاموس.',
   'dict.wk_open': 'افتح في ويكاموس',
+  'dict.free_source': "قاموس حر · {license}",
+  'dict.free_open': "افتح في {name}",
   'dict.refs': 'قواميس اللغة',
   'dict.pick_default': 'افتراضي',
   'dict.pick_deck': 'إلى أي مجموعة؟',

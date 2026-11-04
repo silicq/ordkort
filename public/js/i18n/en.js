@@ -238,6 +238,8 @@ globalThis.App.i18nData.en = {
   'dict.wk_source': 'Wiktionary · an open dictionary, explanations in English',
   'dict.wk_none': 'Not found in Wiktionary.',
   'dict.wk_open': 'Open in Wiktionary',
+  'dict.free_source': "Free dictionary · {license}",
+  'dict.free_open': "Open in {name}",
   'dict.refs': 'Dictionaries of the language',
   'dict.pick_default': 'default',
   'dict.pick_deck': 'Which deck?',
