@@ -106,8 +106,11 @@ export const UI = {
       return [...en.map((e) => t(e, ': forms and examples')), ...en.map((e) => t(e, ''))].find((s) => s && s.length <= 60)
         || `${w} – Norwegian to English: meaning, forms, examples`;
     },
-    // the answer first, the forms with their names ("definite: huset"), so a snippet or an AI answer can quote it
-    wordDesc: (w, pos, tr, forms) => `The Norwegian ${pos} ${w} means “${tr}”.${forms ? ` ${forms}.` : ''} With examples and notes for learners.`,
+    // the answer first, the forms with their names ("definite: huset"), so a snippet or an AI answer can quote it; the
+    // page shows the same sentence under its headword. descMore: what follows in the description if it fits, the
+    // word's first example, else a line about the page
+    wordDesc: (w, pos, tr, forms) => `The Norwegian ${pos} ${w} means “${tr}”.${forms ? ` ${forms}.` : ''}`,
+    descMore: [(ex) => ` Example: “${ex}”`, ' With examples and notes for learners.'],
     namedForms: true, // the description gets the forms with their names (seo-pages.mjs, namedForms)
     ctaWord: (w) => `Learn “${w}” in Ordkort`,
     updated: 'Updated', report: 'Report a mistake',
@@ -152,7 +155,8 @@ export const UI = {
       p: 'Вставьте этот код на страницу школьного сайта или блога. Карточки работают на телефоне, без регистрации и рекламы.',
     },
     wordTitle: (w) => `${w} — перевод с норвежского, формы и примеры`,
-    wordDesc: (w, pos, tr, forms) => `${w} — норвежское слово (${pos}): ${tr}.${forms ? ` Формы: ${forms}.` : ''} Примеры с переводом и советы для изучающих.`,
+    wordDesc: (w, pos, tr, forms) => `${w} — норвежское слово (${pos}): ${tr}.${forms ? ` Формы: ${forms}.` : ''}`,
+    descMore: [(ex) => ` Пример: «${ex}»`, ' Примеры с переводом и советы для изучающих.'],
     ctaWord: (w) => `Учить «${w}» в Ordkort`,
     updated: 'Обновлено', report: 'Сообщить об ошибке',
     phH: 'Полезные сочетания', plain: 'Простыми словами по-норвежски', examplesH: 'Примеры', noteH: 'Что важно знать', formsH: 'Формы',
@@ -196,7 +200,8 @@ export const UI = {
       p: 'Вставте цей код на сторінку шкільного сайту чи блогу. Картки працюють на телефоні, без реєстрації та реклами.',
     },
     wordTitle: (w) => `${w} — переклад з норвезької, форми й приклади`,
-    wordDesc: (w, pos, tr, forms) => `${w} — норвезьке слово (${pos}): ${tr}.${forms ? ` Форми: ${forms}.` : ''} Приклади з перекладом і поради для тих, хто вчить мову.`,
+    wordDesc: (w, pos, tr, forms) => `${w} — норвезьке слово (${pos}): ${tr}.${forms ? ` Форми: ${forms}.` : ''}`,
+    descMore: [(ex) => ` Приклад: «${ex}»`, ' Приклади з перекладом і поради для тих, хто вчить мову.'],
     ctaWord: (w) => `Вчити «${w}» в Ordkort`,
     updated: 'Оновлено', report: 'Повідомити про помилку',
     phH: 'Корисні сполучення', plain: 'Простими словами норвезькою', examplesH: 'Приклади', noteH: 'Що важливо знати', formsH: 'Форми',
@@ -231,16 +236,11 @@ export const UI = {
     topicH1: (t) => `${t}: norske gloser`,
     topicDesc: (t, n, sample) => `${n} norske gloser om ${t.toLowerCase()} med bøyning og eksempelsetninger: ${sample}…`,
     ctaTopic: 'Øv på disse ordene med ordkort',
-    // what people search for in Norwegian: "å følge bøying", "altså på engelsk", "forsto eller forstod"
-    wordTitle: (w, x = {}) => {
-      const h = x.verb ? `å ${w}` : w, what = x.forms ? 'bøyning' : 'betydning';
-      const t = (en) => (en && en.toLowerCase() !== w.toLowerCase() ? `${h} – ${what} og på engelsk: ${en}` : '');
-      return [t(x.enFull?.replace(/^to /, '')), t(x.en)].find((s) => s && s.length <= 60) || `${h} – ${what}, betydning og eksempler`.replace('betydning, betydning', 'betydning');
-    },
-    wordDesc: (w, pos, tr, forms, x = {}) => {
-      const d = `«${x.verb ? `å ${w}` : w}» (${pos})${forms ? ` bøyes: ${forms}` : ''}.${x.en ? ` På engelsk: ${x.en}.` : ''} Betyr: ${tr}.`;
-      return d + (d.length < 100 ? ' Eksempelsetninger og tips for deg som lærer norsk.' : ' Med eksempler.');
-    },
+    // for those who learn Norwegian in Norwegian: the forms and a plain explanation. Not "på engelsk": with the English
+    // word in the title, Norwegians looking up a translation saw their answer in the results and had no reason to come in
+    wordTitle: (w, x = {}) => `${x.verb ? `å ${w}` : w} – ${x.forms ? 'bøyning' : 'betydning'} og eksempler på enkel norsk`,
+    wordDesc: (w, pos, tr, forms, x = {}) => `«${x.verb ? `å ${w}` : w}» (${pos})${forms ? ` bøyes: ${forms}` : ''}. Betyr: ${tr}.`,
+    descMore: [(ex) => ` Eksempel: «${ex}»`, ' Forklart på enkel norsk for deg som lærer språket.'],
     descKeepsForms: true, // the forms are what Norwegian searches ask for: the meaning is shortened first
     ctaWord: (w) => `Lær «${w}» i Ordkort`,
     updated: 'Oppdatert', report: 'Meld fra om feil',
@@ -287,7 +287,8 @@ export const UI = {
       p: 'Wklej ten kod na stronę szkoły albo bloga. Fiszki działają na telefonie, bez rejestracji i reklam.',
     },
     wordTitle: (w) => `${w} — tłumaczenie z norweskiego, formy i przykłady`,
-    wordDesc: (w, pos, tr, forms) => `${w} — słowo norweskie (${pos}): ${tr}.${forms ? ` Formy: ${forms}.` : ''} Przykłady z tłumaczeniem i wskazówki dla uczących się.`,
+    wordDesc: (w, pos, tr, forms) => `${w} — słowo norweskie (${pos}): ${tr}.${forms ? ` Formy: ${forms}.` : ''}`,
+    descMore: [(ex) => ` Przykład: „${ex}”`, ' Przykłady z tłumaczeniem i wskazówki dla uczących się.'],
     ctaWord: (w) => `Ucz się „${w}” w Ordkort`,
     updated: 'Zaktualizowano', report: 'Zgłoś błąd',
     phH: 'Przydatne zwroty', plain: 'Prostymi słowami po norwesku', examplesH: 'Przykłady', noteH: 'Warto wiedzieć', formsH: 'Formy',
@@ -347,7 +348,8 @@ export const UI = {
       p: 'الصق هذا الرمز في صفحة من موقع مدرستك أو مدوّنتك. البطاقات تعمل على الهاتف، بلا تسجيل وبلا إعلانات.',
     },
     wordTitle: (w) => `${w} — الترجمة من النرويجية، الصيغ والأمثلة`,
-    wordDesc: (w, pos, tr, forms) => `${w} — كلمة نرويجية (${pos}) معناها بالعربية: ${tr}.${forms ? ` الصيغ: ${forms}.` : ''} أمثلة مع الترجمة العربية ونصائح للمتعلّمين الناطقين بالعربية.`,
+    wordDesc: (w, pos, tr, forms) => `${w} — كلمة نرويجية (${pos}) معناها بالعربية: ${tr}.${forms ? ` الصيغ: ${forms}.` : ''}`,
+    descMore: [(ex) => ` مثال: «${ex}»`, ' أمثلة مع الترجمة العربية ونصائح للمتعلّمين الناطقين بالعربية.'],
     ctaWord: (w) => `تعلّم «${w}» في Ordkort`,
     updated: 'آخر تحديث', report: 'أبلغ عن خطأ',
     phH: 'عبارات مفيدة', plain: 'بنرويجية بسيطة', examplesH: 'أمثلة', noteH: 'من المفيد أن تعرف', formsH: 'الصيغ',

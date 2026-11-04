@@ -107,9 +107,15 @@
       const s = A.store.settings;
       const set = (patch, rerender = false) => { A.store.set(patch); if (rerender) A.route(); else A.toast(t('set.saved')); };
 
+      // a control without a label of its own is named by its row, so a screen reader says what it switches
+      const named = (control, label) => {
+        const els = control?.matches?.('input,select,textarea') ? [control] : [...(control?.querySelectorAll?.('input,select,textarea') || [])];
+        for (const el of els) if (!el.getAttribute('aria-label') && !el.labels?.length) el.setAttribute('aria-label', label);
+        return control;
+      };
       const row = (label, hint, control) => h('div', { class: 'set-row' },
         h('div', { class: 'set-label' }, h('b', null, label), hint ? h('small', null, hint) : null),
-        h('div', { class: 'set-ctl' }, control));
+        h('div', { class: 'set-ctl' }, named(control, label)));
       const card = (title, ...rows) => h('section', { class: 'set-card' }, h('h2', null, title), rows);
       // two columns that fill on their own; in one column (a phone) `--o` puts the cards in the order of use
       const col = (...cards) => h('div', { class: 'set-col' }, cards);

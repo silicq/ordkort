@@ -76,7 +76,7 @@
     --card: #1e1b16;
     --ink: #f2ece1;
     --ink-2: #bdb4a4;
-    --ink-3: #8a8272;
+    --ink-3: #a59d8c; /* 4.5:1 or more on every dark surface, the yellow notes too */
     --line: #322d24;
     --line-2: #463f33;
     --blue: #4c63ee;
@@ -129,7 +129,7 @@
   --card: #1e1b16;
   --ink: #f2ece1;
   --ink-2: #bdb4a4;
-  --ink-3: #8a8272;
+  --ink-3: #a59d8c;
   --line: #322d24;
   --line-2: #463f33;
   --blue: #4c63ee;
@@ -539,8 +539,8 @@ textarea.input { resize: vertical; min-height: 64px; line-height: 1.45; }
   color: var(--ink-3);
   font-size: 13px;
 }
-.foot-links { display: flex; flex-wrap: wrap; gap: 6px 18px; }
-.foot-links a { color: var(--ink-2); text-decoration: none; }
+.foot-links { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 18px; }
+.foot-links a { display: inline-block; padding: 10px 0; color: var(--ink-2); text-decoration: none; } /* a finger needs about 44px */
 .foot-links a:hover { text-decoration: underline; }
 
 /* ---------- home ---------- */
@@ -719,7 +719,7 @@ textarea.input { resize: vertical; min-height: 64px; line-height: 1.45; }
 
 /* ---------- deck ---------- */
 /* a.back, not .back: the back of a flashcard is .face.back */
-a.back { display: inline-flex; align-items: center; gap: 6px; margin-bottom: 14px; color: var(--ink-2); text-decoration: none; font-weight: 550; font-size: 14.5px; }
+a.back { display: inline-flex; align-items: center; gap: 6px; margin-bottom: 4px; padding: 10px 0; color: var(--ink-2); text-decoration: none; font-weight: 550; font-size: 14.5px; }
 a.back:hover { color: var(--ink); }
 [dir='rtl'] .ico-back, [dir='rtl'] .ico-arrow, [dir='rtl'] .ico-next { transform: scaleX(-1); }
 .deck-hero { display: flex; align-items: center; gap: 18px; margin-bottom: 20px; }
@@ -1373,7 +1373,7 @@ dialog.modal::backdrop { background: rgba(20, 16, 10, 0.45); backdrop-filter: bl
 .mcp-url { margin: 12px 0; }
 .mcp-url .input { flex: 1; min-width: 0; }
 .mcp-how { margin-bottom: 12px; font-size: 14px; }
-.mcp-how summary { cursor: pointer; color: var(--blue-ink); font-weight: 600; }
+.mcp-how summary { padding: 10px 0; cursor: pointer; color: var(--blue-ink); font-weight: 600; }
 .mcp-how code { font: 500 12.5px ui-monospace, Consolas, monospace; overflow-wrap: anywhere; }
 .mcp-card .about-links { margin-top: 4px; }
 
@@ -1531,6 +1531,10 @@ dialog.modal::backdrop { background: rgba(20, 16, 10, 0.45); backdrop-filter: bl
   .onb-tap { top: 322px; inset-inline: 0; text-align: center; }
   .onb-hero { min-height: 0; display: flex; flex-direction: column; }
   .onb-hero .onb-cards { order: -1; }
+  /* the way in right under the title, on the first screen of a phone; the list of features follows it */
+  .onb-hero .onb-feats { order: 1; }
+  .onb-hero .onb-note { order: 2; }
+  .onb-hero .lede { margin-bottom: 20px; }
 }
 
 @media (max-width: 760px) {
@@ -1690,7 +1694,7 @@ dialog.modal::backdrop { background: rgba(20, 16, 10, 0.45); backdrop-filter: bl
 .about-item .link-btn { margin-top: 10px; }
 .about-foot { margin-top: 26px; }
 .onb-note { margin: 16px 0 0; }
-.onb-note a { color: var(--blue-ink); }
+.onb-note a { display: inline-block; padding: 12px 0; color: var(--blue-ink); } /* a finger needs about 44px */
 .view-about.onboarding-mode .main, .view-link.onboarding-mode .main { padding-top: 0; }
 
 @media (max-width: 560px) {
@@ -1881,7 +1885,7 @@ html.kb-open body.view-study .flash-tag { height: 26px; }
 .chart-tip { position: absolute; z-index: 900; display: flex; flex-direction: column; gap: 1px; padding: 7px 11px; border-radius: 10px; background: var(--ink); color: var(--paper); font-size: 12.5px; pointer-events: none; box-shadow: var(--shadow); }
 .chart-tip b { font-size: 15px; }
 .chart-table { margin-top: 10px; }
-.chart-table summary { cursor: pointer; font-size: 13px; color: var(--blue-ink); font-weight: 600; }
+.chart-table summary { padding: 10px 0; cursor: pointer; font-size: 13px; color: var(--blue-ink); font-weight: 600; }
 .chart-table .ptable { margin-top: 10px; width: 100%; }
 .stage-bar { display: flex; gap: 2px; height: 30px; margin: 14px 0 12px; border-radius: 8px; overflow: hidden; }
 .stage-bar .seg { display: grid; place-items: center; min-width: 4px; outline: none; }
@@ -1906,7 +1910,7 @@ html.kb-open body.view-study .flash-tag { height: 26px; }
 .hard-list li:first-child { border-top: 0; }
 .hard-list .serif { font-size: 17px; font-weight: 600; }
 .hard-list .pill { margin-inline-start: auto; }
-.stats-link { display: inline-flex; align-items: center; gap: 6px; margin-top: 12px; font-size: 13.5px; font-weight: 600; color: var(--blue-ink); text-decoration: none; }
+.stats-link { display: inline-flex; align-items: center; gap: 6px; margin-top: 2px; padding: 10px 0; font-size: 13.5px; font-weight: 600; color: var(--blue-ink); text-decoration: none; }
 .stats-link:hover { text-decoration: underline; }
 .goal-line { display: flex; align-items: center; gap: 10px; margin-top: 12px; font-size: 13px; color: var(--ink-2); }
 .goal-line .meter { flex: 1; margin: 0; }

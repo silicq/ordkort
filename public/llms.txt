@@ -16,6 +16,7 @@ To restyle the site, call design_guide first: it describes how a look is applied
 - [Русский](https://ordkort.com/ru/)
 - [Українська](https://ordkort.com/uk/)
 - [Norsk](https://ordkort.com/nb/)
+- [Polski](https://ordkort.com/pl/)
 - [العربية](https://ordkort.com/ar/)
 - [中文](https://ordkort.com/zh/)
 
@@ -31,6 +32,17 @@ Plain HTML pages for learners of Norwegian (Bokmål), in six interface languages
 - [العربية: النرويجية حسب الموضوع](https://ordkort.com/ar/narwiji/) · [القاموس النرويجي العربي](https://ordkort.com/ar/ordbok/nb/)
 
 The topic lists hold only words checked by hand; the forms come from Bokmålsordboka, and where several dictionary entries are spelt alike the right one is chosen by hand. A word with æ, ø or å has an ASCII address (gå → /ordbok/nb/gaa/); the address with the letter itself redirects there.
+
+## Norwegian flashcards and Anki decks
+
+A page in each language that opens a topic straight in the app, and Anki decks of the checked topic words (one per topic, and one with every topic), with forms and example sentences.
+
+- [Norwegian flashcards](https://ordkort.com/en/norwegian/flashcards/) · [Anki deck](https://ordkort.com/anki/ordkort-norsk-en.apkg)
+- [Норвежские слова на карточках](https://ordkort.com/ru/norvezhskij/kartochki/) · [Anki](https://ordkort.com/anki/ordkort-norsk-ru.apkg)
+- [Норвезька за картками](https://ordkort.com/uk/norvezka/kartky/) · [Anki](https://ordkort.com/anki/ordkort-norsk-uk.apkg)
+- [Norske ordkort](https://ordkort.com/nb/norsk/ordkort/)
+- [Fiszki do norweskiego](https://ordkort.com/pl/norweski/fiszki/) · [Anki](https://ordkort.com/anki/ordkort-norsk-pl.apkg)
+- [بطاقات لتعلّم النرويجية](https://ordkort.com/ar/narwiji/bitaqat/) · [Anki](https://ordkort.com/anki/ordkort-norsk-ar.apkg)
 
 ## For teachers of Norwegian
 

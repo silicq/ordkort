@@ -6,7 +6,7 @@ export const ABOUT = {
   en: {
     path: '/en/about/', nav: 'About Ordkort',
     title: 'About Ordkort: who makes it and where the words come from',
-    desc: 'Ordkort is a free, open-source site for learning words. Who builds it, where the Norwegian words, forms and translations come from, and how mistakes are corrected.',
+    desc: 'Ordkort is a free, open-source site for learning words: who builds it, where its Norwegian words and forms come from, and how mistakes are corrected.',
     h1: 'About Ordkort',
     lede: ['Ordkort is a free, open-source web app for learning vocabulary with flashcards and spaced repetition. It has no ads, no accounts and no tracking: your cards stay in your browser.'],
     sections: [
@@ -75,7 +75,7 @@ export const ABOUT = {
   nb: {
     path: '/nb/om/', nav: 'Om Ordkort',
     title: 'Om Ordkort: hvem som lager det og hvor ordene kommer fra',
-    desc: 'Ordkort er et gratis nettsted med åpen kildekode for å lære ord. Hvem som lager det, hvor ordene, bøyningen og oversettelsene kommer fra, og hvordan feil blir rettet.',
+    desc: 'Ordkort er et gratis nettsted med åpen kildekode for å lære ord: hvem som lager det, hvor ordene og bøyningen kommer fra, og hvordan feil blir rettet.',
     h1: 'Om Ordkort',
     lede: ['Ordkort er en gratis nettapp med åpen kildekode for å lære ord med ordkort og repetisjon med økende mellomrom. Den har ingen reklame, ingen brukerkontoer og ingen sporing: kortene dine blir i nettleseren din.'],
     sections: [

@@ -14,7 +14,7 @@ const REPO = 'https://github.com/silicq/ordkort';
 export const MAIL = 'hei@ordkort.com'; // questions and help (src/mail.js)
 // the site and who publishes it, in the schema of every static page (the word pages' isPartOf points here)
 export const SITE_NODES = [
-  { '@type': 'WebSite', '@id': `${SITE}/#site`, url: `${SITE}/`, name: 'Ordkort', publisher: { '@id': `${SITE}/#org` } },
+  { '@type': 'WebSite', '@id': `${SITE}/#site`, url: `${SITE}/`, name: 'Ordkort', inLanguage: ['en', 'ru', 'uk', 'nb', 'pl', 'ar', 'zh-Hans'], publisher: { '@id': `${SITE}/#org` } },
   {
     '@type': 'Organization', '@id': `${SITE}/#org`, name: 'Ordkort', url: `${SITE}/`, email: MAIL, sameAs: [REPO],
     logo: { '@type': 'ImageObject', url: `${SITE}/icons/icon-512.png`, width: 512, height: 512 },
@@ -28,8 +28,8 @@ const LANGS = globalThis.App.langs.list;
 export const PAGES = {
   en: {
     hreflang: 'en', htmlLang: 'en', locale: 'en_US', name: 'English',
-    title: 'Ordkort — learn any language with flashcards, free and without ads',
-    desc: 'Free flashcards with spaced repetition for 60 languages: ready word lists by topic, a dictionary, grammar and a translator that explains every word. No ads, no sign-up.',
+    title: 'Ordkort — learn any language with flashcards, free, no ads',
+    desc: 'Free flashcards with spaced repetition for 60 languages: word lists by topic, a dictionary, grammar and a translator that explains every word. No ads.',
     h1: 'Learn any language with flashcards',
     lede: 'Ordkort gives you ready word lists for your topic and level, reminds you of each word just before you would forget it, and explains the grammar behind it. Free, without ads and without an account.',
     cta: 'Start learning',
@@ -75,8 +75,8 @@ export const PAGES = {
 
   ru: {
     hreflang: 'ru', htmlLang: 'ru', locale: 'ru_RU', name: 'Русский',
-    title: 'Ordkort — изучение языков по карточкам, бесплатно и без рекламы',
-    desc: 'Бесплатные карточки с интервальным повторением для 60 языков: готовые слова по темам, словарь, грамматика и переводчик, который объясняет каждое слово. Без рекламы и регистрации.',
+    title: 'Ordkort — языки по карточкам, бесплатно и без рекламы',
+    desc: 'Бесплатные карточки с интервальным повторением для 60 языков: слова по темам, словарь, грамматика и переводчик, который объясняет каждое слово. Без рекламы.',
     h1: 'Учите любой язык по карточкам',
     lede: 'Ordkort подбирает слова по теме и уровню, напоминает каждое слово как раз перед тем, как вы его забудете, и объясняет грамматику. Бесплатно, без рекламы и без аккаунта.',
     cta: 'Начать учить',
@@ -122,8 +122,8 @@ export const PAGES = {
 
   uk: {
     hreflang: 'uk', htmlLang: 'uk', locale: 'uk_UA', name: 'Українська',
-    title: 'Ordkort — вивчення мов за картками, безкоштовно й без реклами',
-    desc: 'Безкоштовні картки з інтервальним повторенням для 60 мов: готові слова за темами, словник, граматика й перекладач, що пояснює кожне слово. Без реклами й реєстрації.',
+    title: 'Ordkort — мови за картками, безкоштовно й без реклами',
+    desc: 'Безкоштовні картки з інтервальним повторенням для 60 мов: слова за темами, словник, граматика й перекладач, що пояснює кожне слово. Без реклами.',
     h1: 'Вивчайте будь-яку мову за картками',
     lede: 'Ordkort добирає слова за темою й рівнем, нагадує кожне слово саме тоді, коли ви от-от його забудете, і пояснює граматику. Безкоштовно, без реклами й без акаунта.',
     cta: 'Почати вчити',
@@ -169,8 +169,8 @@ export const PAGES = {
 
   nb: {
     hreflang: 'nb', htmlLang: 'nb', locale: 'nb_NO', name: 'Norsk',
-    title: 'Ordkort — lær språk med ordkort: gratis, uten reklame og innlogging',
-    desc: 'Gratis ordkort med repetisjon til rett tid for 60 språk: ferdige gloser etter tema, ordbok, grammatikk og en oversetter som forklarer hvert ord. Uten reklame og innlogging.',
+    title: 'Ordkort — lær språk med ordkort, gratis og uten reklame',
+    desc: 'Gratis ordkort med repetisjon til rett tid for 60 språk: gloser etter tema, ordbok, grammatikk og en oversetter som forklarer hvert ord. Uten reklame.',
     h1: 'Lær hvilket som helst språk med ordkort',
     lede: 'Ordkort gir deg ferdige gloser for tema og nivå, minner deg på hvert ord akkurat før du ville glemt det, og forklarer grammatikken bak. Gratis, uten reklame og uten konto.',
     cta: 'Begynn å lære',
@@ -216,7 +216,7 @@ export const PAGES = {
 
   ar: {
     hreflang: 'ar', htmlLang: 'ar', locale: 'ar_AR', name: 'العربية', rtl: true,
-    title: 'Ordkort — تعلّم أي لغة بالبطاقات التعليمية مجانًا وبلا إعلانات',
+    title: 'Ordkort — تعلّم أي لغة بالبطاقات مجانًا وبلا إعلانات',
     desc: 'بطاقات تعليمية مجانية بالتكرار المتباعد لستين لغة: كلمات جاهزة حسب الموضوع، وقاموس، وقواعد، ومترجم يشرح كل كلمة. بلا إعلانات وبلا تسجيل.',
     h1: 'تعلّم أي لغة بالبطاقات التعليمية',
     lede: 'يقدّم لك Ordkort كلمات جاهزة حسب الموضوع والمستوى، ويذكّرك بكل كلمة قبيل أن تنساها، ويشرح القواعد وراءها. مجانًا، بلا إعلانات وبلا حساب.',
@@ -310,7 +310,7 @@ export const PAGES = {
   pl: {
     hreflang: 'pl', htmlLang: 'pl', locale: 'pl_PL', name: 'Polski',
     title: 'Ordkort — ucz się języków z fiszkami, za darmo i bez reklam',
-    desc: 'Darmowe fiszki z powtórkami w odstępach dla 60 języków: gotowe listy słówek według tematów, słownik, gramatyka i tłumacz, który wyjaśnia każde słowo. Bez reklam i bez rejestracji.',
+    desc: 'Darmowe fiszki z powtórkami w odstępach dla 60 języków: słówka według tematów, słownik, gramatyka i tłumacz, który wyjaśnia każde słowo. Bez reklam.',
     h1: 'Ucz się dowolnego języka z fiszkami',
     lede: 'Ordkort daje gotowe listy słówek do twojego tematu i poziomu, przypomina każde słowo tuż przed tym, zanim je zapomnisz, i wyjaśnia gramatykę, która za nim stoi. Za darmo, bez reklam i bez konta.',
     cta: 'Zacznij naukę',
@@ -374,7 +374,7 @@ const STYLE = `
 --blue:#2f4bd9;--blue-ink:#2139b0;--blue-edge:#1d2f96;--red:#d9481f;--yellow-soft:#fbf0ce;--rule:rgba(47,75,217,.1);--red-line:rgba(217,72,31,.5);--noise:.05;
 --shadow:0 1px 0 rgba(29,26,22,.04),0 14px 30px -20px rgba(60,40,10,.4);--lift:0 1px 0 var(--line-2),0 28px 50px -30px rgba(40,30,10,.55);
 --ui:'Geologica','Readex Pro',system-ui,-apple-system,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;--serif:'Literata','Noto Naskh Arabic',Georgia,'Songti SC','SimSun',serif;color-scheme:light}
-@media (prefers-color-scheme:dark){:root{--paper:#15130f;--paper-2:#26221b;--card:#1e1b16;--ink:#f2ece1;--ink-2:#bdb4a4;--ink-3:#8a8272;--line:#322d24;--line-2:#463f33;
+@media (prefers-color-scheme:dark){:root{--paper:#15130f;--paper-2:#26221b;--card:#1e1b16;--ink:#f2ece1;--ink-2:#bdb4a4;--ink-3:#a59d8c;--line:#322d24;--line-2:#463f33;
 --blue:#4c63ee;--blue-ink:#a9b6ff;--blue-edge:#2e40b8;--red:#e0592f;--yellow-soft:#3a3120;--rule:rgba(140,160,255,.07);--red-line:rgba(255,122,80,.42);--noise:.035;
 --shadow:0 1px 0 rgba(0,0,0,.3),0 14px 30px -18px rgba(0,0,0,.7);--lift:0 1px 0 var(--line-2),0 28px 50px -24px rgba(0,0,0,.8);color-scheme:dark}}
 *{box-sizing:border-box}
@@ -447,8 +447,8 @@ summary{cursor:pointer;font-weight:600}
 details p{margin:10px 0 2px;color:var(--ink-2)}
 .end{text-align:center}
 .end p{color:var(--ink-2);margin:0 auto 24px;max-width:34em}
-footer{border-top:1px solid var(--line);padding:26px 0 40px;color:var(--ink-3);font-size:14px;display:flex;gap:18px;flex-wrap:wrap}
-footer a{color:var(--ink-2)}
+footer{border-top:1px solid var(--line);padding:16px 0 30px;color:var(--ink-3);font-size:14px;display:flex;align-items:baseline;gap:0 18px;flex-wrap:wrap}
+footer a{display:inline-block;padding:10px 0;color:var(--ink-2)}
 @media (max-width:820px){.hero{grid-template-columns:1fr;gap:44px;padding:24px 0 64px}.demo{height:240px}}
 @media (prefers-reduced-motion:reduce){.fc,.fc-in{animation:none}}
 :lang(ar){line-height:1.8}:lang(ar) h1,:lang(ar) h2{font-family:'Noto Naskh Arabic',var(--serif)}
@@ -460,7 +460,7 @@ function jsonLd(code, p) {
       '@type': 'WebApplication', '@id': `${SITE}/#app`, name: 'Ordkort', url: `${SITE}/`,
       description: p.desc, applicationCategory: 'EducationalApplication', operatingSystem: 'Any (web browser)',
       browserRequirements: 'Requires JavaScript', isAccessibleForFree: true,
-      offers: { '@type': 'Offer', price: '0', priceCurrency: 'EUR' },
+      offers: { '@type': 'Offer', price: '0', priceCurrency: 'EUR', availability: 'https://schema.org/OnlineOnly' },
       inLanguage: CODES.map((c) => PAGES[c].hreflang), license: 'https://www.gnu.org/licenses/agpl-3.0.html',
       sameAs: [REPO], featureList: p.features.map(([h]) => h),
       provider: { '@id': `${SITE}/#org` }, isPartOf: { '@id': `${SITE}/#site` },
@@ -504,6 +504,7 @@ ${alternates}
   <meta property="og:locale" content="${p.locale}">
 ${ogAlt}
   <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="${SITE}/og.jpg">
   <link rel="stylesheet" href="/css/fonts.css">
   <style>${STYLE.trim()}</style>
   <script type="application/ld+json">${jsonLd(code, p)}</script>

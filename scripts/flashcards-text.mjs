@@ -17,8 +17,8 @@ export const FLASH = {
   },
   ru: {
     slug: 'kartochki', nav: 'Карточки для норвежского',
-    title: 'Норвежский по карточкам: бесплатно, без регистрации',
-    desc: 'Бесплатные карточки для норвежского по 29 темам, от приветствий до налоговой: каждое слово с формами и примером. Интервальное повторение, без регистрации и рекламы.',
+    title: 'Норвежские слова на карточках: бесплатно, без регистрации',
+    desc: 'Бесплатные карточки для норвежского по 29 темам, от приветствий до налоговой: каждое слово с формами и примером. Интервальное повторение, без регистрации.',
     h1: 'Норвежский по карточкам',
     lede: [
       'Выберите тему и начинайте сразу: Ordkort откроется с норвежскими словами по ней — у каждого перевод на русский, нужные формы и пример. Ничего не нужно устанавливать, нет аккаунта и рекламы.',
@@ -31,7 +31,7 @@ export const FLASH = {
   uk: {
     slug: 'kartky', nav: 'Картки для норвезької',
     title: 'Норвезька за картками: безкоштовно, без реєстрації',
-    desc: 'Безкоштовні картки для норвезької за 29 темами, від привітань до податкової: кожне слово з формами й прикладом. Інтервальне повторення, без реєстрації й реклами.',
+    desc: 'Безкоштовні картки для норвезької за 29 темами, від привітань до податкової: кожне слово з формами й прикладом. Інтервальне повторення, без реєстрації.',
     h1: 'Норвезька за картками',
     lede: [
       'Виберіть тему й починайте одразу: Ordkort відкриється з норвезькими словами до неї — кожне з перекладом українською, потрібними формами й прикладом. Нічого не треба встановлювати, немає акаунта й реклами.',
@@ -44,7 +44,7 @@ export const FLASH = {
   nb: {
     slug: 'ordkort', nav: 'Norske ordkort',
     title: 'Norske ordkort og gloser – gratis, uten innlogging',
-    desc: 'Gratis ordkort på norsk for 29 temaer, fra hilsener til Skatteetaten: hvert ord med bøyning og en eksempelsetning. Repetisjon med økende mellomrom, uten innlogging og reklame.',
+    desc: 'Gratis ordkort på norsk for 29 temaer, fra hilsener til Skatteetaten: hvert ord med bøyning og en eksempelsetning. Repetisjon til rett tid, uten innlogging.',
     h1: 'Norske ordkort',
     lede: [
       'Velg et tema og begynn med en gang: Ordkort åpner med de norske ordene for det, hvert med bøyningen du trenger og en eksempelsetning – og med oversettelse til språket ditt hvis du vil. Ingenting å installere, ingen konto, ingen reklame.',

@@ -135,9 +135,11 @@ test('the pages about the site are up to date, linked to each other and readable
   assert.match(read('public/css/style.css'), /\.js \.static-intro \{ display: none; \}/);
   assert.ok(app.match(/<title>([^<]+)<\/title>/)[1].length <= 70);
   assert.match(read('public/robots.txt'), /Sitemap: https:\/\/ordkort\.com\/sitemap\.xml/);
-  // the app's own schema defines the site and its publisher it points to, the same as the generated pages
+  // the app's own schema: the app, its page, and the site and publisher it points to, the same as the generated pages
   const appLd = JSON.parse(app.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)[1])['@graph'];
-  assert.deepEqual(appLd.slice(1), L.SITE_NODES, 'public/index.html: the WebSite and Organization nodes as in scripts/landing.mjs');
+  assert.equal(appLd[1]['@type'], 'WebPage');
+  assert.equal(appLd[1].about['@id'], `${SITE}/#app`);
+  assert.deepEqual(appLd.slice(2), L.SITE_NODES, 'public/index.html: the WebSite and Organization nodes as in scripts/landing.mjs');
   assert.equal(appLd[0].provider['@id'], `${SITE}/#org`);
 });
 
@@ -339,6 +341,51 @@ test('a word spelt like another one gets its own entry, with its own forms', () 
   assert.match(vinne, /seire/, 'vinne is "to win", not "to weed"');
   // of two correct forms the textbook one leads: snakket before snakka
   assert.match(built.pages.get('en/ordbok/nb/snakke/index.html'), /snakket \/ snakka/);
+});
+
+test('a topic noun of two genders: its article, its definite form and its example sentence agree', () => {
+  const end = { en: /en$/, ei: /a$/, et: /et$/ };
+  const off = [];
+  for (const id of S.TOPIC_IDS) for (const x of S.topicWords('en', id)) {
+    const art = /^(en|ei|et) /.exec(x.term)?.[1];
+    const def = S.keyForms(x.a, x.lemma).split(', ')[0];
+    if (art && x.a?.wc === 'NOUN' && x.a.forms['Sing+Def']?.length && !end[art].test(def)) off.push(`${x.term}, ${def}`);
+  }
+  assert.deepEqual(off, [], 'the article and the definite form come from one gender');
+  const home = built.pages.get('en/norwegian/home/index.html');
+  assert.match(home, /ei dør<\/span><\/a> <span class="w-tr">door<\/span><\/div><div class="w-forms" lang="nb">døra,/, 'the example says "Lås døra": ei dør, døra');
+  // with two articles, the forms are those both share: regnet, not regnte, which is only for rain
+  assert.doesNotMatch(built.pages.get('en/ordbok/nb/regne/index.html'), /regnte/);
+});
+
+test('every page keeps the date its text last changed (data/seo/dates.json)', () => {
+  assert.equal(read('data/seo/dates.json'), S.datesJson(built.dates), 'data/seo/dates.json is out of date: run npm run seo');
+  for (const [f, html] of seoPages) {
+    const [hash, date] = built.dates['/' + f.replace(/index\.html$/, '')];
+    assert.equal(hash, S.pageHash(html), `${f}: the hash of its text`);
+    assert.ok(!html.includes('@@'), `${f}: a date left out`);
+    if (html.includes('class="t updated"')) assert.ok(html.includes(`<time datetime="${date}">`), `${f}: shows its own date`);
+  }
+  // the hash reads the text, not the markup around it, nor the date line
+  const a = '<title>x</title><main><p>Hus <b>og</b> hjem</p><p class="t updated">Updated: 1 May</p></main>';
+  assert.equal(S.pageHash(a), S.pageHash(a.replace('<b>og</b>', '<i class="y">og</i>').replace('1 May', '2 June')));
+  assert.notEqual(S.pageHash(a), S.pageHash(a.replace('hjem', 'heim')));
+});
+
+test('a word page answers in a sentence under its headword, and its description starts with it', () => {
+  for (const [f, html] of seoPages) {
+    if (!/\/ordbok\/nb\/[^/]+\/index\.html$/.test(f)) continue;
+    const answer = text(one(html, /<p class="answer">([\s\S]*?)<\/p>/).replace(/<\/?bdi>/g, ''));
+    const desc = text(one(html, /<meta name="description" content="([^"]+)">/));
+    assert.ok(answer.length > 20, `${f}: the answer`);
+    assert.ok(desc.startsWith(answer.slice(0, 40)), `${f}: the description starts with the answer`);
+    // the Norwegian pages are for learners: no English word that answers a native's lookup in the results
+    if (f.startsWith('nb/')) assert.doesNotMatch(text(one(html, /<title>([^<]+)<\/title>/)) + desc, /på engelsk/, f);
+  }
+  // on a right-to-left page a Norwegian question keeps its "?" at its end
+  const ar = built.pages.get('ar/ordbok/nb/hus/index.html');
+  assert.match(ar, /<p class="answer"><bdi>hus<\/bdi> — /);
+  assert.doesNotMatch(ar, /<section class="official"[^>]*dir=/, 'the Arabic headings of the dictionary block are not marked left-to-right');
 });
 
 test('an address typed with æ, ø or å leads to the page of the word', () => {
