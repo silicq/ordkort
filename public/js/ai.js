@@ -137,16 +137,22 @@
   async function lookup(q, { force, signal } = {}) {
     const s = S();
     const key = `dict:${s.target}:${s.native}:${q.toLowerCase()}`;
-    if (!force) { const c = A.store.cacheGet(key); if (c) return c; }
-    const { data } = await api('lookup', { ...pair(), q, fresh: !!force }, { signal });
+    // an entry saved here whose note or origin is in the language being learnt is asked again (the server leaves
+    // those out), and still shown without a connection
+    const mine = (e) => [e.note, e.etymology].every((x) => A.langs.readable(x, s.native, s.target));
+    const c = force ? null : A.store.cacheGet(key);
+    if (c && mine(c)) return c;
+    const { data } = await api('lookup', { ...pair(), q, fresh: !!force }, { signal })
+      .catch((err) => { if (c && err.name !== 'AbortError') return { data: c }; throw err; });
     if (data && data.found !== false) A.store.cacheSet(key, data);
     return data;
   }
 
-  /* what Wiktionary says about a word, for languages without an official dictionary here → { found, page, section, articles } */
+  /* what Wiktionary and the free dictionaries say about a word, for languages without an official dictionary here
+     → { found, page, section, articles, more, checked } (`wikt2`: answers saved before `more` and `checked` are asked again) */
   function wikt(q, { signal } = {}) {
     const s = S();
-    return cached(`wikt:${s.target}:${q.toLowerCase()}`, false, async () => (await api('wikt', { ...pair(), q }, { signal })).data);
+    return cached(`wikt2:${s.target}:${q.toLowerCase()}`, false, async () => (await api('wikt', { ...pair(), q }, { signal })).data);
   }
 
   function chapter(id, { force, signal } = {}) {

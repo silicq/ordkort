@@ -129,11 +129,12 @@
     // dictionaries that have the word for other languages (through our server: Wikidata, BÍN for Icelandic, SALDO for
     // Swedish); the server passes the same data to the AI as ground truth itself
     const ref = (w) => (A.ordbok.supports(T) ? A.ordbok.lookup(w, T, signal)
-      : A.ai.wikt(w, { signal }).then((d) => (d?.found ? { wk: true, name: 'Wiktionary', ...d } : null))).catch(() => null);
+      : A.ai.wikt(w, { signal }).then((d) => (d ? { wk: true, name: 'Wiktionary', ...d } : null))).catch(() => null);
+    const show = (r, w) => refSlot.replaceChildren(...(found(r) ? [...references(r, w), missing(r)].filter(Boolean) : [noReference(w, r)]));
     const refPromise = ref(q);
     refPromise.then((r) => {
       if (my !== seq || signal.aborted) return;
-      refSlot.replaceChildren(...(found(r) ? references(r, q) : [noReference(q)]));
+      show(r, q);
     });
 
     try {
@@ -142,11 +143,12 @@
       const e = await A.ai.lookup(q, { force, signal });
       if (my !== seq) return;
       aiSlot.replaceChildren(e.found === false ? notFound(e, q) : entry(e, q));
-      // the query was in the native language — show the dictionary's entry for the translation found
+      // the query was in the native language — show the dictionary's entry for the translation found, or which
+      // dictionaries do not have that word either
       const first = await refPromise;
       if (e.found !== false && e.lemma && !found(first) && e.lemma.toLowerCase() !== q.toLowerCase()) {
         const r = await ref(e.lemma);
-        if (my === seq && found(r)) refSlot.replaceChildren(...references(r, e.lemma));
+        if (my === seq && (found(r) || r?.checked)) show(r, e.lemma);
       }
     } catch (err) {
       if (my !== seq || err.name === 'AbortError') return;
@@ -258,12 +260,25 @@
         r.url ? t('dict.free_open', { name: r.name }) : t(r.wk ? 'dict.wk_open' : 'dict.ob_open'), icon('external', 14)),
       r.wk && !r.url ? refLinks(T, r.page) : null);
   }
-  function noReference(q) {
+  /* Where the word is missing. The server names the dictionaries that answered (`checked`): Wiktionary and the free
+     ones of the language; an answer saved before it did names Wiktionary only, and no answer at all says so */
+  const either = (names) => {
+    try { return new Intl.ListFormat(A.i18n.lang(), { type: 'disjunction' }).format(names); } catch { return names.join(', '); }
+  };
+  // under the entries found: the dictionaries asked that do not have the word
+  function missing(r) {
+    if (!r?.wk || !r.checked) return null;
+    const have = new Set([...(r.articles?.length ? ['Wiktionary'] : []), ...(r.more || []).map((d) => d.name)]);
+    const none = r.checked.filter((n) => !have.has(n));
+    return none.length ? h('p', { class: 'muted small ref-missing' }, t('dict.none_in', { names: either(none) })) : null;
+  }
+  function noReference(q, r) {
     const T = A.store.settings.target;
     const ob = A.ordbok.supports(T);
+    const names = ob ? ['ordbokene.no'] : r ? r.checked || ['Wiktionary'] : [];
     return h('div', { class: 'official empty-ob' },
-      h('div', { class: 'official-head' }, h('span', { class: 'official-badge' + (ob ? '' : ' wk') }, ob ? 'ordbokene.no' : 'Wiktionary')),
-      h('p', { class: 'muted small' }, t(ob ? 'dict.ob_none' : 'dict.wk_none')),
+      h('div', { class: 'official-head' }, (names.length ? names : ['Wiktionary']).map((n) => h('span', { class: 'official-badge' + (ob ? '' : ' wk') }, n))),
+      h('p', { class: 'muted small' }, ob ? t('dict.ob_none') : names.length ? t('dict.none_in', { names: either(names) }) : t('dict.ref_down')),
       ob ? null : refLinks(T, q));
   }
 

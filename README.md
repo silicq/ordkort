@@ -23,7 +23,8 @@ Anki is powerful but starts empty, and you build every deck yourself. Most other
 subscription or your data. Ordkort gives you **ready word lists for 29 topics and levels A1–C1** with the same
 **FSRS** scheduler that Anki offers, plus a dictionary, a grammar book and a translator that explains every
 word. AI writes the cards, and they are **checked against real dictionaries**: the official Norwegian
-dictionaries at ordbokene.no, and Wiktionary for other languages. Everything stays in your browser; devices
+dictionaries at ordbokene.no, and for other languages Wiktionary with the free dictionaries Wikidata Lexemes,
+BÍN and SALDO. Everything stays in your browser; devices
 sync without an account, end-to-end encrypted.
 
 <p align="center"><img src="docs/screens.png" alt="Four screens: a flashcard, a dictionary entry with an inflection table, the translator explaining each word, and the daily session"></p>
@@ -59,8 +60,11 @@ Ordkort is a lightweight site for learning almost any language from almost any o
   (ground for the AI entry, and the check of a card where Wiktionary cannot tell): [Wikidata
   Lexemes](https://www.wikidata.org/wiki/Wikidata:Lexicographical_data) (CC0) for every language, with every
   form and its features, the gender and IPA; [BÍN](https://bin.arnastofnun.is) (CC BY-SA 4.0) for Icelandic;
-  [SALDO](https://spraakbanken.gu.se/resurs/saldom) of Språkbanken (CC BY 4.0) for Swedish. Translations
-  still come from the AI alone.
+  [SALDO](https://spraakbanken.gu.se/resurs/saldom) of Språkbanken (CC BY 4.0) for Swedish. When none of them
+  has the word, the page names each one that was asked (one that did not answer is not named). Translations
+  still come from the AI alone. The note and the origin of an entry are in the learner's language whatever
+  language the query is in; where the two are written in different scripts, one the AI wrote in the language
+  being learnt is left out rather than shown.
 - **Grammar book**: 15 chapters by part of speech (nouns, adjectives, verbs, word order…) with tables,
   examples, typical mistakes and exercises, plus free-form grammar questions.
 - **Translator with explanations**: every word colour-coded by part of speech, with its form and the rule

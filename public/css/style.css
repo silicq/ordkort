@@ -1146,6 +1146,9 @@ dialog.modal::backdrop { background: rgba(20, 16, 10, 0.45); backdrop-filter: bl
 .ob-refs { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--line-2); }
 .ob-refs .k { width: 100%; font: 700 12px/1 var(--font-ui); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); }
 .empty-ob p { margin: 0; }
+/* every dictionary asked, side by side; and under the entries found, the ones without the word */
+.empty-ob .official-head { flex-direction: row; flex-wrap: wrap; }
+.ref-missing { margin: 12px 4px 0; }
 
 .dict-intro .intro-card { max-width: 780px; padding: 22px 24px; border-radius: 20px; border: 1.5px dashed var(--line-2); background: var(--card); }
 .intro-card h3 { margin: 0 0 12px; font-size: 18px; }

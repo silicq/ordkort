@@ -135,6 +135,25 @@
     const s = ' ' + String(text || '').toLowerCase().replace(/[^\p{L}]+/gu, ' ') + ' ';
     return list.filter((l) => [l.en.split(' (')[0], l.name, l.name.split(' ')[0]].some((n) => n && s.includes(' ' + n.toLowerCase() + ' '))).map((l) => l.code);
   }
+  /* Whether a text the learner reads is in their language, as far as its letters tell. Asked about a word of their
+     own language ("закономерность" for a Russian speaker learning Chinese), the AI sometimes writes a dictionary
+     entry's note and origin in the language being learnt. Only languages written in different scripts can be told
+     apart: a text with hardly any letters of the learner's script is not theirs, while one of theirs may quote words
+     of the other. */
+  function readable(text, native, target) {
+    const want = scriptOfLang(native);
+    if (!text || want === scriptOfLang(target)) return true;
+    // Japanese is kana and kanji, but kanji alone are Chinese
+    const kanji = want === 'Kana' && /[\p{Script=Hiragana}\p{Script=Katakana}]/u.test(text);
+    let all = 0, own = 0;
+    for (const ch of String(text)) {
+      if (!/\p{L}/u.test(ch)) continue;
+      all++;
+      const sc = scriptOf(ch);
+      if (sc === want || (kanji && sc === 'Han')) own++;
+    }
+    return !all || own * 4 >= all;
+  }
   // whether a text can be in a language at all, by its letters ("щека" cannot be Norwegian)
   function fits(text, code) {
     const sc = scriptOf(text);
@@ -156,6 +175,7 @@
   return {
     scriptOf,
     scriptOfLang,
+    readable,
     fits,
     named,
     guess,

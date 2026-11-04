@@ -140,6 +140,7 @@ Query: ${JSON.stringify(q)}${grounding}
 - If it is a ${N} word (or a word in another language), describe the most common ${T} equivalent and list other ${T} equivalents in "alternatives".
 - A multi-word query is treated as a fixed expression.
 - If you are not sure the word exists, set "found": false and suggest up to 5 real ${T} words in "did_you_mean".
+LANGUAGE: whatever language the query is in, the reader is a ${N} speaker. "pos_label", every "tr", the table labels, "note" and "etymology" are written in ${N}, never in ${T} (${T} words inside them are quoted); only "lemma", "def", the examples, the expressions and the compounds are ${T}.
 
 JSON fields:
 "found": true|false,
@@ -149,14 +150,14 @@ JSON fields:
 "pos_label": word class (and gender) written in ${N}, dictionary style,
 "pron": pronunciation (IPA in slashes; pinyin/romanization for non-Latin scripts),
 "tr": main ${N} translations, comma-separated,
+"note": "1–3 sentences written in ${N} (the reader's language, not ${T}): what a learner must know (irregular forms, false friends, register, typical mistakes). Only facts you are sure about",
+"etymology": "very short origin written in ${N} if you are sure, otherwise empty",
 "alternatives": [{"lemma":"","tr":""}] — other ${T} words with the same meaning (only if the query was not ${T}), otherwise [],
 "inflection": [{"title":"","headers":[],"rows":[[]]}] — the COMPLETE paradigm in the standard layout of ${T} dictionaries, labels written in ${N}. Norwegian nouns: one table, headers ["", singular, plural], rows [indefinite …] and [definite …], exactly like ordbokene.no. Verbs: rows of [label, form] for infinitive, present, past, perfect, imperative (and passive if common). Adjectives: rows for masculine/feminine, neuter, definite/plural, comparative, superlative. Languages with cases: every case × singular/plural. [] if the word does not inflect,
 "senses": [{"def":"short simple ${T} definition (like Lexin)","tr":"${N} translation of this sense","examples":[{"text":"${T} example","tr":"${N} translation"}]}] — 1–5 senses, most common first, 1–3 examples each,
 "expressions": [{"text":"established ${T} fixed expression or idiom containing the word","tr":"its meaning in ${N}"}] — only ones you are certain exist in dictionaries, 0–5; an empty list is better than an invented idiom,
 "compounds": [real ${T} compounds or derived words containing the headword] — 0–8,
 "synonyms": [], "antonyms": [],
-"note": "1–3 sentences in ${N}: what a learner must know (irregular forms, false friends, register, typical mistakes). Only facts you are sure about",
-"etymology": "very short origin in ${N} if you are sure, otherwise empty",
 "did_you_mean": []`;
   return { system: SYSTEM(target), user, max: 5000, temperature: 0.2, effort: 'medium' };
 }
@@ -320,6 +321,16 @@ export function cleanEntry(e) {
     did_you_mean: [],
   };
 }
+
+/* A dictionary entry without the explanations the AI wrote in the language being learnt instead of the learner's
+   (App.langs.readable): left out rather than shown to someone who may not read them */
+const EXPLAINED = ['pos_label', 'note', 'etymology'];
+export function inNative(e, native, target) {
+  if (!e || e.found === false) return e;
+  return { ...e, ...Object.fromEntries(EXPLAINED.map((k) => [k, App.langs.readable(e[k], native, target) ? e[k] : ''])) };
+}
+// whether all of them are in the learner's language
+export const isNative = (e, native, target) => !e || e.found === false || EXPLAINED.every((k) => App.langs.readable(e[k], native, target));
 
 export function cleanChapter(d) {
   if (!d || typeof d !== 'object' || !Array.isArray(d.sections)) return null;
