@@ -207,13 +207,33 @@
     return c.box >= 4 ? 'known' : 'learning';
   }
 
+  // a capitalized word inside a sentence (USA, Google, Kari) is a name — except in German, where every noun is
+  function isName(txt, before = '') {
+    if (txt[0] === txt[0].toLowerCase() || A.store.settings.target === 'de') return false;
+    const b = before.trimEnd();
+    return !!b && !/[.!?…:"«“„(]$/u.test(b); // not at the start of a sentence
+  }
+
   function renderPart(p, i) {
     const para = h('p', { class: 'read-part' + (p.gloss ? '' : ' pending') });
     const glossed = new Map((p.gloss?.words || []).map((w) => [w.w, w]));
+    // a word the AI left out of this part may be glossed in another part of the text
+    const elsewhere = new Map();
+    for (const q of R.parts) q.gloss?.words.forEach((w) => { if (!elsewhere.has(w.w)) elsewhere.set(w.w, w); });
     const cards = index();
-    const word = (txt) => {
-      const g = glossed.get(txt.toLowerCase());
-      if (!g) return h('span', { class: 'rw' + (p.gloss ? ' plain' : '') }, txt);
+    const word = (txt, at) => {
+      const low = txt.toLowerCase();
+      const g = glossed.get(low) || (p.gloss && elsewhere.get(low));
+      if (!g) {
+        if (!p.gloss) return h('span', { class: 'rw' }, txt);
+        // left out by the AI: a name is plain text; any other word is never shown as known —
+        // it is in your cards or it is new, and a tap opens the dictionary
+        const c = cards.get(A.store.norm(txt));
+        if (c) return h('span', { class: 'rw st-' + (c.box >= 4 ? 'known' : 'learning') }, txt);
+        if (isName(txt, at)) return h('span', { class: 'rw plain' }, txt);
+        const go = () => { location.hash = '#/dict/' + encodeURIComponent(low); };
+        return h('span', { class: 'rw st-new nogloss', tabindex: '0', role: 'link', title: t('card.in_dict'), onclick: go, onkeydown: (e) => { if (e.key === 'Enter') go(); } }, txt);
+      }
       const st = status(g, cards);
       return h('span', { class: 'rw st-' + st, tabindex: '0', role: 'button', onclick: () => openSheet(g, p.text, txt), onkeydown: (e) => { if (e.key === 'Enter') openSheet(g, p.text, txt); } }, txt);
     };
@@ -231,7 +251,7 @@
     } else {
       let last = 0;
       for (const m of p.text.matchAll(/[\p{L}\p{M}]+(?:['’-][\p{L}\p{M}]+)*/gu)) {
-        para.append(p.text.slice(last, m.index), word(m[0]));
+        para.append(p.text.slice(last, m.index), word(m[0], p.text.slice(0, m.index)));
         last = m.index + m[0].length;
       }
       para.append(p.text.slice(last));
