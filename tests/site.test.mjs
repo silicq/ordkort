@@ -6,7 +6,7 @@ import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import vm from 'node:vm';
 import { ROOT, read } from './helpers.mjs';
 import { str, int, norm, isCode, randomCode, safeEqual } from '../src/core/util.js';
-import { cleanGloss, cleanWord, fillManyPrompt, fillPrompt } from '../src/ai/prompts.js';
+import { cleanGloss, cleanWord, fillManyPrompt, fillPrompt, glossPrompt, textWords } from '../src/ai/prompts.js';
 import { ABOUT } from '../scripts/about-text.mjs';
 import { UI, UIS } from '../scripts/seo-text.mjs';
 
@@ -532,6 +532,13 @@ test('codes and comparisons', () => {
   assert.ok(safeEqual('abc', 'abc'));
   assert.ok(!safeEqual('abc', 'abd'));
   assert.ok(!safeEqual('abc', null));
+});
+
+test('reading: the AI is given every word of the text, so it cannot leave some out', () => {
+  assert.deepEqual(textWords('Ved valget i USA fikk folk stemme, og folk sa nei. KI-datasenter!', 'nb'), ['ved', 'valget', 'i', 'usa', 'fikk', 'folk', 'stemme', 'og', 'sa', 'nei', 'ki-datasenter']);
+  assert.deepEqual(textWords('我喜欢咖啡', 'zh'), [], 'no spaces, no list');
+  const { user } = glossPrompt({ target: 'nb', native: 'ru', text: 'Store bygninger fulle av datamaskiner.' });
+  assert.match(user, /store, bygninger, fulle, av, datamaskiner/);
 });
 
 test('AI answers keep only the expected fields', () => {

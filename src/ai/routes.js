@@ -445,7 +445,7 @@ export async function gloss(request, env, key) {
   const { target, native } = pairOf(b);
   const text = str(b.text, 600);
   if (text.length < 2) throw new HttpError(400, 'empty');
-  return generate(env, key, `r1:${target}:${native}:${await h32(text)}`, {
+  return generate(env, key, `r2:${target}:${native}:${await h32(text)}`, {
     fresh: false,
     prompt: () => P.glossPrompt({ target, native, text }),
     clean: P.cleanGloss,

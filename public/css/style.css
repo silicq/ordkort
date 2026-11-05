@@ -1936,6 +1936,7 @@ html.kb-open body.view-study .flash-tag { height: 26px; }
 .rw.st-new, .rw.st-learning, .rw.st-known { cursor: pointer; border-radius: 4px; padding: 1px 1px; transition: background 0.15s; }
 .rw.st-new { background: color-mix(in srgb, var(--blue) 14%, transparent); box-shadow: inset 0 -2px 0 color-mix(in srgb, var(--blue) 55%, transparent); }
 .rw.st-learning { background: var(--yellow-soft); box-shadow: inset 0 -2px 0 var(--yellow); }
+.rw.st-new.nogloss { box-shadow: none; text-decoration: underline dotted color-mix(in srgb, var(--blue) 70%, transparent); text-decoration-thickness: 2px; text-underline-offset: 4px; } /* left out by the AI: a tap opens the dictionary */
 .rw.st-known:hover, .rw.st-new:hover, .rw.st-learning:hover { background: color-mix(in srgb, var(--blue) 24%, transparent); }
 .read-legend .rw { cursor: default; font-weight: 500; }
 .read-note { display: flex; align-items: center; gap: 6px; margin-top: 12px; }
