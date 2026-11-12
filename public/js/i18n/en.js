@@ -792,6 +792,7 @@ globalThis.App.i18nData.en = {
   'set.voice': "Voice",
   'set.voice_hint': "For cards without a recording of their own: a native speaker's recording from Wiktionary or the site's voice, or the voice of this device.",
   'set.voice_site': "Recordings and site voice",
+  'set.voice_default': "System default",
   'set.voice_system': "Device voice",
   'about.voice_h': "The voice of the cards",
   'about.voice_p': "A card from Anki plays its own recording. Otherwise the server looks for a native speaker's recording of the word on Wiktionary (Lingua Libre and others on Wikimedia Commons, under free licences), or makes one with a synthetic voice; only the text and its language go there, and each word is fetched once for everybody. You can switch to your device's own voice in Settings.",
