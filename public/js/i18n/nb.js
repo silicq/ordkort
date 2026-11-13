@@ -792,6 +792,7 @@ globalThis.App.i18nData.nb = {
   'set.voice': "Stemme",
   'set.voice_hint': "For kort uten eget lydopptak: et opptak av en morsmålsbruker fra Wiktionary eller nettstedets stemme – eller stemmen på denne enheten.",
   'set.voice_site': "Opptak og nettstedets stemme",
+  'set.voice_default': "Systemets standard",
   'set.voice_system': "Enhetens stemme",
   'about.voice_h': "Stemmen på kortene",
   'about.voice_p': "Et kort fra Anki spiller sitt eget opptak. Ellers leter serveren etter et opptak av ordet fra en morsmålsbruker på Wiktionary (Lingua Libre og andre på Wikimedia Commons, med åpne lisenser), eller lager et med en syntetisk stemme; bare teksten og språket sendes dit, og hvert ord hentes én gang for alle. Du kan bytte til enhetens egen stemme i innstillingene.",

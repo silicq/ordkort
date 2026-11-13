@@ -203,20 +203,15 @@
   /* ---------- speech (Web Speech API) ---------- */
   let voices = [];
   const synth = 'speechSynthesis' in window ? window.speechSynthesis : null;
+  // Safari's first getVoices() is empty: the list arrives with voiceschanged, so the picker waits for it
+  let markReady;
+  const voiceReady = new Promise((resolve) => { markReady = resolve; });
   if (synth) {
-    const load = () => { voices = synth.getVoices(); };
+    const load = () => { voices = synth.getVoices(); if (voices.length) markReady(); };
     load();
     synth.addEventListener?.('voiceschanged', load);
   }
-  const ALIAS = { nb: ['nb', 'no', 'nn'], nn: ['nn', 'nb', 'no'], zh: ['zh-cn', 'cmn', 'zh'], prs: ['fa-af', 'prs', 'fa'], kmr: ['ku', 'kmr'], tl: ['fil', 'tl'], he: ['he', 'iw'] };
-  function voiceFor(lang) {
-    const codes = ALIAS[lang] || [lang];
-    for (const c of codes) {
-      const v = voices.filter((x) => x.lang.toLowerCase().replace('_', '-').startsWith(c));
-      if (v.length) return v.find((x) => /natural|online|google/i.test(x.name)) || v[0];
-    }
-    return null;
-  }
+  const voiceFor = (lang) => A.voice.forLang(voices, lang);
   /* A card's own recording when it has one (from an Anki deck), the system's voice otherwise.
      Phones (Safari above all) play sound only when play() is called right inside a tap, not after waiting for the
      recording to load. So the recording is loaded as soon as its card shows (speakBtn), one audio element is used
@@ -287,11 +282,16 @@
     if (!synth || !text) return false;
     // a word in another alphabet than its deck's (a Russian word in a Norwegian deck) is read in its own language
     if (!A.langs.fits(text, lang)) lang = A.langs.guess(text, [A.store?.settings?.native, A.store?.settings?.target]) || lang;
-    const v = voiceFor(lang);
-    if (!v) { state(text, 'idle'); toast(A.t('tts.none', { lang: A.langs.name(lang) })); return false; }
+    // u.voice stays unset for "system default": the only way to the Siri voice on iOS
+    const v = A.voice.resolve(voices, A.store?.settings, lang);
+    if (!v && A.voice.usesSite(A.store?.settings?.voice)) { // the site's voice was wanted, the device has none
+      state(text, 'idle');
+      toast(A.t('tts.none', { lang: A.langs.name(lang) }));
+      return false;
+    }
     const u = new SpeechSynthesisUtterance(String(text).replace(/[*_]/g, ''));
-    u.voice = v;
-    u.lang = v.lang;
+    if (v) u.voice = v;
+    u.lang = v ? v.lang : A.voice.langTag(voices, lang);
     u.rate = 0.9;
     sounding = null;
     u.onstart = () => state(text, 'playing');
@@ -401,6 +401,9 @@
   /* append/replaceChildren that skip null/false (otherwise the text "null" ends up in the DOM) */
   const addTo = (el, ...kids) => { add(el, kids); return el; };
   const putTo = (el, ...kids) => { el.replaceChildren(); add(el, kids); return el; };
+
+  A.voice.now = () => voices;
+  A.voice.ready = voiceReady;
 
   Object.assign(A, {
     h, icon, logo, add: addTo, put: putTo, rich, lt, toast, modal, confirm: confirmBox, prompt: promptBox,

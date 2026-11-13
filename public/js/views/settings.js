@@ -251,10 +251,32 @@
             row(t('set.goal'), t('set.goal_hint'), numSel([10, 20, 30, 50, 100, 200], s.goal || 20, (v) => set({ goal: v }))),
             row(t('set.batch'), t('set.batch_hint'), numSel([10, 20, 30], s.batch, (v) => set({ batch: v }))),
             row(t('set.autospeak'), t('set.autospeak_hint'), toggle(s.autoSpeak, (v) => set({ autoSpeak: v }))),
-            row(t('set.voice'), t('set.voice_hint'), A.segmented([
-              { value: 'site', label: t('set.voice_site') },
-              { value: 'system', label: t('set.voice_system') },
-            ], s.voice === 'system' ? 'system' : 'site', (v) => set({ voice: v }))),
+            row(t('set.voice'), t('set.voice_hint'), (() => {
+              const seg = A.segmented([
+                { value: 'site', label: t('set.voice_site') },
+                { value: 'system', label: t('set.voice_system') },
+              ], A.voice.usesSite(s.voice) ? 'site' : 'system', (v) => set({ voice: v }, true));
+              const wrap = h('div', { class: 'voice-pick' }, seg);
+              if (A.voice.usesSite(s.voice)) return wrap;
+              const sel = h('select', { class: 'select' });
+              const fill = () => {
+                const want = s.voiceURI || '';
+                sel.replaceChildren(h('option', { value: '' }, t('set.voice_default')));
+                const mine = A.voice.list(A.voice.now(), s.target);
+                if (mine.length) {
+                  const group = h('optgroup', { label: t('set.voice_system') });
+                  for (const v of mine) group.append(h('option', { value: v.voiceURI }, `${v.name} — ${v.lang}`));
+                  sel.append(group);
+                }
+                sel.value = want;
+                if (sel.value !== want) sel.value = ''; // a voice this device does not have
+              };
+              fill();
+              A.voice.ready.then(() => { if (!sel.querySelector('optgroup')) fill(); });
+              sel.addEventListener('change', () => set({ voiceURI: sel.value }));
+              wrap.append(sel);
+              return wrap;
+            })()),
             row(t('set.auto_cover'), t('set.auto_cover_hint'), toggle(s.autoCover !== false, (v) => set({ autoCover: v }))),
             remindRow())),
           at(5, card(t('set.data'),
